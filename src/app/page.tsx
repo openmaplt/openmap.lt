@@ -4,7 +4,7 @@ import {
   GeolocateControl,
   Map as MapLibreMap,
   NavigationControl,
-} from "@vis.gl/react-maplibre";
+} from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 export default function Page() {
