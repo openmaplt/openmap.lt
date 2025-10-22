@@ -20,7 +20,7 @@ This is **openmap.lt** - an open-source Lithuanian map application built with mo
 
 ## Map Configuration
 - **Map Style**: `https://openmap.lt/styles/map.json`
-- **Default Center**: Latvia center (55.19114, 23.871)
+- **Default Center**: Lithuania center (55.19114, 23.871)
 - **Zoom Range**: 7-18
 - **Bounds**: Lithuania boundaries [20.7, 53.7, 27.05, 56.65]
 - **Controls**: Navigation and Geolocation controls
