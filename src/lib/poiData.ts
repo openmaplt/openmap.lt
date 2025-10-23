@@ -196,10 +196,7 @@ function getAttributeType(key: string): PoiAttribute["type"] {
 /**
  * Extract structured POI data from properties
  */
-export function extractPoiData(
-  properties: PoiProperties,
-  _layerId: string,
-): PoiData {
+export function extractPoiData(properties: PoiProperties): PoiData {
   const attributes: PoiAttribute[] = [];
 
   for (const key of SHOW_ATTRIBUTES) {

@@ -120,7 +120,7 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
       return (
         <div className="space-y-1">
           {lines.map((line) => (
-            <div key={line} className="text-sm text-foreground">
+            <div key={line} className="text-foreground">
               {line}
             </div>
           ))}

@@ -2,6 +2,7 @@
  * URL hash utility functions for map state management
  * Format: #m/[zoom]/[latitude]/[longitude]/[bearing]/[pitch]
  */
+import { Config } from "@/config";
 
 export interface MapState {
   mapType: string;
@@ -87,19 +88,8 @@ export function loadStateFromStorage(): MapState | null {
     if (!stored) {
       return null;
     }
-    const state = JSON.parse(stored) as MapState;
-    // Validate the loaded state
-    if (
-      typeof state.zoom === "number" &&
-      typeof state.latitude === "number" &&
-      typeof state.longitude === "number" &&
-      typeof state.bearing === "number" &&
-      typeof state.pitch === "number" &&
-      typeof state.mapType === "string"
-    ) {
-      return state;
-    }
-    return null;
+
+    return JSON.parse(stored) as MapState;
   } catch (error) {
     console.warn("Failed to load state from localStorage:", error);
     return null;
@@ -109,7 +99,7 @@ export function loadStateFromStorage(): MapState | null {
 /**
  * Get initial map state from URL hash or localStorage
  */
-export function getInitialMapState(): MapState | null {
+export function getMapState(): MapState {
   // First try to parse from URL hash
   if (typeof window !== "undefined" && window.location.hash) {
     const state = parseHash(window.location.hash);
@@ -126,5 +116,12 @@ export function getInitialMapState(): MapState | null {
     }
   }
 
-  return null;
+  return {
+    mapType: Config.DEFAULT_MAP_TYPE,
+    latitude: Config.DEFAULT_LATITUDE,
+    longitude: Config.DEFAULT_LONGITUDE,
+    zoom: Config.DEFAULT_ZOOM,
+    bearing: 0,
+    pitch: 0,
+  };
 }

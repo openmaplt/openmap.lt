@@ -12,7 +12,7 @@ import { PoiInteraction } from "@/components/PoiInteraction";
 import { Config } from "@/config";
 import {
   formatHash,
-  getInitialMapState,
+  getMapState,
   parseHash,
   saveStateToStorage,
 } from "@/lib/urlHash";
@@ -21,25 +21,15 @@ export default function Page() {
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState(() => {
     // This runs only once on client side
-    const savedState = getInitialMapState();
-    return {
-      latitude: savedState?.latitude ?? Config.DEFAULT_LATITUDE,
-      longitude: savedState?.longitude ?? Config.DEFAULT_LONGITUDE,
-      zoom: savedState?.zoom ?? Config.DEFAULT_ZOOM,
-      bearing: savedState?.bearing ?? 0,
-      pitch: savedState?.pitch ?? 0,
-    };
-  });
-  const [objectId, setObjectId] = useState<string | undefined>(() => {
-    const savedState = getInitialMapState();
-    return savedState?.objectId;
+    const { latitude, longitude, zoom, bearing, pitch } = getMapState();
+    return { latitude, longitude, zoom, bearing, pitch };
   });
 
   useEffect(() => {
+    const currentState = getMapState();
     const hashData = {
-      mapType: "m",
+      ...currentState,
       ...viewState,
-      objectId,
     };
 
     // Update URL without triggering page reload
@@ -47,7 +37,7 @@ export default function Page() {
 
     // Save to localStorage as JSON
     saveStateToStorage(hashData);
-  }, [viewState, objectId]);
+  }, [viewState]);
 
   // Listen for URL hash changes (when user manually edits URL)
   useEffect(() => {
@@ -62,9 +52,6 @@ export default function Page() {
           pitch: newState.pitch,
           duration: 1000,
         });
-
-        // Update object ID
-        setObjectId(newState.objectId);
       }
     };
 
@@ -91,10 +78,7 @@ export default function Page() {
       >
         <NavigationControl position="top-left" />
         <GeolocateControl position="top-left" />
-        <PoiInteraction
-          onObjectIdChange={setObjectId}
-          currentObjectId={objectId}
-        />
+        <PoiInteraction />
       </MapLibreMap>
     </div>
   );

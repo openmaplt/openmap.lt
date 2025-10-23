@@ -1,6 +1,7 @@
 import type { LngLatBoundsLike } from "maplibre-gl";
 
 type Config = {
+  DEFAULT_MAP_TYPE: string;
   DEFAULT_STYLE_MAP: string;
   DEFAULT_LATITUDE: number;
   DEFAULT_LONGITUDE: number;
@@ -11,6 +12,7 @@ type Config = {
 };
 
 export const Config: Config = {
+  DEFAULT_MAP_TYPE: "m",
   DEFAULT_STYLE_MAP: "/styles/map.json",
   DEFAULT_LATITUDE: 55.19114,
   DEFAULT_LONGITUDE: 23.871,
