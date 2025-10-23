@@ -20,21 +20,12 @@ export default function Page() {
   const [viewState, _setViewState] = useState(() => {
     // This runs only once on client side
     const savedState = getInitialMapState();
-    if (savedState) {
-      return {
-        latitude: savedState.latitude,
-        longitude: savedState.longitude,
-        zoom: savedState.zoom,
-        bearing: savedState.bearing,
-        pitch: savedState.pitch,
-      };
-    }
     return {
-      latitude: Config.DEFAULT_LATITUDE,
-      longitude: Config.DEFAULT_LONGITUDE,
-      zoom: Config.DEFAULT_ZOOM,
-      bearing: 0,
-      pitch: 0,
+      latitude: savedState?.latitude ?? Config.DEFAULT_LATITUDE,
+      longitude: savedState?.longitude ?? Config.DEFAULT_LONGITUDE,
+      zoom: savedState?.zoom ?? Config.DEFAULT_ZOOM,
+      bearing: savedState?.bearing ?? 0,
+      pitch: savedState?.pitch ?? 0,
     };
   });
 
@@ -62,7 +53,7 @@ export default function Page() {
   }, []);
 
   // Update URL hash and localStorage when map moves
-  const handleMove = useCallback((evt: ViewStateChangeEvent) => {
+  const handleMoveEnd = useCallback((evt: ViewStateChangeEvent) => {
     const { latitude, longitude, zoom, bearing, pitch } = evt.viewState;
 
     const state = {
@@ -92,7 +83,7 @@ export default function Page() {
         minZoom={Config.MIN_ZOOM}
         maxZoom={Config.MAX_ZOOM}
         maxBounds={Config.BOUNDS}
-        onMove={handleMove}
+        onMoveEnd={handleMoveEnd}
       >
         <NavigationControl position="top-left" />
         <GeolocateControl position="top-left" />
