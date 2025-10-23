@@ -24,3 +24,65 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* POI Popup Styles */
+.maplibregl-popup-content {
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  line-height: 1.6;
+}
+
+.maplibregl-popup-content strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.maplibregl-popup-content a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+.maplibregl-popup-content a:hover {
+  text-decoration: underline;
+}
+
+.maplibregl-popup-content img {
+  margin-top: 10px;
+  border-radius: 4px;
+}
+
+.maplibregl-popup-close-button {
+  font-size: 20px;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  color: #999;
+}
+
+.maplibregl-popup-close-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+@media (prefers-color-scheme: dark) {
+  .maplibregl-popup-content {
+    background-color: #1a1a1a;
+    color: #ededed;
+  }
+
+  .maplibregl-popup-content a {
+    color: #4da3ff;
+  }
+
+  .maplibregl-popup-close-button {
+    color: #999;
+  }
+
+  .maplibregl-popup-close-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ededed;
+  }
+}

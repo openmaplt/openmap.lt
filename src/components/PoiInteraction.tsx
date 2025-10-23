@@ -7,7 +7,7 @@ import { Popup } from "react-map-gl/maplibre";
 import { generatePoiHtml, getObjectId, parseObjectId } from "@/libs/poiUtils";
 
 interface PoiInteractionProps {
-  mapRef: React.RefObject<MapRef>;
+  mapRef: React.RefObject<MapRef | null>;
   onObjectIdChange: (objectId: string | undefined) => void;
   currentObjectId?: string;
 }
