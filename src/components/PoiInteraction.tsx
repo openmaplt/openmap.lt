@@ -78,11 +78,23 @@ export function PoiInteraction({
       map.getCanvas().style.cursor = "";
     };
 
-    // Wait for layer to be available
-    if (map.getLayer(INTERACTIVE_LAYER)) {
-      map.on("click", INTERACTIVE_LAYER, handleClick);
-      map.on("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
-      map.on("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
+    const setupEventHandlers = () => {
+      // Check if the layer exists before adding handlers
+      if (map.getLayer(INTERACTIVE_LAYER)) {
+        map.on("click", INTERACTIVE_LAYER, handleClick);
+        map.on("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
+        map.on("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
+        return true;
+      }
+      return false;
+    };
+
+    // If map style is loaded, setup handlers immediately
+    if (map.isStyleLoaded()) {
+      setupEventHandlers();
+    } else {
+      // Otherwise, wait for style to load
+      map.once("styledata", setupEventHandlers);
     }
 
     return () => {
