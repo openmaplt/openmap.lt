@@ -168,7 +168,7 @@ export function PoiInteraction({
       latitude={popupInfo.latitude}
       onClose={handlePopupClose}
       closeButton={true}
-      closeOnClick={false}
+      closeOnClick={true}
       maxWidth="70vw"
       className="poi-popup"
     >

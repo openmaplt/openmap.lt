@@ -1,4 +1,14 @@
-import { ExternalLink, MapPin } from "lucide-react";
+import {
+  BookOpen,
+  Clock,
+  ExternalLink,
+  Globe,
+  Landmark,
+  Mail,
+  MapPin,
+  Phone,
+  Ruler,
+} from "lucide-react";
 import {
   formatOpeningHours,
   type PoiAttribute,
@@ -9,12 +19,27 @@ interface PoiContentProps {
   data: PoiData;
 }
 
+// Map icon names to Lucide components
+const iconComponents: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
+  Clock,
+  Mail,
+  Phone,
+  Globe,
+  Landmark,
+  BookOpen,
+  Ruler,
+  MapPin,
+};
+
 function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
   const { type, value } = attribute;
 
   switch (type) {
     case "name":
-      return <strong className="text-lg">{value}</strong>;
+      return <strong className="text-lg text-foreground">{value}</strong>;
 
     case "link":
       return (
@@ -31,14 +56,14 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
 
     case "phone":
       return (
-        <a href={`tel:${value}`} className="hover:underline">
+        <a href={`tel:${value}`} className="text-foreground hover:underline">
           {value}
         </a>
       );
 
     case "email":
       return (
-        <a href={`mailto:${value}`} className="hover:underline">
+        <a href={`mailto:${value}`} className="text-foreground hover:underline">
           {value}
         </a>
       );
@@ -95,7 +120,7 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
       return (
         <div className="space-y-1">
           {lines.map((line) => (
-            <div key={line} className="text-sm">
+            <div key={line} className="text-sm text-foreground">
               {line}
             </div>
           ))}
@@ -104,31 +129,37 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
     }
 
     default:
-      return <span>{value}</span>;
+      return <span className="text-foreground">{value}</span>;
   }
 }
 
 export function PoiContent({ data }: PoiContentProps) {
   return (
     <div className="space-y-3 min-w-[200px] max-w-[400px]">
-      {data.attributes.map((attribute) => (
-        <div key={attribute.key} className="flex gap-2">
-          {attribute.icon && (
-            <span className="flex-shrink-0 text-base" aria-hidden="true">
-              {attribute.icon}
-            </span>
-          )}
-          <div className="flex-1 min-w-0">
-            {attribute.label && attribute.type !== "name" && (
-              <span className="font-semibold">{attribute.label}: </span>
+      {data.attributes.map((attribute) => {
+        const IconComponent = attribute.icon
+          ? iconComponents[attribute.icon]
+          : null;
+
+        return (
+          <div key={attribute.key} className="flex gap-2">
+            {IconComponent && (
+              <IconComponent className="flex-shrink-0 w-4 h-4 mt-0.5 text-foreground" />
             )}
-            <AttributeValue attribute={attribute} />
+            <div className="flex-1 min-w-0">
+              {attribute.label && attribute.type !== "name" && (
+                <span className="font-semibold text-foreground">
+                  {attribute.label}:{" "}
+                </span>
+              )}
+              <AttributeValue attribute={attribute} />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {data.osmLink && (
-        <div className="flex gap-4 pt-2 border-t border-gray-200 dark:border-gray-700 text-sm">
+        <div className="flex gap-4 pt-2 border-t border-border text-sm">
           <a
             href={data.osmLink.view}
             target="_blank"

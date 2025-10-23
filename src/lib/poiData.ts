@@ -79,16 +79,16 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   fee: "Mokestis",
 };
 
-// Icons (emoji) for attributes
+// Lucide React icon names for attributes
 const ATTRIBUTE_ICONS: Record<string, string> = {
-  opening_hours: "🕒",
-  email: "✉️",
-  phone: "📞",
-  website: "🌐",
-  heritage: "🏛️",
-  wikipedia: "📖",
-  height: "📏",
-  street: "📍",
+  opening_hours: "Clock",
+  email: "Mail",
+  phone: "Phone",
+  website: "Globe",
+  heritage: "Landmark",
+  wikipedia: "BookOpen",
+  height: "Ruler",
+  street: "MapPin",
 };
 
 // Layer code mapping (for object IDs)
