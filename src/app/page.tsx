@@ -7,15 +7,17 @@ import {
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ViewStateChangeEvent } from "react-map-gl/maplibre";
+import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { Config } from "@/config";
 import {
   formatHash,
   getInitialMapState,
+  parseHash,
   saveStateToStorage,
 } from "@/libs/urlHash";
 
 export default function Page() {
+  const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState(() => {
     // This runs only once on client side
     const savedState = getInitialMapState();
@@ -41,6 +43,26 @@ export default function Page() {
     saveStateToStorage(hashData);
   }, [viewState]);
 
+  // Listen for URL hash changes (when user manually edits URL)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const newState = parseHash(window.location.hash);
+      if (newState && mapRef.current) {
+        // Update map view to match the new URL
+        mapRef.current.flyTo({
+          center: [newState.longitude, newState.latitude],
+          zoom: newState.zoom,
+          bearing: newState.bearing,
+          pitch: newState.pitch,
+          duration: 1000,
+        });
+      }
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
   // Update URL hash and localStorage when map moves
   const handleMoveEnd = useCallback(({ viewState }: ViewStateChangeEvent) => {
     const { latitude, longitude, zoom, bearing, pitch } = viewState;
@@ -50,6 +72,7 @@ export default function Page() {
   return (
     <div className="w-full h-screen">
       <MapLibreMap
+        ref={mapRef}
         mapStyle={Config.DEFAULT_STYLE_MAP}
         initialViewState={viewState}
         minZoom={Config.MIN_ZOOM}
