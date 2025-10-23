@@ -12,7 +12,7 @@ export interface MapState {
   pitch: number;
 }
 
-const LOCALSTORAGE_KEY = "openmap_hash";
+const LOCALSTORAGE_KEY = "openmap_state";
 
 /**
  * Parse hash string to map state
@@ -64,24 +64,40 @@ export function formatHash(state: MapState): string {
 }
 
 /**
- * Save hash to localStorage
+ * Save map state to localStorage as JSON
  */
-export function saveHashToStorage(hash: string): void {
+export function saveStateToStorage(state: MapState): void {
   try {
-    localStorage.setItem(LOCALSTORAGE_KEY, hash);
+    localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(state));
   } catch (error) {
-    console.warn("Failed to save hash to localStorage:", error);
+    console.warn("Failed to save state to localStorage:", error);
   }
 }
 
 /**
- * Load hash from localStorage
+ * Load map state from localStorage
  */
-export function loadHashFromStorage(): string | null {
+export function loadStateFromStorage(): MapState | null {
   try {
-    return localStorage.getItem(LOCALSTORAGE_KEY);
+    const stored = localStorage.getItem(LOCALSTORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+    const state = JSON.parse(stored) as MapState;
+    // Validate the loaded state
+    if (
+      typeof state.zoom === "number" &&
+      typeof state.latitude === "number" &&
+      typeof state.longitude === "number" &&
+      typeof state.bearing === "number" &&
+      typeof state.pitch === "number" &&
+      typeof state.mapType === "string"
+    ) {
+      return state;
+    }
+    return null;
   } catch (error) {
-    console.warn("Failed to load hash from localStorage:", error);
+    console.warn("Failed to load state from localStorage:", error);
     return null;
   }
 }
@@ -100,12 +116,9 @@ export function getInitialMapState(): MapState | null {
 
   // Fall back to localStorage
   if (typeof window !== "undefined") {
-    const storedHash = loadHashFromStorage();
-    if (storedHash) {
-      const state = parseHash(storedHash);
-      if (state) {
-        return state;
-      }
+    const state = loadStateFromStorage();
+    if (state) {
+      return state;
     }
   }
 
