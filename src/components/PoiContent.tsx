@@ -3,7 +3,7 @@ import {
   formatOpeningHours,
   type PoiAttribute,
   type PoiData,
-} from "@/libs/poiData";
+} from "@/lib/poiData";
 
 interface PoiContentProps {
   data: PoiData;

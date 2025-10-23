@@ -9,7 +9,7 @@ import {
   getObjectId,
   type PoiData,
   parseObjectId,
-} from "@/libs/poiData";
+} from "@/lib/poiData";
 
 interface PoiInteractionProps {
   onObjectIdChange: (objectId: string | undefined) => void;

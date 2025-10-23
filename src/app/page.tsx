@@ -15,7 +15,7 @@ import {
   getInitialMapState,
   parseHash,
   saveStateToStorage,
-} from "@/libs/urlHash";
+} from "@/lib/urlHash";
 
 export default function Page() {
   const mapRef = useRef<MapRef>(null);
