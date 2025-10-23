@@ -92,7 +92,6 @@ export default function Page() {
         <NavigationControl position="top-left" />
         <GeolocateControl position="top-left" />
         <PoiInteraction
-          mapRef={mapRef}
           onObjectIdChange={setObjectId}
           currentObjectId={objectId}
         />
