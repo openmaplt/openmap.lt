@@ -8,6 +8,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
+import { PoiInteraction } from "@/components/PoiInteraction";
 import { Config } from "@/config";
 import {
   formatHash,
@@ -29,11 +30,16 @@ export default function Page() {
       pitch: savedState?.pitch ?? 0,
     };
   });
+  const [objectId, setObjectId] = useState<string | undefined>(() => {
+    const savedState = getInitialMapState();
+    return savedState?.objectId;
+  });
 
   useEffect(() => {
     const hashData = {
       mapType: "m",
       ...viewState,
+      objectId,
     };
 
     // Update URL without triggering page reload
@@ -41,7 +47,7 @@ export default function Page() {
 
     // Save to localStorage as JSON
     saveStateToStorage(hashData);
-  }, [viewState]);
+  }, [viewState, objectId]);
 
   // Listen for URL hash changes (when user manually edits URL)
   useEffect(() => {
@@ -56,6 +62,9 @@ export default function Page() {
           pitch: newState.pitch,
           duration: 1000,
         });
+
+        // Update object ID
+        setObjectId(newState.objectId);
       }
     };
 
@@ -82,6 +91,11 @@ export default function Page() {
       >
         <NavigationControl position="top-left" />
         <GeolocateControl position="top-left" />
+        <PoiInteraction
+          mapRef={mapRef}
+          onObjectIdChange={setObjectId}
+          currentObjectId={objectId}
+        />
       </MapLibreMap>
     </div>
   );

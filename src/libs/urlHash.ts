@@ -10,13 +10,14 @@ export interface MapState {
   longitude: number;
   bearing: number;
   pitch: number;
+  objectId?: string;
 }
 
 const LOCALSTORAGE_KEY = "openmap_state";
 
 /**
  * Parse hash string to map state
- * Example: #m/14/54.93429/23.91776/0/0
+ * Example: #m/14/54.93429/23.91776/0/0 or #m/14/54.93429/23.91776/0/0/p2811970425
  */
 export function parseHash(hash: string): MapState | null {
   if (!hash || !hash.startsWith("#")) {
@@ -24,11 +25,12 @@ export function parseHash(hash: string): MapState | null {
   }
 
   const parts = hash.substring(1).split("/");
-  if (parts.length !== 6) {
+  if (parts.length !== 6 && parts.length !== 7) {
     return null;
   }
 
-  const [mapType, zoomStr, latStr, lonStr, bearingStr, pitchStr] = parts;
+  const [mapType, zoomStr, latStr, lonStr, bearingStr, pitchStr, objectId] =
+    parts;
 
   const zoom = Number.parseFloat(zoomStr);
   const latitude = Number.parseFloat(latStr);
@@ -53,6 +55,7 @@ export function parseHash(hash: string): MapState | null {
     longitude,
     bearing,
     pitch,
+    objectId: objectId || undefined,
   };
 }
 
@@ -60,7 +63,8 @@ export function parseHash(hash: string): MapState | null {
  * Format map state to hash string
  */
 export function formatHash(state: MapState): string {
-  return `#${state.mapType}/${state.zoom.toFixed(2)}/${state.latitude.toFixed(5)}/${state.longitude.toFixed(5)}/${state.bearing.toFixed(0)}/${state.pitch.toFixed(0)}`;
+  const baseHash = `#${state.mapType}/${state.zoom.toFixed(2)}/${state.latitude.toFixed(5)}/${state.longitude.toFixed(5)}/${state.bearing.toFixed(0)}/${state.pitch.toFixed(0)}`;
+  return state.objectId ? `${baseHash}/${state.objectId}` : baseHash;
 }
 
 /**
