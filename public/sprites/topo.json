@@ -1,0 +1,240 @@
+{
+  "airport": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 149,
+    "y": 0
+  },
+  "beacon": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 169,
+    "y": 0
+  },
+  "camp": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 189,
+    "y": 0
+  },
+  "cemetery": {
+    "height": 16,
+    "pixelRatio": 1,
+    "width": 14,
+    "x": 39,
+    "y": 148
+  },
+  "chapel": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 209,
+    "y": 0
+  },
+  "chimney": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 229,
+    "y": 0
+  },
+  "cliff": {
+    "height": 9,
+    "pixelRatio": 1,
+    "width": 12,
+    "x": 220,
+    "y": 148
+  },
+  "communication_tower": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 128,
+    "y": 64
+  },
+  "dam": {
+    "height": 11,
+    "pixelRatio": 1,
+    "width": 7,
+    "x": 244,
+    "y": 128
+  },
+  "fuel": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 148,
+    "y": 64
+  },
+  "helipad": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 168,
+    "y": 64
+  },
+  "hillfort": {
+    "height": 11,
+    "pixelRatio": 1,
+    "width": 11,
+    "x": 68,
+    "y": 148
+  },
+  "hydro": {
+    "height": 21,
+    "pixelRatio": 1,
+    "width": 21,
+    "x": 128,
+    "y": 0
+  },
+  "light_tower": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 188,
+    "y": 64
+  },
+  "manor": {
+    "height": 11,
+    "pixelRatio": 1,
+    "width": 11,
+    "x": 79,
+    "y": 148
+  },
+  "marsh": {
+    "height": 64,
+    "pixelRatio": 1,
+    "width": 64,
+    "x": 0,
+    "y": 0
+  },
+  "meadow": {
+    "height": 64,
+    "pixelRatio": 1,
+    "width": 64,
+    "x": 64,
+    "y": 0
+  },
+  "orchard": {
+    "height": 15,
+    "pixelRatio": 1,
+    "width": 15,
+    "x": 53,
+    "y": 148
+  },
+  "quarry": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 208,
+    "y": 64
+  },
+  "quary": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 228,
+    "y": 64
+  },
+  "rapids": {
+    "height": 11,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 93,
+    "y": 148
+  },
+  "reedbed": {
+    "height": 64,
+    "pixelRatio": 1,
+    "width": 64,
+    "x": 0,
+    "y": 64
+  },
+  "river": {
+    "height": 10,
+    "pixelRatio": 1,
+    "width": 104,
+    "x": 115,
+    "y": 148
+  },
+  "stream": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 104,
+    "x": 0,
+    "y": 128
+  },
+  "substation": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 104,
+    "y": 128
+  },
+  "swamp": {
+    "height": 64,
+    "pixelRatio": 1,
+    "width": 64,
+    "x": 64,
+    "y": 64
+  },
+  "tower": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 124,
+    "y": 128
+  },
+  "turf": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 144,
+    "y": 128
+  },
+  "unesco": {
+    "height": 19,
+    "pixelRatio": 1,
+    "width": 19,
+    "x": 20,
+    "y": 148
+  },
+  "watermill": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 164,
+    "y": 128
+  },
+  "windmill": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 184,
+    "y": 128
+  },
+  "windpower": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 204,
+    "y": 128
+  },
+  "worship_christian": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 224,
+    "y": 128
+  },
+  "worship_other": {
+    "height": 20,
+    "pixelRatio": 1,
+    "width": 20,
+    "x": 0,
+    "y": 148
+  }
+}

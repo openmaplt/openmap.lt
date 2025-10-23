@@ -6,20 +6,21 @@ import {
   NavigationControl,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { Config } from "@/config";
 
 export default function Page() {
   return (
     <div className="w-full h-screen">
       <MapLibreMap
-        mapStyle="https://openmap.lt/styles/map.json"
+        mapStyle={Config.DEFAULT_STYLE_MAP}
         initialViewState={{
-          latitude: 55.19114,
-          longitude: 23.871,
-          zoom: 7,
+          latitude: Config.DEFAULT_LATITUDE,
+          longitude: Config.DEFAULT_LONGITUDE,
+          zoom: Config.DEFAULT_ZOOM,
         }}
-        minZoom={7}
-        maxZoom={18}
-        maxBounds={[20.7, 53.7, 27.05, 56.65]}
+        minZoom={Config.MIN_ZOOM}
+        maxZoom={Config.MAX_ZOOM}
+        maxBounds={Config.BOUNDS}
       >
         <NavigationControl position="top-left" />
         <GeolocateControl position="top-left" />

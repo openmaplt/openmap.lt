@@ -1,0 +1,24 @@
+{
+  "version": 8,
+  "metadata": {
+    "maputnik:renderer": "mbgljs"
+  },
+  "sources": {
+    "orto": {
+      "type": "raster",
+      "attribution": "© NŽT ORT10LT",
+      "tiles": ["https://ort10lt.openmap.lt/g16/{z}/{x}/{y}.jpeg"],
+      "tileSize": 256
+    }
+  },
+  "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "orto",
+      "source": "orto",
+      "type": "raster"
+    }
+  ],
+  "id": "orto-style",
+  "name": "openmap.lt"
+}
