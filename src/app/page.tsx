@@ -74,8 +74,8 @@ export default function Page() {
         maxBounds={Config.BOUNDS}
         onMoveEnd={handleMoveEnd}
       >
-        <NavigationControl position="top-left" />
-        <GeolocateControl position="top-left" />
+        <NavigationControl position="top-right" />
+        <GeolocateControl position="top-right" />
         <PoiInteraction />
       </MapLibreMap>
     </div>

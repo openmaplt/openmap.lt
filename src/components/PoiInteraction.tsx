@@ -1,8 +1,8 @@
 "use client";
 
-import type { MapLayerMouseEvent } from "maplibre-gl";
-import { useCallback, useEffect, useState } from "react";
-import { useMap } from "react-map-gl/maplibre";
+import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Marker, useMap } from "react-map-gl/maplibre";
 import { PoiContent } from "@/components/PoiContent";
 import {
   Sheet,
@@ -12,20 +12,14 @@ import {
 } from "@/components/ui/sheet";
 import { useHashChange } from "@/hooks/use-hash-change";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { usePoiMarker } from "@/hooks/use-poi-marker";
-import { extractPoiData, getObjectId, type PoiData } from "@/lib/poiData";
-import { getPoiFromObjectId } from "@/lib/poiHelpers";
+import { getObjectId } from "@/lib/poiData";
+import { getPoiFromObjectId, type PoiFeatureData } from "@/lib/poiHelpers";
 import {
   formatHash,
   getMapState,
   type MapState,
   parseHash,
 } from "@/lib/urlHash";
-
-interface PointGeometry {
-  type: "Point";
-  coordinates: [number, number];
-}
 
 const INTERACTIVE_LAYER = "label-amenity";
 
@@ -37,9 +31,8 @@ export function PoiInteraction() {
     return parsedHash?.objectId;
   });
 
-  const [poiData, setPoiData] = useState<PoiData | null>(null);
+  const [poiData, setPoiData] = useState<PoiFeatureData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { createMarker, removeMarker } = usePoiMarker();
 
   // Update URL hash when objectId changes
   useEffect(() => {
@@ -51,44 +44,10 @@ export function PoiInteraction() {
     window.history.replaceState(null, "", formatHash(hashData));
   }, [objectId]);
 
-  // Handle sheet close
-  const handleSheetClose = useCallback(() => {
-    setIsOpen(false);
-    setPoiData(null);
-    setObjectId(undefined);
-    removeMarker();
-  }, [removeMarker]);
-
   // Handle click on POI and map canvas clicks
   useEffect(() => {
     const map = mapRef?.getMap();
     if (!map) return;
-
-    const handlePoiClick = (e: MapLayerMouseEvent) => {
-      const feature = e.features?.[0];
-      if (!feature) return;
-
-      const properties = feature.properties;
-      const coordinates = (
-        feature.geometry as PointGeometry
-      ).coordinates.slice();
-
-      // Extract POI data
-      const data = extractPoiData(properties);
-
-      // Create marker
-      createMarker(map, coordinates[0], coordinates[1]);
-
-      // Set POI data and open sheet
-      setPoiData(data);
-      setIsOpen(true);
-
-      // Update URL with object ID
-      const objId = getObjectId(properties, feature.layer.id);
-      if (objId) {
-        setObjectId(objId);
-      }
-    };
 
     // Handle clicks on empty canvas (not on POI) - close the sheet
     const handleMapClick = (e: MapLayerMouseEvent) => {
@@ -96,10 +55,17 @@ export function PoiInteraction() {
       const features = map.queryRenderedFeatures(e.point, {
         layers: [INTERACTIVE_LAYER],
       });
-      
-      // If no POI features at this point and sheet is open, close it
-      if (features.length === 0 && isOpen) {
-        handleSheetClose();
+
+      // If no POI features at this point, close sheet
+      if (features.length === 0) {
+        setObjectId(undefined);
+        return;
+      }
+
+      const feature = features[0];
+      const objId = getObjectId(feature.properties, feature.layer.id);
+      if (objId) {
+        setObjectId(objId);
       }
     };
 
@@ -113,13 +79,10 @@ export function PoiInteraction() {
 
     const setupEventHandlers = () => {
       if (map.getLayer(INTERACTIVE_LAYER)) {
-        map.on("click", INTERACTIVE_LAYER, handlePoiClick);
-        map.on("click", handleMapClick); // Listen to all map clicks
+        map.on("click", handleMapClick);
         map.on("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.on("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
-        return true;
       }
-      return false;
     };
 
     if (map.isStyleLoaded()) {
@@ -130,91 +93,89 @@ export function PoiInteraction() {
 
     return () => {
       if (map.getLayer(INTERACTIVE_LAYER)) {
-        map.off("click", INTERACTIVE_LAYER, handlePoiClick);
         map.off("click", handleMapClick);
         map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
       }
     };
-  }, [mapRef, createMarker, isOpen, handleSheetClose]);
+  }, [mapRef]);
 
-  // Handle object ID changes (from URL or clicks)
+  // Handle object ID changes from URL
   useEffect(() => {
     if (!objectId) {
-      removeMarker();
       setIsOpen(false);
       setPoiData(null);
       return;
     }
 
-    // Wait for map to be ready and layers to load
     const map = mapRef?.getMap();
     if (!map) return;
 
     const displayPoi = () => {
-      if (!map.isStyleLoaded()) {
-        return;
-      }
-
       const poiFeature = getPoiFromObjectId(map, objectId);
       if (poiFeature) {
-        const { data, coordinates } = poiFeature;
-        createMarker(map, coordinates[0], coordinates[1]);
-        setPoiData(data);
+        setPoiData(poiFeature);
         setIsOpen(true);
       }
     };
 
+    const handleSourceData = (e: MapSourceDataEvent) => {
+      if (e.isSourceLoaded) {
+        displayPoi();
+      }
+    };
+
     if (map.isStyleLoaded()) {
-      // Small delay to ensure layers are queryable after hash change
-      setTimeout(displayPoi, 50);
+      displayPoi();
     } else {
-      map.once("styledata", () => {
-        setTimeout(displayPoi, 50);
-      });
+      map.once("load", displayPoi);
     }
-  }, [objectId, mapRef, createMarker, removeMarker]);
+
+    map.on("sourcedata", handleSourceData);
+
+    return () => {
+      map.off("sourcedata", handleSourceData);
+    };
+  }, [objectId, mapRef]);
 
   // Listen for hash changes to update object ID
   useHashChange(
     useCallback(() => {
       const newState = parseHash(window.location.hash);
       const newObjectId = newState?.objectId;
-
       if (newObjectId !== objectId) {
         setObjectId(newObjectId);
       }
     }, [objectId]),
   );
 
+  const poiTitle = useMemo(
+    () => poiData?.data.attributes.find((attr) => attr.type === "name")?.value,
+    [poiData],
+  );
+
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent
-        side={isDesktop ? "left" : "bottom"}
-        className="overflow-y-auto gap-1"
-        onPointerDownOutside={(e) => {
-          // Prevent closing when clicking on map canvas
-          // The map click handler will handle POI clicks and empty canvas clicks
-          const target = e.target as HTMLElement;
-          if (target.closest(".mapboxgl-canvas")) {
-            e.preventDefault();
-            return;
-          }
-          // Clicking on the sheet overlay (true outside) closes the sheet
-          handleSheetClose();
-        }}
-        onEscapeKeyDown={() => {
-          handleSheetClose();
-        }}
-      >
-        <SheetHeader>
-          <SheetTitle className="text-lg text-foreground mr-5">
-            {poiData?.attributes.find((attr) => attr.type === "name")?.value ||
-              "POI informacija"}
-          </SheetTitle>
-        </SheetHeader>
-        {poiData && <PoiContent data={poiData} />}
-      </SheetContent>
-    </Sheet>
+    <>
+      {poiData?.coordinates && (
+        <Marker
+          longitude={poiData.coordinates.longitude}
+          latitude={poiData.coordinates.latitude}
+        />
+      )}
+      <Sheet open={isOpen} onOpenChange={setIsOpen} modal={false}>
+        <SheetContent
+          side={isDesktop ? "left" : "bottom"}
+          className="overflow-y-auto gap-1"
+          preventOutsideClose
+        >
+          <SheetHeader>
+            <SheetTitle className="text-lg text-foreground mr-5">
+              {poiTitle || "POI informacija"}
+            </SheetTitle>
+          </SheetHeader>
+          {poiData && <PoiContent data={poiData.data} />}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
