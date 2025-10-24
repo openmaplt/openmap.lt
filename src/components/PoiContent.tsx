@@ -146,9 +146,9 @@ export function PoiContent({ data }: PoiContentProps) {
         }
 
         return (
-          <div key={attribute.key} className="flex gap-2">
+          <div key={attribute.key} className="flex gap-2 items-start">
             {IconComponent && (
-              <IconComponent className="flex-shrink-0 w-4 h-4 mt-0.5 text-foreground" />
+              <IconComponent className="flex-shrink-0 w-4 h-4 mt-1 text-foreground" />
             )}
             <div className="flex-1 min-w-0">
               {attribute.label && attribute.type !== "name" && (
