@@ -2,8 +2,15 @@
 
 import type { MapLayerMouseEvent } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
-import { Popup, useMap } from "react-map-gl/maplibre";
+import { useMap } from "react-map-gl/maplibre";
 import { PoiContent } from "@/components/PoiContent";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   extractPoiData,
   getObjectId,
@@ -17,25 +24,18 @@ import {
   parseHash,
 } from "@/lib/urlHash";
 
-interface PointGeometry {
-  type: "Point";
-  coordinates: [number, number];
-}
-
 const INTERACTIVE_LAYER = "label-amenity";
 
 export function PoiInteraction() {
   const { current: map } = useMap();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [objectId, setObjectId] = useState<string | undefined>(() => {
     const parsedHash = parseHash(window.location.hash);
     return parsedHash?.objectId;
   });
 
-  const [popupInfo, setPopupInfo] = useState<{
-    longitude: number;
-    latitude: number;
-    data: PoiData;
-  } | null>(null);
+  const [poiData, setPoiData] = useState<PoiData | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const hasProcessedInitialObjectId = useRef(false);
 
   useEffect(() => {
@@ -55,25 +55,14 @@ export function PoiInteraction() {
       const feature = e.features?.[0];
       if (!feature) return;
 
-      const coordinates = (
-        feature.geometry as PointGeometry
-      ).coordinates.slice();
       const properties = feature.properties;
-
-      // Ensure popup appears on the copy of the feature closest to the center
-      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-      }
 
       // Extract POI data
       const data = extractPoiData(properties);
 
-      // Set popup
-      setPopupInfo({
-        longitude: coordinates[0],
-        latitude: coordinates[1],
-        data,
-      });
+      // Set POI data and open sheet
+      setPoiData(data);
+      setIsOpen(true);
 
       // Update URL with object ID
       const objectId = getObjectId(properties, feature.layer.id);
@@ -118,9 +107,10 @@ export function PoiInteraction() {
     };
   }, [map]);
 
-  // Handle popup close
-  const handlePopupClose = () => {
-    setPopupInfo(null);
+  // Handle sheet close
+  const handleSheetClose = () => {
+    setIsOpen(false);
+    setPoiData(null);
     setObjectId(undefined);
   };
 
@@ -130,7 +120,7 @@ export function PoiInteraction() {
       return;
     }
 
-    const showPopup = () => {
+    const showSheet = () => {
       const parsedId = parseObjectId(objectId);
       if (!parsedId) {
         return;
@@ -151,18 +141,12 @@ export function PoiInteraction() {
 
         if (features.length > 0) {
           const feature = features[0];
-          const coordinates = (
-            feature.geometry as PointGeometry
-          ).coordinates.slice();
           const properties = feature.properties;
 
           const data = extractPoiData(properties);
 
-          setPopupInfo({
-            longitude: coordinates[0],
-            latitude: coordinates[1],
-            data,
-          });
+          setPoiData(data);
+          setIsOpen(true);
 
           hasProcessedInitialObjectId.current = true;
         }
@@ -170,10 +154,10 @@ export function PoiInteraction() {
     };
 
     if (map.isStyleLoaded()) {
-      showPopup();
+      showSheet();
     } else {
       // Otherwise, wait for style to load
-      map.once("styledata", showPopup);
+      map.once("styledata", showSheet);
     }
 
     const handleHashChange = () => {
@@ -186,16 +170,27 @@ export function PoiInteraction() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [objectId, map]);
 
-  return popupInfo ? (
-    <Popup
-      longitude={popupInfo.longitude}
-      latitude={popupInfo.latitude}
-      onClose={handlePopupClose}
-      closeButton={true}
-      closeOnClick={true}
-      maxWidth="70vw"
+  return (
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          handleSheetClose();
+        }
+      }}
     >
-      <PoiContent data={popupInfo.data} />
-    </Popup>
-  ) : null;
+      <SheetContent
+        side={isDesktop ? "left" : "bottom"}
+        className="overflow-y-auto"
+      >
+        <SheetHeader>
+          <SheetTitle>
+            {poiData?.attributes.find((attr) => attr.type === "name")?.value ||
+              "POI informacija"}
+          </SheetTitle>
+        </SheetHeader>
+        <div className="mt-4">{poiData && <PoiContent data={poiData} />}</div>
+      </SheetContent>
+    </Sheet>
+  );
 }
