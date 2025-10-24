@@ -40,7 +40,7 @@ export function PoiInteraction() {
   const [poiData, setPoiData] = useState<PoiData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const { createMarker, removeMarker } = usePoiMarker();
-  const hasProcessedInitialObjectId = useRef(false);
+  const isClickingPoiRef = useRef(false);
 
   // Update URL hash when objectId changes
   useEffect(() => {
@@ -73,6 +73,10 @@ export function PoiInteraction() {
 
   // Handle sheet close
   const handleSheetClose = useCallback(() => {
+    // Don't close if we're clicking on a POI
+    if (isClickingPoiRef.current) {
+      return;
+    }
     setIsOpen(false);
     setPoiData(null);
     setObjectId(undefined);
@@ -87,6 +91,9 @@ export function PoiInteraction() {
     const handleClick = (e: MapLayerMouseEvent) => {
       const feature = e.features?.[0];
       if (!feature) return;
+
+      // Mark that we're clicking a POI
+      isClickingPoiRef.current = true;
 
       const properties = feature.properties;
       const coordinates = (
@@ -108,6 +115,11 @@ export function PoiInteraction() {
       if (objId) {
         setObjectId(objId);
       }
+
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        isClickingPoiRef.current = false;
+      }, 100);
     };
 
     const handleMouseEnter = () => {
@@ -143,13 +155,32 @@ export function PoiInteraction() {
     };
   }, [mapRef, createMarker]);
 
-  // Handle initial object ID from URL
+  // Handle object ID changes (from URL or clicks)
   useEffect(() => {
-    if (objectId && !hasProcessedInitialObjectId.current) {
-      setTimeout(() => showPoi(objectId), 500);
-      hasProcessedInitialObjectId.current = true;
+    if (!objectId) {
+      removeMarker();
+      setIsOpen(false);
+      setPoiData(null);
+      return;
     }
-  }, [objectId, showPoi]);
+
+    // Wait for map to be ready and layers to load
+    const map = mapRef?.getMap();
+    if (!map) return;
+
+    const displayPoi = () => {
+      if (map.isStyleLoaded()) {
+        // Small delay to ensure layers are queryable
+        setTimeout(() => showPoi(objectId), 100);
+      } else {
+        map.once("styledata", () => {
+          setTimeout(() => showPoi(objectId), 100);
+        });
+      }
+    };
+
+    displayPoi();
+  }, [objectId, mapRef, showPoi, removeMarker]);
 
   // Listen for hash changes to update object ID
   useHashChange(
@@ -159,13 +190,8 @@ export function PoiInteraction() {
 
       if (newObjectId !== objectId) {
         setObjectId(newObjectId);
-        if (newObjectId) {
-          showPoi(newObjectId);
-        } else {
-          handleSheetClose();
-        }
       }
-    }, [objectId, showPoi, handleSheetClose]),
+    }, [objectId]),
   );
 
   return (
