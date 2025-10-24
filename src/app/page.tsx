@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { PoiInteraction } from "@/components/PoiInteraction";
 import { Config } from "@/config";
+import { useHashChange } from "@/hooks/use-hash-change";
 import {
   formatHash,
   getMapState,
@@ -40,8 +41,8 @@ export default function Page() {
   }, [viewState]);
 
   // Listen for URL hash changes (when user manually edits URL)
-  useEffect(() => {
-    const handleHashChange = () => {
+  useHashChange(
+    useCallback(() => {
       const newState = parseHash(window.location.hash);
       if (newState && mapRef.current) {
         // Update map view to match the new URL
@@ -53,11 +54,8 @@ export default function Page() {
           duration: 1000,
         });
       }
-    };
-
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+    }, []),
+  );
 
   // Update URL hash and localStorage when map moves
   const handleMoveEnd = useCallback(({ viewState }: ViewStateChangeEvent) => {
