@@ -8,31 +8,28 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
+import { PoiInteraction } from "@/components/PoiInteraction";
 import { Config } from "@/config";
+import { useHashChange } from "@/hooks/use-hash-change";
 import {
   formatHash,
-  getInitialMapState,
+  getMapState,
   parseHash,
   saveStateToStorage,
-} from "@/libs/urlHash";
+} from "@/lib/urlHash";
 
 export default function Page() {
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState(() => {
     // This runs only once on client side
-    const savedState = getInitialMapState();
-    return {
-      latitude: savedState?.latitude ?? Config.DEFAULT_LATITUDE,
-      longitude: savedState?.longitude ?? Config.DEFAULT_LONGITUDE,
-      zoom: savedState?.zoom ?? Config.DEFAULT_ZOOM,
-      bearing: savedState?.bearing ?? 0,
-      pitch: savedState?.pitch ?? 0,
-    };
+    const { latitude, longitude, zoom, bearing, pitch } = getMapState();
+    return { latitude, longitude, zoom, bearing, pitch };
   });
 
   useEffect(() => {
+    const currentState = getMapState();
     const hashData = {
-      mapType: "m",
+      ...currentState,
       ...viewState,
     };
 
@@ -44,8 +41,8 @@ export default function Page() {
   }, [viewState]);
 
   // Listen for URL hash changes (when user manually edits URL)
-  useEffect(() => {
-    const handleHashChange = () => {
+  useHashChange(
+    useCallback(() => {
       const newState = parseHash(window.location.hash);
       if (newState && mapRef.current) {
         // Update map view to match the new URL
@@ -57,11 +54,8 @@ export default function Page() {
           duration: 1000,
         });
       }
-    };
-
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+    }, []),
+  );
 
   // Update URL hash and localStorage when map moves
   const handleMoveEnd = useCallback(({ viewState }: ViewStateChangeEvent) => {
@@ -80,8 +74,9 @@ export default function Page() {
         maxBounds={Config.BOUNDS}
         onMoveEnd={handleMoveEnd}
       >
-        <NavigationControl position="top-left" />
-        <GeolocateControl position="top-left" />
+        <NavigationControl position="top-right" />
+        <GeolocateControl position="top-right" />
+        <PoiInteraction />
       </MapLibreMap>
     </div>
   );
