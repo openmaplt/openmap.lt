@@ -181,15 +181,15 @@ export function PoiInteraction() {
     >
       <SheetContent
         side={isDesktop ? "left" : "bottom"}
-        className="overflow-y-auto"
+        className="overflow-y-auto gap-1"
       >
         <SheetHeader>
-          <SheetTitle>
+          <SheetTitle className="text-lg text-foreground mr-5">
             {poiData?.attributes.find((attr) => attr.type === "name")?.value ||
               "POI informacija"}
           </SheetTitle>
         </SheetHeader>
-        <div className="mt-4">{poiData && <PoiContent data={poiData} />}</div>
+        {poiData && <PoiContent data={poiData} />}
       </SheetContent>
     </Sheet>
   );
