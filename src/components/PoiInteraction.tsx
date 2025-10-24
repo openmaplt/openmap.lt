@@ -1,6 +1,7 @@
 "use client";
 
 import type { MapLayerMouseEvent } from "maplibre-gl";
+import { Marker } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { PoiContent } from "@/components/PoiContent";
@@ -24,10 +25,15 @@ import {
   parseHash,
 } from "@/lib/urlHash";
 
+interface PointGeometry {
+  type: "Point";
+  coordinates: [number, number];
+}
+
 const INTERACTIVE_LAYER = "label-amenity";
 
 export function PoiInteraction() {
-  const { current: map } = useMap();
+  const { current: mapRef } = useMap();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [objectId, setObjectId] = useState<string | undefined>(() => {
     const parsedHash = parseHash(window.location.hash);
@@ -36,6 +42,7 @@ export function PoiInteraction() {
 
   const [poiData, setPoiData] = useState<PoiData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const markerRef = useRef<Marker | null>(null);
   const hasProcessedInitialObjectId = useRef(false);
 
   useEffect(() => {
@@ -49,6 +56,7 @@ export function PoiInteraction() {
 
   // Handle click on POI
   useEffect(() => {
+    const map = mapRef?.getMap();
     if (!map) return;
 
     const handleClick = (e: MapLayerMouseEvent) => {
@@ -56,9 +64,34 @@ export function PoiInteraction() {
       if (!feature) return;
 
       const properties = feature.properties;
+      const coordinates = (
+        feature.geometry as PointGeometry
+      ).coordinates.slice();
 
       // Extract POI data
       const data = extractPoiData(properties);
+
+      // Remove existing marker if any
+      if (markerRef.current) {
+        markerRef.current.remove();
+      }
+
+      // Create and add marker at POI location
+      const markerElement = document.createElement("div");
+      markerElement.className = "poi-marker";
+      markerElement.style.width = "20px";
+      markerElement.style.height = "20px";
+      markerElement.style.borderRadius = "50%";
+      markerElement.style.backgroundColor = "#3b82f6";
+      markerElement.style.border = "3px solid white";
+      markerElement.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+      markerElement.style.cursor = "pointer";
+
+      const marker = new Marker({ element: markerElement })
+        .setLngLat([coordinates[0], coordinates[1]])
+        .addTo(map);
+
+      markerRef.current = marker;
 
       // Set POI data and open sheet
       setPoiData(data);
@@ -105,18 +138,36 @@ export function PoiInteraction() {
         map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
       }
     };
-  }, [map]);
+  }, [mapRef]);
 
   // Handle sheet close
   const handleSheetClose = () => {
     setIsOpen(false);
     setPoiData(null);
     setObjectId(undefined);
+
+    // Remove marker when sheet closes
+    if (markerRef.current) {
+      markerRef.current.remove();
+      markerRef.current = null;
+    }
   };
 
-  // Handle initial object ID from URL
+  // Handle initial object ID from URL and hash changes
   useEffect(() => {
-    if (!objectId || hasProcessedInitialObjectId.current || !map) {
+    const map = mapRef?.getMap();
+    if (!map || !map.isStyleLoaded()) {
+      return;
+    }
+
+    if (!objectId) {
+      // Clear marker and sheet if no object ID
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
+      setIsOpen(false);
+      setPoiData(null);
       return;
     }
 
@@ -132,43 +183,67 @@ export function PoiInteraction() {
         return;
       }
 
-      // Wait a bit for layers to be ready
-      setTimeout(() => {
-        const features = map.queryRenderedFeatures({
-          layers: [layerId],
-          filter: ["==", "id", featureId],
-        });
+      // Query for the feature
+      const features = map.queryRenderedFeatures({
+        layers: [layerId],
+        filter: ["==", "id", featureId],
+      });
 
-        if (features.length > 0) {
-          const feature = features[0];
-          const properties = feature.properties;
+      if (features.length > 0) {
+        const feature = features[0];
+        const properties = feature.properties;
+        const coordinates = (
+          feature.geometry as PointGeometry
+        ).coordinates.slice();
 
-          const data = extractPoiData(properties);
+        const data = extractPoiData(properties);
 
-          setPoiData(data);
-          setIsOpen(true);
-
-          hasProcessedInitialObjectId.current = true;
+        // Remove existing marker if any
+        if (markerRef.current) {
+          markerRef.current.remove();
         }
-      }, 500);
+
+        // Create and add marker at POI location
+        const markerElement = document.createElement("div");
+        markerElement.className = "poi-marker";
+        markerElement.style.width = "20px";
+        markerElement.style.height = "20px";
+        markerElement.style.borderRadius = "50%";
+        markerElement.style.backgroundColor = "#3b82f6";
+        markerElement.style.border = "3px solid white";
+        markerElement.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+        markerElement.style.cursor = "pointer";
+
+        const marker = new Marker({ element: markerElement })
+          .setLngLat([coordinates[0], coordinates[1]])
+          .addTo(map);
+
+        markerRef.current = marker;
+
+        setPoiData(data);
+        setIsOpen(true);
+      }
     };
 
-    if (map.isStyleLoaded()) {
-      showSheet();
+    // Wait a bit for layers to be ready on initial load
+    if (!hasProcessedInitialObjectId.current) {
+      setTimeout(showSheet, 500);
+      hasProcessedInitialObjectId.current = true;
     } else {
-      // Otherwise, wait for style to load
-      map.once("styledata", showSheet);
+      showSheet();
     }
+  }, [objectId, mapRef]);
 
+  // Listen for hash changes to update object ID
+  useEffect(() => {
     const handleHashChange = () => {
-      hasProcessedInitialObjectId.current = false;
       const newState = parseHash(window.location.hash);
       setObjectId(newState?.objectId);
     };
 
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
-  }, [objectId, map]);
+  }, []);
 
   return (
     <Sheet
@@ -178,10 +253,15 @@ export function PoiInteraction() {
           handleSheetClose();
         }
       }}
+      modal={false}
     >
       <SheetContent
         side={isDesktop ? "left" : "bottom"}
         className="overflow-y-auto gap-1"
+        onInteractOutside={(e) => {
+          // Prevent closing when clicking on the map
+          e.preventDefault();
+        }}
       >
         <SheetHeader>
           <SheetTitle className="text-lg text-foreground mr-5">
