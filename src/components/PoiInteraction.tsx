@@ -59,12 +59,12 @@ export function PoiInteraction() {
     removeMarker();
   }, [removeMarker]);
 
-  // Handle click on POI
+  // Handle click on POI and map canvas clicks
   useEffect(() => {
     const map = mapRef?.getMap();
     if (!map) return;
 
-    const handleClick = (e: MapLayerMouseEvent) => {
+    const handlePoiClick = (e: MapLayerMouseEvent) => {
       const feature = e.features?.[0];
       if (!feature) return;
 
@@ -90,6 +90,19 @@ export function PoiInteraction() {
       }
     };
 
+    // Handle clicks on empty canvas (not on POI) - close the sheet
+    const handleMapClick = (e: MapLayerMouseEvent) => {
+      // Check if we clicked on a POI layer feature
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [INTERACTIVE_LAYER],
+      });
+      
+      // If no POI features at this point and sheet is open, close it
+      if (features.length === 0 && isOpen) {
+        handleSheetClose();
+      }
+    };
+
     const handleMouseEnter = () => {
       map.getCanvas().style.cursor = "pointer";
     };
@@ -100,7 +113,8 @@ export function PoiInteraction() {
 
     const setupEventHandlers = () => {
       if (map.getLayer(INTERACTIVE_LAYER)) {
-        map.on("click", INTERACTIVE_LAYER, handleClick);
+        map.on("click", INTERACTIVE_LAYER, handlePoiClick);
+        map.on("click", handleMapClick); // Listen to all map clicks
         map.on("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.on("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
         return true;
@@ -116,12 +130,13 @@ export function PoiInteraction() {
 
     return () => {
       if (map.getLayer(INTERACTIVE_LAYER)) {
-        map.off("click", INTERACTIVE_LAYER, handleClick);
+        map.off("click", INTERACTIVE_LAYER, handlePoiClick);
+        map.off("click", handleMapClick);
         map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
       }
     };
-  }, [mapRef, createMarker]);
+  }, [mapRef, createMarker, isOpen, handleSheetClose]);
 
   // Handle object ID changes (from URL or clicks)
   useEffect(() => {
@@ -178,17 +193,14 @@ export function PoiInteraction() {
         side={isDesktop ? "left" : "bottom"}
         className="overflow-y-auto gap-1"
         onPointerDownOutside={(e) => {
-          // Check if clicking on a POI marker or the map layer
+          // Prevent closing when clicking on map canvas
+          // The map click handler will handle POI clicks and empty canvas clicks
           const target = e.target as HTMLElement;
-          if (
-            target.closest(".maplibregl-marker") ||
-            target.closest(".mapboxgl-canvas")
-          ) {
-            // Don't close - let the map handle it
+          if (target.closest(".mapboxgl-canvas")) {
             e.preventDefault();
             return;
           }
-          // Otherwise, close the sheet
+          // Clicking on the sheet overlay (true outside) closes the sheet
           handleSheetClose();
         }}
         onEscapeKeyDown={() => {
