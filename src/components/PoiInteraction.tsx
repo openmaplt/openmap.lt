@@ -1,7 +1,7 @@
 "use client";
 
 import type { MapLayerMouseEvent } from "maplibre-gl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { PoiContent } from "@/components/PoiContent";
 import {
@@ -40,7 +40,6 @@ export function PoiInteraction() {
   const [poiData, setPoiData] = useState<PoiData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const { createMarker, removeMarker } = usePoiMarker();
-  const isClickingPoiRef = useRef(false);
 
   // Update URL hash when objectId changes
   useEffect(() => {
@@ -52,31 +51,8 @@ export function PoiInteraction() {
     window.history.replaceState(null, "", formatHash(hashData));
   }, [objectId]);
 
-  // Handle POI display from object ID
-  const showPoi = useCallback(
-    (objId: string) => {
-      const map = mapRef?.getMap();
-      if (!map || !map.isStyleLoaded()) {
-        return;
-      }
-
-      const poiFeature = getPoiFromObjectId(map, objId);
-      if (poiFeature) {
-        const { data, coordinates } = poiFeature;
-        createMarker(map, coordinates[0], coordinates[1]);
-        setPoiData(data);
-        setIsOpen(true);
-      }
-    },
-    [mapRef, createMarker],
-  );
-
   // Handle sheet close
   const handleSheetClose = useCallback(() => {
-    // Don't close if we're clicking on a POI
-    if (isClickingPoiRef.current) {
-      return;
-    }
     setIsOpen(false);
     setPoiData(null);
     setObjectId(undefined);
@@ -91,9 +67,6 @@ export function PoiInteraction() {
     const handleClick = (e: MapLayerMouseEvent) => {
       const feature = e.features?.[0];
       if (!feature) return;
-
-      // Mark that we're clicking a POI
-      isClickingPoiRef.current = true;
 
       const properties = feature.properties;
       const coordinates = (
@@ -115,11 +88,6 @@ export function PoiInteraction() {
       if (objId) {
         setObjectId(objId);
       }
-
-      // Reset the flag after a short delay
-      setTimeout(() => {
-        isClickingPoiRef.current = false;
-      }, 100);
     };
 
     const handleMouseEnter = () => {
@@ -169,18 +137,28 @@ export function PoiInteraction() {
     if (!map) return;
 
     const displayPoi = () => {
-      if (map.isStyleLoaded()) {
-        // Small delay to ensure layers are queryable
-        setTimeout(() => showPoi(objectId), 100);
-      } else {
-        map.once("styledata", () => {
-          setTimeout(() => showPoi(objectId), 100);
-        });
+      if (!map.isStyleLoaded()) {
+        return;
+      }
+
+      const poiFeature = getPoiFromObjectId(map, objectId);
+      if (poiFeature) {
+        const { data, coordinates } = poiFeature;
+        createMarker(map, coordinates[0], coordinates[1]);
+        setPoiData(data);
+        setIsOpen(true);
       }
     };
 
-    displayPoi();
-  }, [objectId, mapRef, showPoi, removeMarker]);
+    if (map.isStyleLoaded()) {
+      // Small delay to ensure layers are queryable after hash change
+      setTimeout(displayPoi, 50);
+    } else {
+      map.once("styledata", () => {
+        setTimeout(displayPoi, 50);
+      });
+    }
+  }, [objectId, mapRef, createMarker, removeMarker]);
 
   // Listen for hash changes to update object ID
   useHashChange(
@@ -195,17 +173,27 @@ export function PoiInteraction() {
   );
 
   return (
-    <Sheet
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          handleSheetClose();
-        }
-      }}
-    >
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent
         side={isDesktop ? "left" : "bottom"}
         className="overflow-y-auto gap-1"
+        onPointerDownOutside={(e) => {
+          // Check if clicking on a POI marker or the map layer
+          const target = e.target as HTMLElement;
+          if (
+            target.closest(".maplibregl-marker") ||
+            target.closest(".mapboxgl-canvas")
+          ) {
+            // Don't close - let the map handle it
+            e.preventDefault();
+            return;
+          }
+          // Otherwise, close the sheet
+          handleSheetClose();
+        }}
+        onEscapeKeyDown={() => {
+          handleSheetClose();
+        }}
       >
         <SheetHeader>
           <SheetTitle className="text-lg text-foreground mr-5">
