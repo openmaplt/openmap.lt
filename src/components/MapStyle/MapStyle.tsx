@@ -1,13 +1,7 @@
 
-import { memo } from "react";
+import { memo, useState } from "react";
+import { Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import { Button } from "../ui/button";
 
@@ -40,17 +34,20 @@ function MapStyle({
   onChangeMapStyle,
   className,
 }: Props) {
+  const [isProfilesVisible, setProfilesVisible] = useState(false);
+
   const isOrtho = activeMapStyle.name === activeMapProfile.orthoStyle.name;
 
   return (
     <div
       className={cn(
-        "absolute bottom-12 right-4 flex flex-row-reverse gap-2",
+        "absolute bottom-12 right-4 flex flex-row-reverse items-end gap-2",
         className,
       )}
     >
       <Button
         variant="map"
+        className="h-20 w-20"
         onClick={() =>
           onChangeMapStyle(
             isOrtho ? activeMapProfile.mapStyle : activeMapProfile.orthoStyle,
@@ -72,41 +69,32 @@ function MapStyle({
         />
       </Button>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="map">
+      <Button
+        variant="map"
+        className="h-10 w-10"
+        onClick={() => setProfilesVisible(!isProfilesVisible)}
+        aria-label="Toggle map profiles"
+      >
+        <Layers />
+      </Button>
+
+      {isProfilesVisible &&
+        mapProfiles.map((profile) => (
+          <Button
+            key={profile.name}
+            variant="map"
+            className={cn({
+              "border-white": profile.name === activeMapProfile.name,
+            })}
+            onClick={() => onChangeMapProfile(profile)}
+          >
             <img
-              src={activeMapProfile.mapStyle.image}
-              alt={activeMapProfile.mapStyle.name}
+              src={profile.mapStyle.image}
+              alt={profile.mapStyle.name}
               className="h-full w-full object-cover"
             />
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="top"
-          align="end"
-          className="flex flex-row-reverse gap-2 bg-transparent"
-        >
-          {mapProfiles.map(
-            (profile) =>
-              profile.name !== activeMapProfile.name && (
-                <DropdownMenuItem
-                  key={profile.name}
-                  className="bg-transparent p-0"
-                  onClick={() => onChangeMapProfile(profile)}
-                >
-                  <Button variant="map">
-                    <img
-                      src={profile.mapStyle.image}
-                      alt={profile.mapStyle.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </Button>
-                </DropdownMenuItem>
-              ),
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        ))}
     </div>
   );
 }
