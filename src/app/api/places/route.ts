@@ -39,11 +39,30 @@ export async function POST(request: Request) {
     const { name, description, longitude, latitude } = body;
 
     // Validacija
-    if (!name || !longitude || !latitude) {
+    if (!name || longitude === undefined || latitude === undefined) {
       return NextResponse.json(
         {
           success: false,
           error: "Privalomi laukai: name, longitude, latitude",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Validuojame koordinačių diapazonus
+    if (
+      typeof longitude !== "number" ||
+      typeof latitude !== "number" ||
+      longitude < -180 ||
+      longitude > 180 ||
+      latitude < -90 ||
+      latitude > 90
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Neteisingos koordinatės. Longitude: -180 iki 180, Latitude: -90 iki 90",
         },
         { status: 400 },
       );
