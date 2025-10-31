@@ -10,6 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import type { MapProfile } from "@/config";
 import { useHashChange } from "@/hooks/use-hash-change";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { getObjectId } from "@/lib/poiData";
@@ -23,7 +24,11 @@ import {
 
 const INTERACTIVE_LAYER = "label-amenity";
 
-export function PoiInteraction() {
+export function PoiInteraction({
+  activeMapProfile,
+}: {
+  activeMapProfile: MapProfile;
+}) {
   const { current: mapRef } = useMap();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [objectId, setObjectId] = useState<string | undefined>(() => {
@@ -44,6 +49,11 @@ export function PoiInteraction() {
     window.history.replaceState(null, "", formatHash(hashData));
   }, [objectId]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: activeMapProfile.id is sufficient
+  useEffect(() => {
+    setObjectId(undefined);
+  }, [activeMapProfile.id]);
+
   // Handle click on POI and map canvas clicks
   useEffect(() => {
     const map = mapRef?.getMap();
@@ -52,6 +62,11 @@ export function PoiInteraction() {
     // Handle clicks on empty canvas (not on POI) - close the sheet
     const handleMapClick = (e: MapLayerMouseEvent) => {
       // Check if we clicked on a POI layer feature
+      if (!map.getLayer(INTERACTIVE_LAYER)) {
+        setObjectId(undefined);
+        return;
+      }
+
       const features = map.queryRenderedFeatures(e.point, {
         layers: [INTERACTIVE_LAYER],
       });
@@ -88,7 +103,7 @@ export function PoiInteraction() {
     if (map.isStyleLoaded()) {
       setupEventHandlers();
     } else {
-      map.once("styledata", setupEventHandlers);
+      map.on("styledata", setupEventHandlers);
     }
 
     return () => {
@@ -96,6 +111,7 @@ export function PoiInteraction() {
         map.off("click", handleMapClick);
         map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
+        map.off("styledata", setupEventHandlers);
       }
     };
   }, [mapRef]);
