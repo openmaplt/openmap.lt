@@ -112,6 +112,10 @@ Sukurti naują vietą.
 }
 ```
 
+**Koordinačių validacija:**
+- Longitude: 20.7 iki 27.05 (Lietuvos ribos)
+- Latitude: 53.7 iki 56.65 (Lietuvos ribos)
+
 **Response:**
 ```json
 {
@@ -131,9 +135,9 @@ Sukurti naują vietą.
 Rasti vietas per nurodytą spindulį nuo taško.
 
 **Query parametrai:**
-- `longitude` (required) - ilguma
-- `latitude` (required) - platuma
-- `radius` (optional) - spindulys metrais (default: 10000)
+- `longitude` (required) - ilguma (20.7 iki 27.05 - Lietuvos ribos)
+- `latitude` (required) - platuma (53.7 iki 56.65 - Lietuvos ribos)
+- `radius` (optional) - spindulys metrais (default: 10000, max: 1000000)
 
 **Response:**
 ```json
