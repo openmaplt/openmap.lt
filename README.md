@@ -63,15 +63,19 @@ Content-Type: application/json
 }
 ```
 
+**Pastaba:** Koordinatės turi būti Lietuvos ribose:
+- Longitude: 20.7 iki 27.05
+- Latitude: 53.7 iki 56.65
+
 ### Rasti artimas vietas
 ```bash
 GET /api/places/nearby?longitude=25.2797&latitude=54.6872&radius=10000
 ```
 
 Parametrai:
-- `longitude` - ilguma (privalomas)
-- `latitude` - platuma (privalomas)
-- `radius` - spindulys metrais (neprivalomas, pagal nutylėjimą 10000m)
+- `longitude` - ilguma (privalomas, 20.7-27.05)
+- `latitude` - platuma (privalomas, 53.7-56.65)
+- `radius` - spindulys metrais (neprivalomas, pagal nutylėjimą 10000m, max 1000000m)
 
 ## Docker valdymas
 

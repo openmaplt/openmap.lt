@@ -39,18 +39,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validuojame koordinačių diapazonus
+    // Lietuvos ribos (iš Config.BOUNDS)
+    const MIN_LONGITUDE = 20.7;
+    const MAX_LONGITUDE = 27.05;
+    const MIN_LATITUDE = 53.7;
+    const MAX_LATITUDE = 56.65;
+
+    // Validuojame koordinačių diapazonus (Lietuvos ribos)
     if (
-      longitude < -180 ||
-      longitude > 180 ||
-      latitude < -90 ||
-      latitude > 90
+      longitude < MIN_LONGITUDE ||
+      longitude > MAX_LONGITUDE ||
+      latitude < MIN_LATITUDE ||
+      latitude > MAX_LATITUDE
     ) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Neteisingos koordinatės. Longitude: -180 iki 180, Latitude: -90 iki 90",
+          error: `Koordinatės turi būti Lietuvos ribose. Longitude: ${MIN_LONGITUDE} iki ${MAX_LONGITUDE}, Latitude: ${MIN_LATITUDE} iki ${MAX_LATITUDE}`,
         },
         { status: 400 },
       );
