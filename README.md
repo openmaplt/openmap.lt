@@ -132,3 +132,17 @@ npm run format
 ```bash
 npm run build
 ```
+
+## Production Deployment
+
+Projektas turi automatinį deployment į production serverį per GitHub Actions. Detali dokumentacija: [DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+
+### Greitas startas:
+
+1. Sukonfigūruokite GitHub Secrets (žr. [DEPLOYMENT.md](./docs/DEPLOYMENT.md))
+2. Sukurkite release tag:
+```bash
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+```
+3. GitHub Actions automatiškai deploy'ins į serverį
