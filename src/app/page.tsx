@@ -1,22 +1,18 @@
 "use client";
 
-"use client";
-
+import type * as React from "react";
 import {
   GeolocateControl,
   Map as MapLibreMap,
+  type MapProps,
   NavigationControl,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
+import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
 import { PoiInteraction } from "@/components/PoiInteraction";
-import {
-  MapStyle,
-  MapProfile,
-  MapStyleType,
-} from "@/components/MapStyle";
-import { Config } from "@/config";
+import { Config, MAPS, type MapProfile } from "@/config";
 import { useHashChange } from "@/hooks/use-hash-change";
 import {
   formatHash,
@@ -24,46 +20,27 @@ import {
   parseHash,
   saveStateToStorage,
 } from "@/lib/urlHash";
+import { findMapsByType } from "@/lib/utils";
 
 export default function Page() {
   const mapRef = useRef<MapRef>(null);
 
   const [viewState, setViewState] = useState(() => {
-    // This runs only once on client side
     const { latitude, longitude, zoom, bearing, pitch } = getMapState();
     return { latitude, longitude, zoom, bearing, pitch };
   });
 
   const [activeMapProfile, setActiveMapProfile] = useState<MapProfile>(() => {
-    const { mapId } = getMapState();
-    return (
-      Config.MAP_PROFILES.find((profile) => profile.name === mapId) ??
-      Config.MAP_PROFILES[0]
-    );
+    const { mapType } = getMapState();
+    return findMapsByType(mapType) ?? MAPS[0];
   });
-
-  const [activeMapStyle, setActiveMapStyle] = useState<MapStyleType>(() => {
-    const { styleId } = getMapState();
-    const isOrtho = styleId === activeMapProfile.orthoStyle.name;
-    return isOrtho ? activeMapProfile.orthoStyle : activeMapProfile.mapStyle;
-  });
-
-  const handleChangeMapProfile = useCallback((profile: MapProfile) => {
-    setActiveMapProfile(profile);
-    setActiveMapStyle(profile.mapStyle);
-  }, []);
-
-  const handleChangeMapStyle = useCallback((style: MapStyleType) => {
-    setActiveMapStyle(style);
-  }, []);
 
   useEffect(() => {
     const currentState = getMapState();
     const hashData = {
       ...currentState,
+      mapType: activeMapProfile.mapType,
       ...viewState,
-      mapId: activeMapProfile.name,
-      styleId: activeMapStyle.name,
     };
 
     // Update URL without triggering page reload
@@ -71,13 +48,18 @@ export default function Page() {
 
     // Save to localStorage as JSON
     saveStateToStorage(hashData);
-  }, [viewState, activeMapProfile, activeMapStyle]);
+  }, [viewState, activeMapProfile]);
 
   // Listen for URL hash changes (when user manually edits URL)
   useHashChange(
     useCallback(() => {
       const newState = parseHash(window.location.hash);
       if (newState && mapRef.current) {
+        const profile = findMapsByType(newState.mapType);
+        if (profile) {
+          setActiveMapProfile(profile);
+        }
+
         // Update map view to match the new URL
         mapRef.current.flyTo({
           center: [newState.longitude, newState.latitude],
@@ -96,11 +78,15 @@ export default function Page() {
     setViewState({ latitude, longitude, zoom, bearing, pitch });
   }, []);
 
+  const TypedMapLibreMap = MapLibreMap as React.ForwardRefExoticComponent<
+    MapProps & React.RefAttributes<MapRef>
+  >;
+
   return (
     <div className="w-full h-screen">
-      <MapLibreMap
+      <TypedMapLibreMap
         ref={mapRef}
-        mapStyle={activeMapStyle.style}
+        mapStyle={activeMapProfile.mapStyles[0].style}
         initialViewState={viewState}
         minZoom={Config.MIN_ZOOM}
         maxZoom={Config.MAX_ZOOM}
@@ -109,15 +95,12 @@ export default function Page() {
       >
         <NavigationControl position="top-right" />
         <GeolocateControl position="top-right" />
-        <PoiInteraction map={mapRef.current?.getMap()} />
-        <MapStyle
-          mapProfiles={Config.MAP_PROFILES}
+        <PoiInteraction activeMapProfile={activeMapProfile} />
+        <MapStyleSwitcher
           activeMapProfile={activeMapProfile}
-          activeMapStyle={activeMapStyle}
-          onChangeMapProfile={handleChangeMapProfile}
-          onChangeMapStyle={handleChangeMapStyle}
+          onChangeMapProfile={(profile) => setActiveMapProfile(profile)}
         />
-      </MapLibreMap>
+      </TypedMapLibreMap>
     </div>
   );
 }

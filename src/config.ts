@@ -7,9 +7,9 @@ export type MapStyle = {
 };
 
 export type MapProfile = {
-  name: string;
-  mapStyle: MapStyle;
-  orthoStyle: MapStyle;
+  id: string;
+  mapType: string;
+  mapStyles: MapStyle[];
 };
 
 type Config = {
@@ -21,8 +21,117 @@ type Config = {
   MIN_ZOOM: number;
   MAX_ZOOM: number;
   BOUNDS: LngLatBoundsLike;
-  MAP_PROFILES: MapProfile[];
 };
+
+export const MAPS: MapProfile[] = [
+  {
+    id: "general",
+    mapType: "m",
+    mapStyles: [
+      {
+        name: "Bendras",
+        style: "/styles/map.json",
+        image: "/maps/map_general.png",
+      },
+      {
+        name: "Orto",
+        style: "/styles/hybrid.json",
+        image: "/maps/map_orto.png",
+      },
+    ],
+  },
+  {
+    id: "speed",
+    mapType: "s",
+    mapStyles: [
+      {
+        name: "Greičiai",
+        style: "/styles/speed.json",
+        image: "/maps/map_speed.png",
+      },
+      {
+        name: "Orto",
+        style: "/styles/speed_hybrid.json",
+        image: "/maps/map_orto.png",
+      },
+    ],
+  },
+  {
+    id: "bicycle",
+    mapType: "b",
+    mapStyles: [
+      {
+        name: "Dviračiai",
+        style: "/styles/bicycle.json",
+        image: "/maps/map_bicycle.png",
+      },
+      {
+        name: "Orto",
+        style: "/styles/bicycle_hybrid.json",
+        image: "/maps/map_orto.png",
+      },
+    ],
+  },
+  {
+    id: "river",
+    mapType: "r",
+    mapStyles: [
+      {
+        name: "Upės",
+        style: "/styles/upes.json",
+        image: "/maps/map_upes.png",
+      },
+      {
+        name: "Orto",
+        style: "/styles/hybrid_upes.json",
+        image: "/maps/map_orto.png",
+      },
+    ],
+  },
+  {
+    id: "topo",
+    mapType: "t",
+    mapStyles: [
+      {
+        name: "Topografinis",
+        style: "/styles/topo.json",
+        image: "/maps/map_topo.png",
+      },
+      {
+        name: "Orto",
+        style: "/styles/hybrid.json",
+        image: "/maps/map_orto.png",
+      },
+    ],
+  },
+  {
+    id: "craftbeer",
+    mapType: "c",
+    mapStyles: [
+      {
+        name: "Alus",
+        style: "/styles/beer_dark.json",
+        image: "/maps/map_craftbeer.png",
+      },
+    ],
+  },
+  {
+    id: "places",
+    mapType: "p",
+    mapStyles: [
+      {
+        name: "Lankytinos",
+        style: "/styles/map.json",
+        image: "/maps/map.png",
+      },
+      {
+        name: "Orto",
+        style: "/styles/hybrid.json",
+        image: "/maps/map_orto.png",
+      },
+    ],
+  },
+];
 
 export const Config: Config = {
   DEFAULT_MAP_TYPE: "m",
@@ -33,45 +142,4 @@ export const Config: Config = {
   MIN_ZOOM: 7,
   MAX_ZOOM: 18,
   BOUNDS: [20.7, 53.7, 27.05, 56.65],
-  MAP_PROFILES: [
-    {
-      name: "standard",
-      mapStyle: {
-        name: "standard",
-        style: "/styles/map.json",
-        image: "/images/standard.png",
-      },
-      orthoStyle: {
-        name: "orto",
-        style: "/styles/orto.json",
-        image: "/images/orto.png",
-      },
-    },
-    {
-      name: "speed",
-      mapStyle: {
-        name: "speed",
-        style: "/styles/speed.json",
-        image: "/images/speed.png",
-      },
-      orthoStyle: {
-        name: "speed_hybrid",
-        style: "/styles/speed_hybrid.json",
-        image: "/images/speed_hybrid.png",
-      },
-    },
-    {
-      name: "bicycle",
-      mapStyle: {
-        name: "bicycle",
-        style: "/styles/bicycle.json",
-        image: "/images/bicycle.png",
-      },
-      orthoStyle: {
-        name: "bicycle_hybrid",
-        style: "/styles/bicycle_hybrid.json",
-        image: "/images/bicycle_hybrid.png",
-      },
-    },
-  ],
 };
