@@ -1,5 +1,12 @@
 import { Pool } from "pg";
 
+// Validuojame DATABASE_URL aplinkos kintamąjį
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL aplinkos kintamasis nenustatytas. Patikrinkite .env.local failą.",
+  );
+}
+
 // Sukuriame connection pool PostgreSQL duomenų bazei
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
