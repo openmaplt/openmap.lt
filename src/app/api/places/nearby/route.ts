@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { LITHUANIA_BOUNDS } from "@/config";
 import { query } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
@@ -35,22 +34,6 @@ export async function GET(request: NextRequest) {
         {
           success: false,
           error: "Parametrai turi būti skaičiai",
-        },
-        { status: 400 },
-      );
-    }
-
-    // Validuojame koordinačių diapazonus (Lietuvos ribos)
-    if (
-      longitude < LITHUANIA_BOUNDS.MIN_LONGITUDE ||
-      longitude > LITHUANIA_BOUNDS.MAX_LONGITUDE ||
-      latitude < LITHUANIA_BOUNDS.MIN_LATITUDE ||
-      latitude > LITHUANIA_BOUNDS.MAX_LATITUDE
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Koordinatės turi būti Lietuvos ribose. Longitude: ${LITHUANIA_BOUNDS.MIN_LONGITUDE} iki ${LITHUANIA_BOUNDS.MAX_LONGITUDE}, Latitude: ${LITHUANIA_BOUNDS.MIN_LATITUDE} iki ${LITHUANIA_BOUNDS.MAX_LATITUDE}`,
         },
         { status: 400 },
       );
