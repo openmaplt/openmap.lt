@@ -56,7 +56,7 @@ Duomenys yra apibrėžti `docker/test_data.sql` faile (apima ir duomenų bazės 
 
 ## API Endpoints
 
-Projektas turi tris API endpoints POI darbui su PostgreSQL + PostGIS:
+Projektas turi keturis API endpoints POI darbui su PostgreSQL + PostGIS:
 
 ### 1. Ieškoti vietų
 ```bash
@@ -89,6 +89,17 @@ Parametrai:
 - `id` - POI identifikatorius (privalomas)
 
 Atsakymas: Detali POI informacija.
+
+### 4. Gauti POI sąrašą žemėlapio viewport'ui
+```bash
+GET /api/list?bbox=20.7,53.7,27.05,56.65&type=bn
+```
+
+Parametrai:
+- `bbox` - bounding box (privalomas): left,bottom,right,top koordinatės
+- `type` - POI tipai (privalomas): vienas ar keli tipo kodai (a-z, A-Z, 0-3)
+
+Atsakymas: GeoJSON FeatureCollection su POI taškais bounding box ribose (iki 1000 rezultatų).
 
 **Pastaba:** POI duomenys bus importuoti iš OSM duomenų bazės. Visi API endpoints skirti tik duomenų skaitymui.
 

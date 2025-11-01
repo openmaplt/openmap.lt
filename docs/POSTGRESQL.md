@@ -199,6 +199,45 @@ curl "http://localhost:3000/api/info?id=1"
 - Visi POI duomenys importuoti iš OpenStreetMap (OSM)
 - Visi API endpoints skirti tik skaitymui
 
+### GET /api/list
+Gauti POI sąrašą žemėlapio viewport'ui (bounding box).
+
+**Query parametrai:**
+- `bbox` (required) - bounding box: left,bottom,right,top (EPSG:4326 koordinatės)
+- `type` (required) - POI tipų kodai (pvz., "bn" = piliakalniai + degalinės)
+
+**Tipo kodai (galima sujungti kelis):**
+- a-z, A-Z, 1-3 - įvairūs POI tipai (degalinės, restoranai, istoriniai objektai, ir kt.)
+
+**Pavyzdys:**
+```bash
+curl "http://localhost:3000/api/list?bbox=20.7,53.7,27.05,56.65&type=bn"
+```
+
+**Response (GeoJSON FeatureCollection):**
+```json
+{
+  "type": "FeatureCollection",
+  "bbox": [20.7, 53.7, 27.05, 56.65],
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [25.2797, 54.6872] },
+      "properties": {
+        "title": "Vilnius",
+        "description": "Lietuvos sostinė"
+      },
+      "id": 1
+    }
+  ]
+}
+```
+
+**Pastaba:** 
+- `/api/list` naudojamas žemėlapio viewport'ui (grąžina POI pagal bbox)
+- `/api/info` grąžina vieno POI detales
+- Visi API endpoints skirti tik skaitymui
+
 ## Duomenų bazės struktūra
 
 ### places lentelė
