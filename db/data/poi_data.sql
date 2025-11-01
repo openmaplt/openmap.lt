@@ -1,11 +1,11 @@
 truncate table places.poi;
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Statoil"},{"amenity":"fuel"}]', '0101000020110F0000038C3255FB7945415CD6420908E15B41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Špunka"},{"amenity":"pub"}]', '0101000020110F0000D21DAC9DA1A443418380A3D306285C41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Nacionainis Dailės Muziejus"},{"tourism":"museum"}]', '0101000020110F0000901DA10F327645416FCFC78F21D55B41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Maxima"},{"shop":"supermarket"}]', '0101000020110F000092B298FD552445410E10E995464D5C41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Iki"},{"shop":"supermarket"}]', '0101000020110F0000D7EB2E6E633645414BECDE700BB85C41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Kempingas"},{"tourism":"camping"}]', '0101000020110F00008C9121376D6C4441AFB4AA8519A45B41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Piliakalnis"},{"historic":"archaeological_site"}]', '0101000020110F000030B0D4E060AC444137BAD69D9EA15C41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Plikapis"},{"historic":"archaeological_site"}]', '0101000020110F0000E3415CD795EB41419452C55A7F7D5C41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"SEB"},{"amenity":"bank"}]', '0101000020110F000003067032FF7A4541E74E0CCD21D85B41')
-insert into poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Firenze"},{"amenity":"restaurant"}]', '0101000020110F0000D7A5F5BA4A3A4241828B93B657565C41')
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Statoil"},{"amenity":"fuel"}]', '0101000020110F0000038C3255FB7945415CD6420908E15B41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Špunka"},{"amenity":"pub"}]', '0101000020110F0000D21DAC9DA1A443418380A3D306285C41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Nacionainis Dailės Muziejus"},{"tourism":"museum"}]', '0101000020110F0000901DA10F327645416FCFC78F21D55B41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Maxima"},{"shop":"supermarket"}]', '0101000020110F000092B298FD552445410E10E995464D5C41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Iki"},{"shop":"supermarket"}]', '0101000020110F0000D7EB2E6E633645414BECDE700BB85C41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Kempingas"},{"tourism":"camping"}]', '0101000020110F00008C9121376D6C4441AFB4AA8519A45B41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Piliakalnis"},{"historic":"archaeological_site"}]', '0101000020110F000030B0D4E060AC444137BAD69D9EA15C41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Plikapis"},{"historic":"archaeological_site"}]', '0101000020110F0000E3415CD795EB41419452C55A7F7D5C41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"SEB"},{"amenity":"bank"}]', '0101000020110F000003067032FF7A4541E74E0CCD21D85B41');
+insert into places.poi(osm_type, osm_id, attr, geom) values ('n', 1234567, '[{"name":"Firenze"},{"amenity":"restaurant"}]', '0101000020110F0000D7A5F5BA4A3A4241828B93B657565C41');
