@@ -78,165 +78,67 @@ docker compose down -v
 
 ## API Endpoints
 
-### GET /api/search
-Ieškoti POI vietų pagal pavadinimą, grąžinant artimiausius rezultatus.
-
-**Query parametrai:**
-- `f` (required) - paieškos tekstas (ieško name lauke)
-- `x` (required) - ilguma / longitude
-- `y` (required) - platuma / latitude
-
-**Pavyzdys:**
-```bash
-curl "http://localhost:3000/api/search?f=vilnius&x=25.2797&y=54.6872"
-```
-
-**Response (GeoJSON FeatureCollection):**
-```json
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [25.2797, 54.6872]
-      },
-      "properties": {
-        "id": 1,
-        "name": "Vilnius",
-        "description": "Lietuvos sostinė, didžiausias šalies miestas",
-        "lat": 54.6872,
-        "lon": 25.2797,
-        "distance": 0
-      }
-    }
-  ]
-}
-```
-
-**Pastaba:** 
-- API grąžina iki 10 artimiausių rezultatų
-- Rezultatai rūšiuojami pagal atstumą nuo nurodyto taško
-
-### GET /api/category
-Gauti POI sąrašą pagal kategoriją.
-
-**Query parametrai:**
-- `type` (required) - kategorijos tipas
-
-**Kategorijų tipai:**
-- A - Piliakalniai
-- B - Pilkapynai
-- C - Dvarai
-- D - Paminklai
-- E - Istorinės vietos
-- F - Apžvalgos bokštai
-- G - Lankytinos vietos
-- H - Regyklos
-- I - Muziejai
-- J - Katalikų maldos namai
-- K - Evangelikų liuteronų maldos namai
-- L - Provoslavų maldos namai
-- M - Kitų religijų maldos namai
-- X - Vienuolynai
-- 1 - Pažintiniai takai
-- 2 - Policijos nuovados
-- 3 - Gamtos objektai
-
-**Pavyzdys:**
-```bash
-curl "http://localhost:3000/api/category?type=A"
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "category": "Piliakalniai",
-  "data": [
-    {
-      "id": 1,
-      "name": "Kernavė",
-      "description": "Archeologinė vietovė",
-      "lat": 54.8872,
-      "lon": 24.8456,
-      "geometry": { "type": "Point", "coordinates": [24.8456, 54.8872] }
-    }
-  ],
-  "count": 1
-}
-```
-
-### GET /api/info
-Gauti detalią informaciją apie konkretų POI.
-
-**Query parametrai:**
-- `id` (required) - POI identifikatorius
-
-**Pavyzdys:**
-```bash
-curl "http://localhost:3000/api/info?id=1"
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "Vilnius",
-    "description": "Lietuvos sostinė, didžiausias šalies miestas",
-    "lat": 54.6872,
-    "lon": 25.2797,
-    "created_at": "2025-11-01T12:00:00.000Z",
-    "geometry": { "type": "Point", "coordinates": [25.2797, 54.6872] }
-  }
-}
-```
-
-**Pastaba:** 
-- Visi POI duomenys importuoti iš OpenStreetMap (OSM)
-- Visi API endpoints skirti tik skaitymui
+Projektas turi vieną API endpoint POI darbui su PostgreSQL + PostGIS.
 
 ### GET /api/list
-Gauti POI sąrašą žemėlapio viewport'ui (bounding box).
+
+Gauti POI sąrašą žemėlapio viewport'ui pagal bounding box.
+
+**Kaip veikia:**
+- Backend'as iškviečia PostgreSQL funkciją `list_poi(p_params json)`
+- Visa duomenų atrinkimo ir filtravimo logika yra duomenų bazės lygyje
+- Backend'as neturi WHERE sąlygų - tiesiog perduoda parametrus SQL funkcijai
 
 **Query parametrai:**
-- `bbox` (required) - bounding box: left,bottom,right,top (EPSG:4326 koordinatės)
-- `type` (required) - POI tipų kodai (pvz., "bn" = piliakalniai + degalinės)
-
-**Tipo kodai (galima sujungti kelis):**
-- a-z, A-Z, 1-3 - įvairūs POI tipai (degalinės, restoranai, istoriniai objektai, ir kt.)
+- `bbox` (required) - bounding box Mercator koordinatėse: left,bottom,right,top
+- `types` (required) - POI tipų kodai suklijuoti į vieną string (pvz., "ABDrhyQE")
 
 **Pavyzdys:**
 ```bash
-curl "http://localhost:3000/api/list?bbox=20.7,53.7,27.05,56.65&type=bn"
+curl "http://localhost:3000/api/list?bbox=2835000,7150000,3015000,7480000&types=ABDrhyQE"
 ```
 
-**Response (GeoJSON FeatureCollection):**
+**PostgreSQL funkcijos parametrai:**
 ```json
 {
-  "type": "FeatureCollection",
-  "bbox": [20.7, 53.7, 27.05, 56.65],
-  "features": [
-    {
-      "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [25.2797, 54.6872] },
-      "properties": {
-        "title": "Vilnius",
-        "description": "Lietuvos sostinė"
-      },
-      "id": 1
-    }
-  ]
+  "bbox": [2835000, 7150000, 3015000, 7480000],
+  "types": "ABDrhyQE"
 }
 ```
 
+**Response (JSON masyvas):**
+```json
+[
+  {
+    "id": 1234,
+    "attributes": [
+      {"name": "Vilnius"}, 
+      {"description": "Lietuvos sostinė"},
+      {"type": "city"}
+    ],
+    "geometry": [2988000, 7350000]
+  },
+  {
+    "id": 5678,
+    "attributes": [
+      {"name": "Trakai"}, 
+      {"description": "Istorinis miestas"}
+    ],
+    "geometry": [2975000, 7340000]
+  }
+]
+```
+
+**Response struktūra:**
+- `id` - POI identifikatorius
+- `attributes` - masyvas su POI atributais (key-value poromis iš lentelės)
+- `geometry` - koordinatės Mercator projekcijoje [x, y]
+
 **Pastaba:** 
-- `/api/list` naudojamas žemėlapio viewport'ui (grąžina POI pagal bbox)
-- `/api/info` grąžina vieno POI detales
-- Visi API endpoints skirti tik skaitymui
+- Visa logika (filtravimas, geometrijos transformacija, atributų formavimas) atliekama PostgreSQL funkcijoje
+- Backend'as neturi WHERE sąlygų ar kitos logikos
+- POI duomenys bus importuoti iš OpenStreetMap (OSM)
+- API skirtas tik duomenų skaitymui
 
 ## Duomenų bazės struktūra
 

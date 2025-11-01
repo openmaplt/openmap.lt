@@ -56,52 +56,44 @@ Duomenys yra apibrėžti `docker/test_data.sql` faile (apima ir duomenų bazės 
 
 ## API Endpoints
 
-Projektas turi keturis API endpoints POI darbui su PostgreSQL + PostGIS:
+Projektas turi vieną API endpoint POI darbui su PostgreSQL + PostGIS:
 
-### 1. Ieškoti vietų
+### GET /api/list
+
+Gauti POI sąrašą žemėlapio viewport'ui pagal bounding box.
+
 ```bash
-GET /api/search?f=vilnius&x=25.2797&y=54.6872
+GET /api/list?bbox=2835000,7150000,3015000,7480000&types=ABDrhyQE
 ```
 
-Parametrai:
-- `f` - paieškos tekstas (privalomas)
-- `x` - ilguma / longitude (privalomas)
-- `y` - platuma / latitude (privalomas)
+**Parametrai:**
+- `bbox` (privalomas) - bounding box Mercator koordinatėse: left,bottom,right,top
+- `types` (privalomas) - POI tipų kodai suklijuoti į vieną string (pvz., "ABDrhyQE")
 
-Atsakymas: GeoJSON FeatureCollection su iki 10 artimiausių rezultatų, rūšiuotų pagal atstumą.
-
-### 2. Gauti POI pagal kategoriją
-```bash
-GET /api/category?type=A
+**Atsakymas:** JSON masyvas su POI objektais:
+```json
+[
+  {
+    "id": 1234,
+    "attributes": [
+      {"name": "Vilnius"}, 
+      {"description": "Lietuvos sostinė"}
+    ],
+    "geometry": [2988000, 7350000]
+  }
+]
 ```
 
-Parametrai:
-- `type` - kategorijos tipas (privalomas): A (piliakalniai), B (pilkapynai), C (dvarai), D (paminklai), E (istorinės vietos), F (bokštai), G (lankytinos vietos), H (regyklos), I (muziejai), J (katalikų bažnyčios), K (liuteronų bažnyčios), L (stačiatikių bažnyčios), M (kitos religijos), X (vienuolynai), 1 (pažintiniai takai), 2 (policija), 3 (gamtos objektai)
+Kur:
+- `id` - POI identifikatorius
+- `attributes` - masyvas su POI atributais (key-value poromis)
+- `geometry` - koordinatės Mercator projekcijoje [x, y]
 
-Atsakymas: Sąrašas POI taškų pagal kategoriją (iki 100 rezultatų).
-
-### 3. Gauti POI informaciją
-```bash
-GET /api/info?id=1
-```
-
-Parametrai:
-- `id` - POI identifikatorius (privalomas)
-
-Atsakymas: Detali POI informacija.
-
-### 4. Gauti POI sąrašą žemėlapio viewport'ui
-```bash
-GET /api/list?bbox=20.7,53.7,27.05,56.65&type=bn
-```
-
-Parametrai:
-- `bbox` - bounding box (privalomas): left,bottom,right,top koordinatės
-- `type` - POI tipai (privalomas): vienas ar keli tipo kodai (a-z, A-Z, 0-3)
-
-Atsakymas: GeoJSON FeatureCollection su POI taškais bounding box ribose (iki 1000 rezultatų).
-
-**Pastaba:** POI duomenys bus importuoti iš OSM duomenų bazės. Visi API endpoints skirti tik duomenų skaitymui.
+**Pastaba:** 
+- Visa duomenų atrinkimo ir filtravimo logika atliekama PostgreSQL funkcijoje `list_poi(p_params json)`
+- Backend'as neturi WHERE sąlygų - tiesiog iškviečia SQL funkciją
+- POI duomenys bus importuoti iš OSM duomenų bazės
+- API skirtas tik duomenų skaitymui
 
 ## Docker valdymas
 
