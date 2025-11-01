@@ -52,26 +52,23 @@ Paleidus PostgreSQL pirmą kartą, automatiškai bus užkrauti testiniai POI duo
 - Mažesni miestai ir miesteliai
 - Paminklai ir memorialai
 
-Duomenys yra apibrėžti `docker/sample-data.sql` faile.
+Duomenys yra apibrėžti `docker/test_data.sql` faile (apima ir duomenų bazės struktūrą, ir testinius duomenis).
 
 ## API Endpoints
 
-Projektas turi API endpoints darbui su PostgreSQL + PostGIS:
+Projektas turi `/api/search` endpoint POI paieškai su PostgreSQL + PostGIS:
 
-### Gauti visas vietas
+### Ieškoti vietų
 ```bash
-GET /api/places
-```
-
-### Rasti artimas vietas
-```bash
-GET /api/places/nearby?longitude=25.2797&latitude=54.6872&radius=10000
+GET /api/search?f=vilnius&x=25.2797&y=54.6872
 ```
 
 Parametrai:
-- `longitude` - ilguma (privalomas)
-- `latitude` - platuma (privalomas)
-- `radius` - spindulys metrais (neprivalomas, pagal nutylėjimą 10000m, max 1000000m)
+- `f` - paieškos tekstas (privalomas)
+- `x` - ilguma / longitude (privalomas)
+- `y` - platuma / latitude (privalomas)
+
+Atsakymas: GeoJSON FeatureCollection su iki 10 artimiausių rezultatų, rūšiuotų pagal atstumą.
 
 **Pastaba:** POI duomenys bus importuoti iš OSM duomenų bazės. API endpoints skirtas tik duomenų skaitymui.
 
@@ -99,7 +96,7 @@ docker-compose logs -f postgres
 
 ## Duomenų bazės struktūra
 
-Pradinė duomenų bazės struktūra sukuriama automatiškai per `docker/init-db.sql` skriptą:
+Pradinė duomenų bazės struktūra ir testiniai duomenys sukuriami automatiškai per `docker/test_data.sql` skriptą:
 
 - **places** lentelė - saugo POI (Point of Interest) duomenis
   - id (SERIAL PRIMARY KEY)
@@ -108,14 +105,14 @@ Pradinė duomenų bazės struktūra sukuriama automatiškai per `docker/init-db.
   - location (GEOGRAPHY POINT) - geografinė koordinatė
   - created_at (TIMESTAMP) - sukūrimo data
 
-**Testiniai duomenys:** Lokaliam development'ui automatiškai įkeliami testiniai POI duomenys iš `docker/sample-data.sql` (~90+ taškų Lietuvoje).
+**Testiniai duomenys:** Lokaliam development'ui automatiškai įkeliami testiniai POI duomenys (~90+ taškų Lietuvoje) iš to paties `docker/test_data.sql` failo.
 
 **Production duomenys:** Bus importuoti iš OpenStreetMap (OSM) duomenų bazės.
 
 PostGIS funkcijos, kurios naudojamos API:
 - `ST_GeogFromText()` - sukurti geografinį tašką
 - `ST_Distance()` - apskaičiuoti atstumą tarp taškų
-- `ST_DWithin()` - rasti taškus per nurodytą spindulį
+- `ST_AsGeoJSON()` - konvertuoti geometriją į GeoJSON formatą
 - `ST_X()`, `ST_Y()` - gauti koordinates
 
 ## Vystymas
