@@ -78,60 +78,48 @@ docker compose down -v
 
 ## API Endpoints
 
-### GET /api/places
-Gauti visas vietas iš duomenų bazės.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "Vilnius",
-      "description": "Lietuvos sostinė",
-      "longitude": 25.2797,
-      "latitude": 54.6872,
-      "created_at": "2025-10-31T22:33:21.172Z"
-    }
-  ],
-  "count": 1
-}
-```
-
-### GET /api/places/nearby
-Rasti vietas per nurodytą spindulį nuo taško.
+### GET /api/search
+Ieškoti POI vietų pagal pavadinimą, grąžinant artimiausius rezultatus.
 
 **Query parametrai:**
-- `longitude` (required) - ilguma
-- `latitude` (required) - platuma
-- `radius` (optional) - spindulys metrais (default: 10000, max: 1000000)
+- `f` (required) - paieškos tekstas (ieško name lauke)
+- `x` (required) - ilguma / longitude
+- `y` (required) - platuma / latitude
 
-**Pastaba:** POI duomenys importuoti iš OpenStreetMap (OSM). API skirtas tik skaitymui.
+**Pavyzdys:**
+```bash
+curl "http://localhost:3000/api/search?f=vilnius&x=25.2797&y=54.6872"
+```
 
-**Response:**
+**Response (GeoJSON FeatureCollection):**
 ```json
 {
-  "success": true,
-  "data": [
+  "type": "FeatureCollection",
+  "features": [
     {
-      "id": 1,
-      "name": "Vilnius",
-      "description": "Lietuvos sostinė",
-      "longitude": 25.2797,
-      "latitude": 54.6872,
-      "distance_meters": 0,
-      "created_at": "2025-10-31T22:33:21.172Z"
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [25.2797, 54.6872]
+      },
+      "properties": {
+        "id": 1,
+        "name": "Vilnius",
+        "description": "Lietuvos sostinė, didžiausias šalies miestas",
+        "lat": 54.6872,
+        "lon": 25.2797,
+        "distance": 0
+      }
     }
-  ],
-  "count": 1,
-  "params": {
-    "longitude": 25.2797,
-    "latitude": 54.6872,
-    "radius": 50000
-  }
+  ]
 }
 ```
+
+**Pastaba:** 
+- API grąžina iki 10 artimiausių rezultatų
+- Rezultatai rūšiuojami pagal atstumą nuo nurodyto taško
+- POI duomenys importuoti iš OpenStreetMap (OSM)
+- API skirtas tik skaitymui
 
 ## Duomenų bazės struktūra
 

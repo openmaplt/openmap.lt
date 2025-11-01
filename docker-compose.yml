@@ -10,8 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql
-      - ./docker/sample-data.sql:/docker-entrypoint-initdb.d/02-sample-data.sql
+      - ./docker/test_data.sql:/docker-entrypoint-initdb.d/test_data.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U openmap"]
       interval: 10s
