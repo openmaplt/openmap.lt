@@ -118,8 +118,86 @@ curl "http://localhost:3000/api/search?f=vilnius&x=25.2797&y=54.6872"
 **Pastaba:** 
 - API grąžina iki 10 artimiausių rezultatų
 - Rezultatai rūšiuojami pagal atstumą nuo nurodyto taško
-- POI duomenys importuoti iš OpenStreetMap (OSM)
-- API skirtas tik skaitymui
+
+### GET /api/category
+Gauti POI sąrašą pagal kategoriją.
+
+**Query parametrai:**
+- `type` (required) - kategorijos tipas
+
+**Kategorijų tipai:**
+- A - Piliakalniai
+- B - Pilkapynai
+- C - Dvarai
+- D - Paminklai
+- E - Istorinės vietos
+- F - Apžvalgos bokštai
+- G - Lankytinos vietos
+- H - Regyklos
+- I - Muziejai
+- J - Katalikų maldos namai
+- K - Evangelikų liuteronų maldos namai
+- L - Provoslavų maldos namai
+- M - Kitų religijų maldos namai
+- X - Vienuolynai
+- 1 - Pažintiniai takai
+- 2 - Policijos nuovados
+- 3 - Gamtos objektai
+
+**Pavyzdys:**
+```bash
+curl "http://localhost:3000/api/category?type=A"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "category": "Piliakalniai",
+  "data": [
+    {
+      "id": 1,
+      "name": "Kernavė",
+      "description": "Archeologinė vietovė",
+      "lat": 54.8872,
+      "lon": 24.8456,
+      "geometry": { "type": "Point", "coordinates": [24.8456, 54.8872] }
+    }
+  ],
+  "count": 1
+}
+```
+
+### GET /api/info
+Gauti detalią informaciją apie konkretų POI.
+
+**Query parametrai:**
+- `id` (required) - POI identifikatorius
+
+**Pavyzdys:**
+```bash
+curl "http://localhost:3000/api/info?id=1"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Vilnius",
+    "description": "Lietuvos sostinė, didžiausias šalies miestas",
+    "lat": 54.6872,
+    "lon": 25.2797,
+    "created_at": "2025-11-01T12:00:00.000Z",
+    "geometry": { "type": "Point", "coordinates": [25.2797, 54.6872] }
+  }
+}
+```
+
+**Pastaba:** 
+- Visi POI duomenys importuoti iš OpenStreetMap (OSM)
+- Visi API endpoints skirti tik skaitymui
 
 ## Duomenų bazės struktūra
 
