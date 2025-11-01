@@ -56,9 +56,9 @@ Duomenys yra apibrėžti `docker/test_data.sql` faile (apima ir duomenų bazės 
 
 ## API Endpoints
 
-Projektas turi `/api/search` endpoint POI paieškai su PostgreSQL + PostGIS:
+Projektas turi tris API endpoints POI darbui su PostgreSQL + PostGIS:
 
-### Ieškoti vietų
+### 1. Ieškoti vietų
 ```bash
 GET /api/search?f=vilnius&x=25.2797&y=54.6872
 ```
@@ -70,7 +70,27 @@ Parametrai:
 
 Atsakymas: GeoJSON FeatureCollection su iki 10 artimiausių rezultatų, rūšiuotų pagal atstumą.
 
-**Pastaba:** POI duomenys bus importuoti iš OSM duomenų bazės. API endpoints skirtas tik duomenų skaitymui.
+### 2. Gauti POI pagal kategoriją
+```bash
+GET /api/category?type=A
+```
+
+Parametrai:
+- `type` - kategorijos tipas (privalomas): A (piliakalniai), B (pilkapynai), C (dvarai), D (paminklai), E (istorinės vietos), F (bokštai), G (lankytinos vietos), H (regyklos), I (muziejai), J (katalikų bažnyčios), K (liuteronų bažnyčios), L (stačiatikių bažnyčios), M (kitos religijos), X (vienuolynai), 1 (pažintiniai takai), 2 (policija), 3 (gamtos objektai)
+
+Atsakymas: Sąrašas POI taškų pagal kategoriją (iki 100 rezultatų).
+
+### 3. Gauti POI informaciją
+```bash
+GET /api/info?id=1
+```
+
+Parametrai:
+- `id` - POI identifikatorius (privalomas)
+
+Atsakymas: Detali POI informacija.
+
+**Pastaba:** POI duomenys bus importuoti iš OSM duomenų bazės. Visi API endpoints skirti tik duomenų skaitymui.
 
 ## Docker valdymas
 
