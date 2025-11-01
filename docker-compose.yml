@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.5
+    container_name: openmap-postgres
+    environment:
+      POSTGRES_USER: openmap
+      POSTGRES_PASSWORD: openmap
+      POSTGRES_DB: openmap
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/test_data.sql:/docker-entrypoint-initdb.d/test_data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openmap"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
