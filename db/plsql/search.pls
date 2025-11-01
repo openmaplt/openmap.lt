@@ -6,6 +6,7 @@ begin
   select jsonb_agg(
            jsonb_build_object(
              'id', id,
+             'type', 'A',
              'attr', attr,
              'geom', jsonb_build_array(st_x(geom), st_y(geom))
            )
