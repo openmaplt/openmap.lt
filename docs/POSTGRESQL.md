@@ -99,45 +99,15 @@ Gauti visas vietas iš duomenų bazės.
 }
 ```
 
-### POST /api/places
-Sukurti naują vietą.
-
-**Request:**
-```json
-{
-  "name": "Pavadinimas",
-  "description": "Aprašymas (optional)",
-  "longitude": 25.2797,
-  "latitude": 54.6872
-}
-```
-
-**Koordinačių validacija:**
-- Longitude: 20.7 iki 27.05 (Lietuvos ribos)
-- Latitude: 53.7 iki 56.65 (Lietuvos ribos)
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 4,
-    "name": "Pavadinimas",
-    "description": "Aprašymas",
-    "longitude": 25.2797,
-    "latitude": 54.6872,
-    "created_at": "2025-10-31T22:36:27.955Z"
-  }
-}
-```
-
 ### GET /api/places/nearby
 Rasti vietas per nurodytą spindulį nuo taško.
 
 **Query parametrai:**
-- `longitude` (required) - ilguma (20.7 iki 27.05 - Lietuvos ribos)
-- `latitude` (required) - platuma (53.7 iki 56.65 - Lietuvos ribos)
+- `longitude` (required) - ilguma
+- `latitude` (required) - platuma
 - `radius` (optional) - spindulys metrais (default: 10000, max: 1000000)
+
+**Pastaba:** POI duomenys importuoti iš OpenStreetMap (OSM). API skirtas tik skaitymui.
 
 **Response:**
 ```json

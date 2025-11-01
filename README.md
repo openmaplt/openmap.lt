@@ -41,31 +41,27 @@ npm run dev
 
 Aplikacija bus prieinama adresu: http://localhost:3000
 
+## Testiniai duomenys
+
+Paleidus PostgreSQL pirmą kartą, automatiškai bus užkrauti testiniai POI duomenys (~90+ taškų):
+- Didžiųjų miestų centrai (Vilnius, Kaunas, Klaipėda, Šiauliai, Panevėžys)
+- Istoriniai objektai ir muziejai
+- Gamtos objektai ir nacionaliniai parkai
+- Religiniai objektai
+- Kurortai ir poilsio vietos
+- Mažesni miestai ir miesteliai
+- Paminklai ir memorialai
+
+Duomenys yra apibrėžti `docker/sample-data.sql` faile.
+
 ## API Endpoints
 
-Projektas turi pavyzdinius API endpoints, kurie demonstruoja darbą su PostgreSQL + PostGIS:
+Projektas turi API endpoints darbui su PostgreSQL + PostGIS:
 
 ### Gauti visas vietas
 ```bash
 GET /api/places
 ```
-
-### Sukurti naują vietą
-```bash
-POST /api/places
-Content-Type: application/json
-
-{
-  "name": "Pavadinimas",
-  "description": "Aprašymas",
-  "longitude": 25.2797,
-  "latitude": 54.6872
-}
-```
-
-**Pastaba:** Koordinatės turi būti Lietuvos ribose:
-- Longitude: 20.7 iki 27.05
-- Latitude: 53.7 iki 56.65
 
 ### Rasti artimas vietas
 ```bash
@@ -73,9 +69,11 @@ GET /api/places/nearby?longitude=25.2797&latitude=54.6872&radius=10000
 ```
 
 Parametrai:
-- `longitude` - ilguma (privalomas, 20.7-27.05)
-- `latitude` - platuma (privalomas, 53.7-56.65)
+- `longitude` - ilguma (privalomas)
+- `latitude` - platuma (privalomas)
 - `radius` - spindulys metrais (neprivalomas, pagal nutylėjimą 10000m, max 1000000m)
+
+**Pastaba:** POI duomenys bus importuoti iš OSM duomenų bazės. API endpoints skirtas tik duomenų skaitymui.
 
 ## Docker valdymas
 
@@ -103,14 +101,18 @@ docker-compose logs -f postgres
 
 Pradinė duomenų bazės struktūra sukuriama automatiškai per `docker/init-db.sql` skriptą:
 
-- **places** lentelė - saugo vietas su geografiniais duomenimis
+- **places** lentelė - saugo POI (Point of Interest) duomenis
   - id (SERIAL PRIMARY KEY)
-  - name (VARCHAR)
-  - description (TEXT)
-  - location (GEOGRAPHY POINT)
-  - created_at (TIMESTAMP)
+  - name (VARCHAR) - POI pavadinimas
+  - description (TEXT) - POI aprašymas
+  - location (GEOGRAPHY POINT) - geografinė koordinatė
+  - created_at (TIMESTAMP) - sukūrimo data
 
-PostGIS funkcijos, kurios naudojamos pavyzdiniuose API:
+**Testiniai duomenys:** Lokaliam development'ui automatiškai įkeliami testiniai POI duomenys iš `docker/sample-data.sql` (~90+ taškų Lietuvoje).
+
+**Production duomenys:** Bus importuoti iš OpenStreetMap (OSM) duomenų bazės.
+
+PostGIS funkcijos, kurios naudojamos API:
 - `ST_GeogFromText()` - sukurti geografinį tašką
 - `ST_Distance()` - apskaičiuoti atstumą tarp taškų
 - `ST_DWithin()` - rasti taškus per nurodytą spindulį
