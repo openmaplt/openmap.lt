@@ -39,7 +39,8 @@ export interface PoiAttribute {
     | "heritage"
     | "image"
     | "height"
-    | "fee";
+    | "fee"
+    | "beer_styles";
   icon?: string;
   label?: string;
 }
@@ -67,6 +68,7 @@ const SHOW_ATTRIBUTES = [
   "height",
   "fee",
   "image",
+  "beer_styles",
 ];
 
 // Lithuanian labels for attributes
@@ -77,6 +79,7 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   email: "E-paštas",
   phone: "Telefono nr.",
   fee: "Mokestis",
+  beer_styles: "Alaus stiliai",
 };
 
 // Lucide React icon names for attributes
@@ -89,6 +92,7 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
   wikipedia: "BookOpen",
   height: "Ruler",
   street: "MapPin",
+  beer_styles: "Beer",
 };
 
 // Layer code mapping (for object IDs)
@@ -161,6 +165,28 @@ export function formatOpeningHours(value: string): string[] {
   return translated.split(";").map((line) => line.trim());
 }
 
+export function formatBeerStyles(properties: PoiProperties) {
+  const styles = [];
+
+  if (properties.style_lager === "y") {
+    styles.push("lageris");
+  }
+  if (properties.style_ale === "y") {
+    styles.push("elis");
+  }
+  if (properties.style_stout === "y") {
+    styles.push("stautas");
+  }
+  if (properties.style_ipa === "y") {
+    styles.push("IPA");
+  }
+  if (properties.style_wheat === "y") {
+    styles.push("kvietinis");
+  }
+
+  return styles.join(", ");
+}
+
 /**
  * Determine attribute type
  */
@@ -188,8 +214,37 @@ function getAttributeType(key: string): PoiAttribute["type"] {
       return "height";
     case "fee":
       return "fee";
+    case "beer_styles":
+      return "beer_styles";
     default:
       return "text";
+  }
+}
+
+function getAttributeValue(
+  type: PoiAttribute["type"],
+  key: string,
+  properties: PoiProperties,
+) {
+  if (type === "beer_styles") {
+    return formatBeerStyles(properties);
+  }
+
+  if (!properties[key]) {
+    return "";
+  }
+
+  const value = String(properties[key]);
+
+  switch (type) {
+    case "address":
+      return formatAddress(properties);
+    case "fee":
+      return value === "yes" ? "Yra" : "Nėra";
+    case "height":
+      return `${value} m.`;
+    default:
+      return value;
   }
 }
 
@@ -200,18 +255,10 @@ export function extractPoiData(properties: PoiProperties): PoiData {
   const attributes: PoiAttribute[] = [];
 
   for (const key of SHOW_ATTRIBUTES) {
-    if (!properties[key]) continue;
-
-    let value = String(properties[key]);
     const type = getAttributeType(key);
-
-    // Special handling for certain types
-    if (type === "address") {
-      value = formatAddress(properties);
-    } else if (type === "fee") {
-      value = value === "yes" ? "Yra" : "Nėra";
-    } else if (type === "height") {
-      value = `${value} m.`;
+    const value = getAttributeValue(type, key, properties);
+    if (value.length === 0) {
+      continue;
     }
 
     attributes.push({
