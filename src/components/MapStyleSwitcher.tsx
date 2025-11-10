@@ -51,6 +51,7 @@ export function MapStyleSwitcher({
               alt={activeMapProfile.mapStyles[nextMapIndex].name}
               priority={false}
               fill
+              unoptimized
             />
           </div>
           <span className="text-xs">

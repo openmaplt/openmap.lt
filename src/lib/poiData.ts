@@ -67,8 +67,8 @@ const SHOW_ATTRIBUTES = [
   "wikipedia",
   "height",
   "fee",
-  "image",
   "beer_styles",
+  "image",
 ];
 
 // Lithuanian labels for attributes
