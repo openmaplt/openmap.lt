@@ -8,18 +8,18 @@ export async function GET(request: NextRequest) {
 		const types = searchParams.get("types") || searchParams.get("type") || "";
 
 		if (!bbox) {
-			return NextResponse.json([], { status: 400 });
+			return NextResponse.json({'error': "Nenurodytas bbox"}, { status: 400 });
 		}
 
 		// Parse bbox: left,bottom,right,top (in Mercator coordinates)
 		const coords = bbox.split(",").map((c) => Number.parseFloat(c));
 		if (coords.length !== 4 || coords.some((c) => Number.isNaN(c))) {
-			return NextResponse.json([], { status: 400 });
+			return NextResponse.json([{'error': "Blogas bbox parametras. Formatas: left,bottom,right,top"}], { status: 400 });
 		}
 
 		const [left, bottom, right, top] = coords;
 
-		// Build the parameters JSON for the list_poi function
+		// Build the parameters JSON for the places.list function
 		const params = {
 			bbox: [left, bottom, right, top],
 			types: types,
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
 		// Call the PostgreSQL function that will handle all filtering logic
 		const result = await query(
-			"SELECT list_poi($1::json) as result",
+			"SELECT places.list($1::jsonb) as result",
 			[JSON.stringify(params)],
 		);
 

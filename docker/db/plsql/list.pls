@@ -8,7 +8,10 @@ begin
              'id', id,
              'type', 'A',
              'attr', attr,
-             'geom', jsonb_build_array(st_x(geom), st_y(geom))
+             'geom', jsonb_build_array(
+               st_x(st_transform(geom, 4326)),
+               st_y(st_transform(geom, 4326))
+             )
            )
          )
     into r

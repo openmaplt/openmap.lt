@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: postgis/postgis:16-3.5
+    platform: linux/amd64
+    image: postgis/postgis:16-3.4
     container_name: openmap-postgres
     environment:
       POSTGRES_USER: openmap
@@ -10,7 +11,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/test_data.sql:/docker-entrypoint-initdb.d/test_data.sql
+      - ./docker/db/install.sql:/docker-entrypoint-initdb.d/01-install.sql
+      - ./docker/db/tables:/docker-entrypoint-initdb.d/tables
+      - ./docker/db/tables/install_tables.sql:/docker-entrypoint-initdb.d/02-install-tables.sql
+      - ./docker/db/plsql:/docker-entrypoint-initdb.d/plsql
+      - ./docker/db/plsql/install_plsql.sql:/docker-entrypoint-initdb.d/03-install-plsql.sql
+      - ./docker/db/data:/docker-entrypoint-initdb.d/data
+      - ./docker/db/data/install_data.sql:/docker-entrypoint-initdb.d/04-install-data.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U openmap"]
       interval: 10s
