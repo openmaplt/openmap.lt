@@ -1,7 +1,7 @@
 services:
   postgres:
     platform: linux/amd64
-    image: postgis/postgis:16-3.4
+    image: postgis/postgis:16-3.5
     container_name: openmap-postgres
     environment:
       POSTGRES_USER: openmap

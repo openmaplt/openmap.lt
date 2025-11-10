@@ -133,14 +133,6 @@ export const MAPS: MapProfile[] = [
   },
 ];
 
-// Lietuvos geografinės ribos (koordinatės)
-export const LITHUANIA_BOUNDS = {
-  MIN_LONGITUDE: 20.7,
-  MAX_LONGITUDE: 27.05,
-  MIN_LATITUDE: 53.7,
-  MAX_LATITUDE: 56.65,
-} as const;
-
 export const Config: Config = {
   DEFAULT_MAP_TYPE: "m",
   DEFAULT_STYLE_MAP: "/styles/map.json",
@@ -149,10 +141,5 @@ export const Config: Config = {
   DEFAULT_ZOOM: 7,
   MIN_ZOOM: 7,
   MAX_ZOOM: 18,
-  BOUNDS: [
-    LITHUANIA_BOUNDS.MIN_LONGITUDE,
-    LITHUANIA_BOUNDS.MIN_LATITUDE,
-    LITHUANIA_BOUNDS.MAX_LONGITUDE,
-    LITHUANIA_BOUNDS.MAX_LATITUDE,
-  ],
+  BOUNDS: [20.7, 53.7, 27.05, 56.65],
 };
