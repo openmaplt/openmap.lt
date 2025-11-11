@@ -85,7 +85,7 @@ jobs:
             curl -o docker-compose.prod.yml https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/docker-compose.prod.yml
             
             # Login to GitHub Container Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+            echo ${{ secrets.GHCR_PAT }} | docker login ${{ env.REGISTRY }} -u paumas --password-stdin
             
             # Pull latest image
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
