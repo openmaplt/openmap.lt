@@ -27,6 +27,19 @@ docker-compose up -d
 
 ### 2.1. Įdiegti LLM modelį (TildeOpen arba Llama)
 
+**Greitas būdas - naudoti setup scriptą:**
+```bash
+./scripts/setup-llm.sh
+```
+
+Script'as automatiškai:
+- Patikrina ar Ollama veikia
+- Leidžia pasirinkti modelį (TildeOpen / Llama 3.2)
+- Atsisiunčia pasirinktą modelį
+- Atnaujina `.env.local` failą
+
+**Rankinis būdas:**
+
 **Pasirinkimas A: TildeOpen modelis (rekomenduojama lietuvių kalbai)**
 ```bash
 # Paleisti Ollama konteinerį ir įdiegti TildeOpen modelį
