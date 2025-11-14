@@ -6,7 +6,7 @@ import { checkOllamaHealth } from "@/lib/llm";
  * Health check endpoint for system services
  * Checks:
  * - Database connectivity
- * - Ollama LLM service availability
+ * - vLLM service availability
  */
 export async function GET() {
   const health = {
@@ -36,15 +36,15 @@ export async function GET() {
     health.status = "error";
   }
 
-  // Check Ollama LLM service
+  // Check vLLM service
   try {
-    const ollamaHealthy = await checkOllamaHealth();
-    if (ollamaHealthy) {
+    const vllmHealthy = await checkOllamaHealth(); // Uses backward compatibility alias
+    if (vllmHealthy) {
       health.services.llm.status = "ok";
-      health.services.llm.message = "Ollama service available";
+      health.services.llm.message = "vLLM (TildeOpen-30b) available";
     } else {
       health.services.llm.status = "error";
-      health.services.llm.message = "Ollama service not responding";
+      health.services.llm.message = "vLLM service not responding";
       health.status = health.status === "error" ? "error" : "degraded";
     }
   } catch (error) {

@@ -1,6 +1,6 @@
 /**
  * LLM Integration for Natural Language Search
- * Naudoja Ollama su TildeOpen modeliu natūralios kalbos užklausų interpretavimui
+ * Naudoja vLLM su TildeOpen-30b modeliu natūralios kalbos užklausų interpretavimui
  */
 
 export interface SearchQuery {
@@ -19,8 +19,8 @@ interface LLMResponse {
   radius?: number;
 }
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.2:latest";
+const VLLM_BASE_URL = process.env.VLLM_BASE_URL || "http://localhost:8000";
+const VLLM_MODEL = process.env.VLLM_MODEL || "TildeAI/TildeOpen-30b";
 
 /**
  * Sisteminė žinutė, kuri nurodo LLM kaip interpretuoti lietuviškus paieškos tekstus
@@ -65,29 +65,43 @@ Atsakyk TIKTAI JSON formatu, be jokių papildomų paaiškinimų.`;
  */
 export async function interpretQuery(query: string): Promise<SearchQuery> {
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+    // vLLM naudoja OpenAI-compatible API
+    const response = await fetch(`${VLLM_BASE_URL}/v1/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        prompt: `${SYSTEM_PROMPT}\n\nVartotojo užklausa: "${query}"\n\nAtsakymas (JSON):`,
-        stream: false,
-        format: "json",
-        options: {
-          temperature: 0.3,
-          top_p: 0.9,
-        },
+        model: VLLM_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content: `Vartotojo užklausa: "${query}"\n\nAtsakymas (JSON):`,
+          },
+        ],
+        temperature: 0.3,
+        top_p: 0.9,
+        max_tokens: 500,
+        response_format: { type: "json_object" },
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Ollama API klaida: ${response.status}`);
+      throw new Error(`vLLM API klaida: ${response.status}`);
     }
 
     const data = await response.json();
-    const llmResponse = JSON.parse(data.response) as LLMResponse;
+    const content = data.choices[0]?.message?.content;
+    
+    if (!content) {
+      throw new Error("Tuščias LLM atsakymas");
+    }
+
+    const llmResponse = JSON.parse(content) as LLMResponse;
 
     // Normalizuojame ir grąžiname rezultatą
     return {
@@ -108,11 +122,11 @@ export async function interpretQuery(query: string): Promise<SearchQuery> {
 }
 
 /**
- * Patikrina ar Ollama servisas yra pasiekiamas
+ * Patikrina ar vLLM servisas yra pasiekiamas
  */
-export async function checkOllamaHealth(): Promise<boolean> {
+export async function checkVllmHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/tags`, {
+    const response = await fetch(`${VLLM_BASE_URL}/health`, {
       method: "GET",
     });
     return response.ok;
@@ -120,3 +134,6 @@ export async function checkOllamaHealth(): Promise<boolean> {
     return false;
   }
 }
+
+// Backward compatibility alias
+export const checkOllamaHealth = checkVllmHealth;
