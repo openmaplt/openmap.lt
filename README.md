@@ -7,7 +7,7 @@ Nauja openmap.lt aplikacijos versija
 - TypeScript
 - Tailwind CSS
 - PostgreSQL + PostGIS (per Docker)
-- vLLM su TildeOpen-30b (per Docker) - natūralios kalbos paieška
+- Ollama LLM (per Docker) - natūralios kalbos paieška
 
 ## Pradžia
 
@@ -16,48 +16,50 @@ Nauja openmap.lt aplikacijos versija
 npm install
 ```
 
-### 2. Paleisti Docker servisus (PostgreSQL + vLLM)
+### 2. Paleisti Docker servisus (PostgreSQL + Ollama LLM)
 ```bash
 docker-compose up -d
 ```
 
 Ši komanda paleis:
 - **PostgreSQL 16** su PostGIS 3.5 plėtiniu (`localhost:5432`)
-- **vLLM** servisą su TildeOpen-30b modeliu (`localhost:8000`)
+- **Ollama LLM** servisą natūralios kalbos paieškai (`localhost:11434`)
 
-### 2.1. Įdiegti ir paleisti TildeOpen-30b modelį
+### 2.1. Įdiegti LLM modelį (TildeOpen arba Llama)
 
-**⚠️ Reikalavimai:**
-- NVIDIA GPU su bent 60GB VRAM (pvz., A100, H100)
-- NVIDIA Docker runtime
-- Interneto ryšys modelio atsisiuntimui (~60GB)
-
-**Setup scriptas (rekomenduojama):**
+**Greitas būdas - naudoti setup scriptą:**
 ```bash
 ./scripts/setup-llm.sh
 ```
 
 Script'as automatiškai:
-- Patikrina GPU prieinamumą
-- Paleidžia vLLM konteinerį
-- Atsisiunčia TildeOpen-30b iš HuggingFace
-- Įkelia modelį į GPU atmintį
-- Konfigūruoja `.env.local`
+- Patikrina ar Ollama veikia
+- Leidžia pasirinkti modelį (TildeOpen / Llama 3.2)
+- Atsisiunčia pasirinktą modelį
+- Atnaujina `.env.local` failą
 
 **Rankinis būdas:**
+
+**Pasirinkimas A: TildeOpen modelis (rekomenduojama lietuvių kalbai)**
 ```bash
-# Paleisti tik vLLM servisą
-docker-compose up -d vllm
-
-# Stebėti progresą (modelio atsisiuntimas gali užtrukti)
-docker-compose logs -f vllm
-
-# Patikrinti ar servisas veikia
-curl http://localhost:8000/health
+# Paleisti Ollama konteinerį ir įdiegti TildeOpen modelį
+docker exec -it openmap-ollama ollama pull tildeopen:latest
 ```
 
-**Jei neturite GPU:**
-TildeOpen-30b modelis reikalauja GPU. Be GPU galite naudoti mažesnį modelį arba cloud sprendimą.
+**Pasirinkimas B: Llama 3.2 modelis (alternatyva, jei TildeOpen nepasiekiamas)**
+```bash
+docker exec -it openmap-ollama ollama pull llama3.2:latest
+```
+
+**Patikrinti ar modelis įdiegtas:**
+```bash
+docker exec -it openmap-ollama ollama list
+```
+
+Jei naudojate Llama vietoj TildeOpen, atnaujinkite `.env.local`:
+```bash
+OLLAMA_MODEL=llama3.2:latest
+```
 
 ### 3. Sukonfigūruoti aplinkos kintamuosius
 Nukopijuokite `.env.example` į `.env.local`:
@@ -70,8 +72,8 @@ Pagal nutylėjimą naudojama:
 - User: `openmap`
 - Password: `openmap`
 - Port: `5432`
-- vLLM URL: `http://localhost:8000`
-- vLLM Model: `TildeAI/TildeOpen-30b`
+- Ollama URL: `http://localhost:11434`
+- Ollama Model: `tildeopen:latest`
 
 ### 4. Paleisti projektą
 ```bash
@@ -93,19 +95,11 @@ Aplikacija palaiko natūralios lietuvių kalbos paiešką naudodama LLM modelį.
 
 ### Kaip veikia:
 
-1. **LLM interpretacija**: vLLM su TildeOpen-30b modeliu interpretuoja natūralią lietuvių kalbos užklausą
+1. **LLM interpretacija**: Ollama su TildeOpen modeliu interpretuoja natūralią lietuvių kalbos užklausą
 2. **Struktūrizavimas**: LLM išgauna POI tipą, orientyrą, miestą ir papildomus raktažodžius
 3. **DB užklausa**: Sistema sugeneruoja PostgreSQL užklausą į OSM duomenų bazę
 4. **Rezultatai**: Surandami atitinkami POI objektai su koordinatėmis
 5. **Žemėlapis**: Rezultatai rodomi sąraše ir žemėlapis nukelia į pasirinktą vietą
-
-### Kodėl TildeOpen-30b?
-
-TildeOpen-30b yra specialiai lietuvių kalbai optimizuotas didelis kalbos modelis, sukurtas Tilde AI:
-- 🇱🇹 Puikus lietuvių kalbos supratimas
-- 📍 Gerai atpažįsta Lietuvos miestus ir orientyrus
-- 🎯 Tikslesnis POI tipo nustatymas lietuviškais terminais
-- 🚀 Profesionalus modelis, skirtas gamybinei aplinkai
 
 ### API Endpoint:
 ```bash
@@ -138,22 +132,20 @@ docker-compose down -v
 ### Peržiūrėti logs
 ```bash
 docker-compose logs -f postgres
-docker-compose logs -f vllm
+docker-compose logs -f ollama
 ```
 
-### Testuoti vLLM servisą
+### Testuoti LLM servisą
 ```bash
-# Patikrinti ar vLLM veikia
-curl http://localhost:8000/health
+# Patikrinti ar Ollama veikia
+curl http://localhost:11434/api/tags
 
 # Testuoti modelio atsakymą
-curl http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "TildeAI/TildeOpen-30b",
-    "messages": [{"role": "user", "content": "Kas yra Vilnius?"}],
-    "max_tokens": 100
-  }'
+curl http://localhost:11434/api/generate -d '{
+  "model": "tildeopen:latest",
+  "prompt": "Kas yra Vilnius?",
+  "stream": false
+}'
 ```
 
 ## Vystymas

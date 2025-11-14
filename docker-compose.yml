@@ -24,35 +24,19 @@ services:
       timeout: 5s
       retries: 5
 
-  vllm:
-    image: vllm/vllm-openai:latest
-    container_name: openmap-vllm
+  ollama:
+    image: ollama/ollama:latest
+    container_name: openmap-ollama
     ports:
-      - "8000:8000"
+      - "11434:11434"
     volumes:
-      - vllm_cache:/root/.cache/huggingface
-    environment:
-      - HF_HOME=/root/.cache/huggingface
-    command: >
-      --model TildeAI/TildeOpen-30b
-      --host 0.0.0.0
-      --port 8000
-      --max-model-len 4096
-      --gpu-memory-utilization 0.9
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+      - ollama_data:/root/.ollama
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "ollama", "list"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 120s
 
 volumes:
   postgres_data:
-  vllm_cache:
+  ollama_data:

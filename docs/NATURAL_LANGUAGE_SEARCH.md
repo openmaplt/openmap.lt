@@ -2,7 +2,7 @@
 
 ## Apžvalga
 
-Openmap.lt projektas palaiko natūralios lietuvių kalbos paiešką naudodamas TildeOpen-30b LLM modelį, kuris veikia Docker konteineryje per vLLM platformą.
+Openmap.lt projektas palaiko natūralios lietuvių kalbos paiešką naudodamas LLM (Large Language Model) modelį, kuris veikia Docker konteineryje per Ollama platformą.
 
 ## Architektūra
 
@@ -19,7 +19,7 @@ Openmap.lt projektas palaiko natūralios lietuvių kalbos paiešką naudodamas T
    - Grąžina JSON su rezultatais
 
 3. **LLM Integration (lib/llm.ts)**
-   - Bendrauja su vLLM API (OpenAI-compatible)
+   - Bendrauja su Ollama API
    - Naudoja system prompt'ą lietuvių kalbos interpretavimui
    - Grąžina struktūrizuotus duomenis (JSON)
 
@@ -28,28 +28,25 @@ Openmap.lt projektas palaiko natūralios lietuvių kalbos paiešką naudodamas T
    - Naudoja PostGIS funkcijas atstumų skaičiavimui
    - Grąžina POI sąrašą su koordinatėmis
 
-5. **vLLM Docker Service**
-   - Lokalus LLM serveris su TildeOpen-30b modeliu
-   - OpenAI-compatible API
-   - API per port 8000
-   - Reikalauja GPU (~60GB VRAM)
+5. **Ollama Docker Service**
+   - Lokalus LLM serveris
+   - Palaiko TildeOpen, Llama ir kitus modelius
+   - API per port 11434
 
 ### Duomenų srautas
 
 ```
-Vartotojas → SearchBar → /api/search → LLM (vLLM/TildeOpen-30b) → searchPOI() → PostgreSQL → Rezultatai → Žemėlapis
+Vartotojas → SearchBar → /api/search → LLM (Ollama) → searchPOI() → PostgreSQL → Rezultatai → Žemėlapis
 ```
 
 ## LLM Modelis
 
-### TildeOpen-30b
+### Palaikomi modeliai
 
-- **TildeAI/TildeOpen-30b** (vienintelis palaikomas modelis)
-  - Sukurtas Tilde AI lietuvių kalbai
-  - 30 milijardų parametrų
-  - Optimizuotas lietuvių kalbai ir Baltijos šalių kontekstui
+- **tildeopen:latest** (rekomenduojama lietuvių kalbai)
+  - Sukurtas Tilde AI
+  - Optimizuotas lietuvių kalbai
   - Geriausias lietuviškų užklausų supratimas
-  - Atpažįsta Lietuvos geografiją ir orientyrus
 
 - **llama3.2:latest** (alternatyva)
   - Meta Llama 3.2 modelis
@@ -166,22 +163,20 @@ curl -X POST http://localhost:3000/api/search \
 
 ## Testavimas
 
-### 1. Patikrinti vLLM servisą
+### 1. Patikrinti Ollama servisą
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:11434/api/tags
 ```
 
 ### 2. Testuoti LLM modelį
 
 ```bash
-curl http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "TildeAI/TildeOpen-30b",
-    "messages": [{"role": "user", "content": "Kas yra Vilnius?"}],
-    "max_tokens": 100
-  }'
+curl http://localhost:11434/api/generate -d '{
+  "model": "tildeopen:latest",
+  "prompt": "Kas yra Vilnius?",
+  "stream": false
+}'
 ```
 
 ### 3. Testuoti paieškos API
@@ -199,56 +194,45 @@ curl "http://localhost:3000/api/search?q=plovykla%20kaune"
 
 ## Troubleshooting
 
-### Problema: "vLLM API klaida"
+### Problema: "Ollama API klaida"
 
 **Sprendimas:**
 ```bash
-# Patikrinti ar vLLM veikia
-docker ps | grep vllm
+# Patikrinti ar Ollama veikia
+docker ps | grep ollama
 
-# Paleisti vLLM
-docker-compose up -d vllm
+# Paleisti Ollama
+docker-compose up -d ollama
 
-# Peržiūrėti vLLM logs
-docker-compose logs -f vllm
+# Peržiūrėti Ollama logs
+docker-compose logs -f ollama
 ```
 
-### Problema: Modelis neįsikelė
+### Problema: Modelis nerastas
 
 **Sprendimas:**
 ```bash
-# Patikrinti vLLM būklę
-curl http://localhost:8000/health
+# Patikrinti įdiegtus modelius
+docker exec -it openmap-ollama ollama list
 
-# Peržiūrėti logs (modelio atsisiuntimas gali užtrukti)
-docker-compose logs -f vllm
-
-# Jei nepakanka VRAM, patikrinkite GPU atmintį
-nvidia-smi
+# Įdiegti modelį
+./scripts/setup-llm.sh
 ```
-
-### Problema: GPU klaidos arba neturite GPU
-
-**Sprendimas:**
-- TildeOpen-30b reikalauja ~60GB VRAM
-- Reikalingas NVIDIA GPU (A100, H100 ar panašus)
-- Be GPU modelio negalima paleisti
-- Alternatyva: naudoti cloud GPU servisą (AWS, GCP, Azure)
 
 ### Problema: Lėtos paieškos užklausos
 
 **Sprendimas:**
-- Pirmasis modelio atsakymas gali užtrukti 3-10 sekundžių
-- vLLM naudoja KV cache greitesniam atsakymui
-- Patikrinti GPU utilizaciją: `nvidia-smi`
-- Padidinti `--gpu-memory-utilization` docker-compose.yml
+- LLM atsakymas gali užtrukti 2-5 sekundes pirmą kartą
+- Sekantys užklausos bus greitesnės (cache)
+- Naudoti mažesnį modelį (llama3.2:3b)
+- Padidinti Docker resursus (CPU/RAM)
 
 ### Problema: Prastos paieškos rezultatai
 
 **Sprendimas:**
-- TildeOpen-30b optimizuotas lietuvių kalbai
+- Patikrinti ar naudojamas tinkamas modelis lietuvių kalbai (TildeOpen)
 - Patikrinti system prompt'ą `src/lib/llm.ts`
-- Pridėti daugiau lietuviškų pavyzdžių į prompt'ą
+- Pridėti daugiau pavyzdžių į system prompt'ą
 - Reguliuoti temperature parametrą (default: 0.3)
 
 ## Plėtros galimybės
@@ -282,10 +266,9 @@ nvidia-smi
 ## Performance
 
 ### LLM Response Time
-- Pirma užklausa: 3-10 sekundžių (TildeOpen-30b didelis modelis)
-- Po KV cache: 1-3 sekundės
-- Su GPU: optimal performance
-- Be GPU: neveikia
+- Pirma užklausa: 2-5 sekundės
+- Cache hit: <1 sekundė
+- Priklauso nuo modelio dydžio
 
 ### Database Query Time
 - Su indeksais: <100ms
@@ -293,13 +276,8 @@ nvidia-smi
 - PostGIS spatial index sugreitina
 
 ### Bendras laikas
-- Su vLLM: 3-12 sekundžių
+- Su LLM: 2-6 sekundės
 - Su fallback (be LLM): <1 sekundė
-
-### Hardware Requirements
-- GPU: NVIDIA su ~60GB VRAM (A100, H100)
-- RAM: 16GB+ system RAM
-- Storage: 70GB+ (modelis ~60GB)
 
 ## Saugumas
 
@@ -318,14 +296,13 @@ export function middleware(request: NextRequest) {
 - LLM response validacija
 
 ### Docker Security
-- vLLM veikia isolated konteineryje
+- Ollama veikia isolated konteineryje
 - Tik local network prieiga (ne public)
 - Nėra sensitive data LLM prompt'uose
-- GPU prieiga kontroliuojama Docker
 
 ## Licencija
 
 Šis funkcionalumas yra dalis openmap.lt projekto ir naudoja:
-- vLLM (Apache License 2.0)
-- TildeOpen-30b modelis (patikrinti Tilde AI licenciją)
-- OpenAI API format (compatibility layer)
+- Ollama (MIT License)
+- TildeOpen modelis (patikrinti Tilde AI licenciją)
+- Llama modeliai (Meta Llama license)
