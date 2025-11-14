@@ -12,8 +12,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
 import { PoiInteraction } from "@/components/PoiInteraction";
+import { SearchBar } from "@/components/SearchBar";
 import { Config, MAPS, type MapProfile } from "@/config";
 import { useHashChange } from "@/hooks/use-hash-change";
+import type { POIResult } from "@/lib/searchDb";
 import {
   formatHash,
   getMapState,
@@ -78,12 +80,23 @@ export default function Page() {
     setViewState({ latitude, longitude, zoom, bearing, pitch });
   }, []);
 
+  // Handle search result selection
+  const handleSearchResultSelect = useCallback((result: POIResult) => {
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [result.longitude, result.latitude],
+        zoom: 16,
+        duration: 2000,
+      });
+    }
+  }, []);
+
   const TypedMapLibreMap = MapLibreMap as React.ForwardRefExoticComponent<
     MapProps & React.RefAttributes<MapRef>
   >;
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen relative">
       <TypedMapLibreMap
         ref={mapRef}
         mapStyle={activeMapProfile.mapStyles[0].style}
@@ -101,6 +114,7 @@ export default function Page() {
           onChangeMapProfile={(profile) => setActiveMapProfile(profile)}
         />
       </TypedMapLibreMap>
+      <SearchBar onResultSelect={handleSearchResultSelect} />
     </div>
   );
 }
