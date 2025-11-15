@@ -56,14 +56,14 @@ docker compose -f docker-compose.prod.yml restart
 ### 3. Patikrinkite ar veikia
 
 ```bash
-# Peržiūrėkite konteinerio logs
+# Peržiūrėkite konteinerio žurnalus
 docker compose -f docker-compose.prod.yml logs -f app
 
 # Patikrinkite ar API veikia
 curl http://localhost:3000/api/list?bbox=20.7,53.7,27.05,56.65&types=abc
 ```
 
-Jei viskas gerai, turėtumėte matyti JSON atsakymą, o ne klaidas logs'uose.
+Jei viskas gerai, turėtumėte matyti JSON atsakymą, o ne klaidas žurnaluose.
 
 ## Alternatyvus Sprendimas
 
@@ -103,10 +103,10 @@ cat /opt/openmap/docker-compose.prod.yml
 #       - "host.docker.internal:host-gateway"
 ```
 
-### Patikrinkite konteinerio logs
+### Patikrinkite konteinerio žurnalus
 
 ```bash
-# Peržiūrėkite visus logs
+# Peržiūrėkite visus žurnalus
 docker compose -f docker-compose.prod.yml logs app
 
 # Sekite naujas žinutes realiu laiku
