@@ -2,6 +2,8 @@
 
 Šis dokumentas aprašo kaip sukonfigūruoti ir paleisti automatinį deployment į production serverį per GitHub Actions.
 
+> **⚠️ SVARBU:** Jei jau turite veikiančią production aplinką su ECONNREFUSED klaida, skaitykite [migracijos vadovą](./MIGRATION_FIX_DATABASE_URL.md) kaip pataisyti DATABASE_URL konfigūraciją.
+
 ## Prieš pradedant
 
 ### 1. Serveryje reikalinga aplinka
