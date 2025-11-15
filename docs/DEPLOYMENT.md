@@ -35,7 +35,7 @@ GitHub repository Settings → Secrets and variables → Actions, pridėkite ši
 - `SSH_HOST` - Serverio IP adresas arba domain (pvz., `123.45.67.89` arba `server.example.com`)
 - `SSH_USERNAME` - SSH vartotojo vardas (pvz., `ubuntu` arba `root`)
 - `SSH_PRIVATE_KEY` - SSH private key (visa turinys)
-- `DATABASE_URL` - PostgreSQL connection string (pvz., `postgresql://openmap:slaptažodis@localhost:5432/openmap`)
+- `DATABASE_URL` - PostgreSQL connection string. **SVARBU:** Kadangi PostgreSQL veikia serveryje, o aplikacija Docker konteineryje, naudokite `host.docker.internal` vietoj `localhost` (pvz., `postgresql://openmap:slaptažodis@host.docker.internal:5432/openmap`)
 
 #### Pasirenkamas secrets:
 - `SSH_PORT` - SSH portas (default: `22`)
@@ -110,10 +110,14 @@ Po to GitHub Actions automatiškai:
 
 ### .env failas serveryje
 
+**SVARBU:** Kadangi PostgreSQL veikia tiesiogiai serveryje (ne Docker), o aplikacija veikia Docker konteineryje, reikia naudoti `host.docker.internal` vietoj `localhost`:
+
 ```env
-DATABASE_URL=postgresql://openmap:slaptažodis@localhost:5432/openmap
+DATABASE_URL=postgresql://openmap:slaptažodis@host.docker.internal:5432/openmap
 GITHUB_REPOSITORY=openmaplt/openmap.lt
 ```
+
+**Pastaba:** `host.docker.internal` yra specialus Docker DNS vardas, kuris leidžia konteineriui pasiekti host mašiną. Alternatyviai galima naudoti serverio IP adresą (pvz., `192.168.1.100`) vietoj `host.docker.internal`.
 
 ### Konteinerio valdymas
 
@@ -139,6 +143,32 @@ docker compose -f docker-compose.prod.yml up -d
 
 ### 1. Konteineris negali prisijungti prie PostgreSQL
 
+**Klaida:** `ECONNREFUSED` arba `Connection refused`
+
+**Priežastys ir sprendimai:**
+
+#### A. Neteisingas DATABASE_URL (dažniausia problema)
+
+Jei DATABASE_URL naudoja `localhost`, konteineris bandys jungtis prie savo paties, ne prie host mašinos:
+
+```bash
+# BLOGAI (neveiks iš Docker konteinerio):
+DATABASE_URL=postgresql://openmap:slaptažodis@localhost:5432/openmap
+
+# GERAI (veiks iš Docker konteinerio):
+DATABASE_URL=postgresql://openmap:slaptažodis@host.docker.internal:5432/openmap
+```
+
+Atnaujinkite `.env` failą serveryje ir perkraukite konteinerį:
+
+```bash
+cd /opt/openmap
+nano .env  # Pakeiskite localhost į host.docker.internal
+docker compose -f docker-compose.prod.yml restart
+```
+
+#### B. PostgreSQL nepriima prisijungimų iš Docker tinklo
+
 Patikrinkite PostgreSQL konfigūraciją:
 
 ```bash
@@ -152,6 +182,19 @@ sudo nano /etc/postgresql/*/main/pg_hba.conf
 
 # Restart PostgreSQL
 sudo systemctl restart postgresql
+```
+
+#### C. Patikrinkite ar PostgreSQL veikia
+
+```bash
+# Patikrinkite PostgreSQL statusą
+sudo systemctl status postgresql
+
+# Patikrinkite ar PostgreSQL priima connections
+sudo netstat -tlnp | grep 5432
+
+# Bandykite jungtis lokaliai
+psql -U openmap -d openmap -h localhost
 ```
 
 ### 2. SSH connection fails

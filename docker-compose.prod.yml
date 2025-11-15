@@ -8,6 +8,8 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - openmap-network
 
