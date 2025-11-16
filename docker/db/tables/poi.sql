@@ -1,10 +1,16 @@
+drop table if exists places.poi;
 create table places.poi (
   id serial primary key
  ,obj_type char
  ,osm_id bigint
  ,attr jsonb
  ,x char
- ,geom geometry(point,3857)
+ ,uid int
+ ,type character(3)
+ ,historic text
+ ,site_type text
+ ,ref_lt_kpd text
+ ,geom geometry(point,4326)
 );
 
 comment on column places.poi.id is 'Primary key';
