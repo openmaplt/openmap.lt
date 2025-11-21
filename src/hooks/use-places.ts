@@ -1,21 +1,18 @@
+import type { FeatureCollection } from "geojson";
 import type { LngLatBounds } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 
-export interface Place {
-  id: number;
-  attr: Record<string, string>[];
-  geom: [number, number];
-  type: string;
-}
-
 export function usePlaces(bbox: LngLatBounds | null, types: string) {
-  const [places, setPlaces] = useState<Place[]>([]);
+  const [places, setPlaces] = useState<FeatureCollection>({
+    type: "FeatureCollection",
+    features: [],
+  });
   const [loading, setLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!bbox || !types) {
-      setPlaces([]);
+      setPlaces({ type: "FeatureCollection", features: [] });
       return;
     }
 
@@ -34,12 +31,12 @@ export function usePlaces(bbox: LngLatBounds | null, types: string) {
         );
 
         if (res.ok) {
-          const data: Place[] = await res.json();
+          const data: FeatureCollection = await res.json();
 
-          if (Array.isArray(data)) {
+          if (data && data.type === "FeatureCollection") {
             setPlaces(data);
           } else {
-            setPlaces([]);
+            setPlaces({ type: "FeatureCollection", features: [] });
           }
         }
       } catch (e) {

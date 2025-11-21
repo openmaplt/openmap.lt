@@ -55,6 +55,7 @@ export type FilterCategory = {
   label: string;
   color: string;
   textColor: string;
+  hexColor: string;
   items: FilterItem[];
 };
 
@@ -63,9 +64,10 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Paveldas",
     color: "bg-amber-700",
     textColor: "text-amber-700",
+    hexColor: "#b45309",
     items: [
       { id: "b", label: "Piliakalniai", icon: Mountain },
-      { id: "e", label: "Pilkapiai", icon: Mountain }, // Using Mountain as placeholder
+      { id: "e", label: "Pilkapiai", icon: Mountain },
       { id: "f", label: "Dvarai", icon: Castle },
       { id: "c", label: "Paveldas", icon: Landmark },
       { id: "a", label: "Kiti istoriniai", icon: Landmark },
@@ -75,6 +77,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Turizmas",
     color: "bg-green-700",
     textColor: "text-green-700",
+    hexColor: "#15803d",
     items: [
       { id: "t", label: "Turizmo informacija", icon: Info },
       { id: "h", label: "Lankytinos vietos", icon: MapPin },
@@ -90,6 +93,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Apgyvendinimas",
     color: "bg-blue-700",
     textColor: "text-blue-700",
+    hexColor: "#1d4ed8",
     items: [
       { id: "l", label: "Kempingai", icon: Tent },
       { id: "m", label: "Hosteliai, svečių namai", icon: Home },
@@ -100,6 +104,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Transportas",
     color: "bg-black",
     textColor: "text-black",
+    hexColor: "#000000",
     items: [
       { id: "n", label: "Degalinės", icon: Fuel },
       { id: "w", label: "Greičio kameros", icon: Camera },
@@ -111,6 +116,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Maistas, gėrimai",
     color: "bg-purple-700",
     textColor: "text-purple-700",
+    hexColor: "#7e22ce",
     items: [
       { id: "o", label: "Kavinės", icon: Coffee },
       { id: "p", label: "Greitas maistas", icon: Sandwich },
@@ -122,6 +128,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Kultūra",
     color: "bg-red-900",
     textColor: "text-red-900",
+    hexColor: "#7f1d1d",
     items: [
       { id: "u", label: "Teatrai", icon: Theater },
       { id: "v", label: "Kino teatrai", icon: Film },
@@ -134,10 +141,11 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Sveikata",
     color: "bg-teal-700",
     textColor: "text-teal-700",
+    hexColor: "#0f766e",
     items: [
       { id: "z", label: "Ligoninės", icon: Building2 },
       { id: "A", label: "Klinikos", icon: Stethoscope },
-      { id: "B", label: "Odontologija", icon: Stethoscope }, // Using Stethoscope as fallback
+      { id: "B", label: "Odontologija", icon: Stethoscope },
       { id: "C", label: "Daktarai", icon: Doctor },
       { id: "D", label: "Vaistinės", icon: Pill },
     ],
@@ -146,6 +154,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Parduotuvės",
     color: "bg-indigo-700",
     textColor: "text-indigo-700",
+    hexColor: "#4338ca",
     items: [
       { id: "E", label: "Prekybos centrai", icon: ShoppingBag },
       { id: "F", label: "Parduotuvės", icon: ShoppingCart },
@@ -158,11 +167,12 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Religija",
     color: "bg-orange-700",
     textColor: "text-orange-700",
+    hexColor: "#c2410c",
     items: [
       { id: "J", label: "Katalikų bažnyčios", icon: CrossIcon },
       { id: "K", label: "Evangelikų bažnyčios", icon: CrossIcon },
       { id: "L", label: "Cerkvės", icon: Church },
-      { id: "M", label: "Kitų religijų maldos namai", icon: Church }, // Using Church as fallback
+      { id: "M", label: "Kitų religijų maldos namai", icon: Church },
       { id: "X", label: "Vienuolynai", icon: Church },
     ],
   },
@@ -170,6 +180,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Kontoros",
     color: "bg-slate-700",
     textColor: "text-slate-700",
+    hexColor: "#334155",
     items: [
       { id: "N", label: "Valstybinės įstaigos", icon: Building },
       { id: "O", label: "Teismai", icon: Gavel },
@@ -183,6 +194,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     label: "Finansai",
     color: "bg-emerald-700",
     textColor: "text-emerald-700",
+    hexColor: "#047857",
     items: [
       { id: "U", label: "Bankai", icon: Banknote },
       { id: "Y", label: "Draudimas", icon: Shield },
