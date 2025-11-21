@@ -3,16 +3,9 @@
 import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Marker, useMap } from "react-map-gl/maplibre";
-import { PoiContent } from "@/components/PoiContent";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import type { MapProfile } from "@/config";
+import { PoiDetailsSheet } from "@/components/PoiDetailsSheet";
+import type { MapProfile } from "@/config/map";
 import { useHashChange } from "@/hooks/use-hash-change";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { getObjectId } from "@/lib/poiData";
 import { getPoiFromObjectId, type PoiFeatureData } from "@/lib/poiHelpers";
 import {
@@ -30,7 +23,6 @@ export function PoiInteraction({
   activeMapProfile: MapProfile;
 }) {
   const { current: mapRef } = useMap();
-  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [objectId, setObjectId] = useState<string | undefined>(() => {
     const parsedHash = parseHash(window.location.hash);
     return parsedHash?.objectId;
@@ -178,20 +170,12 @@ export function PoiInteraction({
           latitude={poiData.coordinates.latitude}
         />
       )}
-      <Sheet open={isOpen} onOpenChange={setIsOpen} modal={false}>
-        <SheetContent
-          side={isDesktop ? "left" : "bottom"}
-          className="overflow-y-auto gap-1"
-          preventOutsideClose
-        >
-          <SheetHeader>
-            <SheetTitle className="text-lg text-foreground mr-5">
-              {poiTitle || "POI informacija"}
-            </SheetTitle>
-          </SheetHeader>
-          {poiData && <PoiContent data={poiData.data} />}
-        </SheetContent>
-      </Sheet>
+      <PoiDetailsSheet
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        title={poiTitle || "POI informacija"}
+        data={poiData?.data || null}
+      />
     </>
   );
 }

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { Button } from "@/components/ui/button";
-import { MAPS, type MapProfile } from "@/config";
+import { MAPS, type MapProfile } from "@/config/map";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,

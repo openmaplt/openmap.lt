@@ -2,7 +2,7 @@
  * URL hash utility functions for map state management
  * Format: #m/[zoom]/[latitude]/[longitude]/[bearing]/[pitch]
  */
-import { Config } from "@/config";
+import { MapConfig } from "@/config/map";
 
 export interface MapState {
   mapType: string;
@@ -117,10 +117,10 @@ export function getMapState(): MapState {
   }
 
   return {
-    mapType: Config.DEFAULT_MAP_TYPE,
-    latitude: Config.DEFAULT_LATITUDE,
-    longitude: Config.DEFAULT_LONGITUDE,
-    zoom: Config.DEFAULT_ZOOM,
+    mapType: MapConfig.DEFAULT_MAP_TYPE,
+    latitude: MapConfig.DEFAULT_LATITUDE,
+    longitude: MapConfig.DEFAULT_LONGITUDE,
+    zoom: MapConfig.DEFAULT_ZOOM,
     bearing: 0,
     pitch: 0,
   };

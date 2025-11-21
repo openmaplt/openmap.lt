@@ -133,7 +133,7 @@ export const MAPS: MapProfile[] = [
   },
 ];
 
-export const Config: Config = {
+export const MapConfig: Config = {
   DEFAULT_MAP_TYPE: "m",
   DEFAULT_STYLE_MAP: "/styles/map.json",
   DEFAULT_LATITUDE: 55.19114,

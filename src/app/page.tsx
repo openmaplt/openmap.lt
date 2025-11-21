@@ -1,18 +1,17 @@
 "use client";
 
-import type * as React from "react";
 import {
-  GeolocateControl,
+  type LngLatBounds,
   Map as MapLibreMap,
   type MapProps,
-  NavigationControl,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
+import { PlacesFeature } from "@/components/PlacesFeature";
 import { PoiInteraction } from "@/components/PoiInteraction";
-import { Config, MAPS, type MapProfile } from "@/config";
+import { MAPS, MapConfig, type MapProfile } from "@/config/map";
 import { useHashChange } from "@/hooks/use-hash-change";
 import {
   formatHash,
@@ -34,6 +33,8 @@ export default function Page() {
     const { mapType } = getMapState();
     return findMapsByType(mapType) ?? MAPS[0];
   });
+
+  const [bbox, setBbox] = useState<LngLatBounds | null>(null);
 
   useEffect(() => {
     const currentState = getMapState();
@@ -73,10 +74,14 @@ export default function Page() {
   );
 
   // Update URL hash and localStorage when map moves
-  const handleMoveEnd = useCallback(({ viewState }: ViewStateChangeEvent) => {
-    const { latitude, longitude, zoom, bearing, pitch } = viewState;
-    setViewState({ latitude, longitude, zoom, bearing, pitch });
-  }, []);
+  const handleMoveEnd = useCallback(
+    ({ viewState, target }: ViewStateChangeEvent) => {
+      const { latitude, longitude, zoom, bearing, pitch } = viewState;
+      setViewState({ latitude, longitude, zoom, bearing, pitch });
+      setBbox(target.getBounds());
+    },
+    [],
+  );
 
   const TypedMapLibreMap = MapLibreMap as React.ForwardRefExoticComponent<
     MapProps & React.RefAttributes<MapRef>
@@ -88,18 +93,18 @@ export default function Page() {
         ref={mapRef}
         mapStyle={activeMapProfile.mapStyles[0].style}
         initialViewState={viewState}
-        minZoom={Config.MIN_ZOOM}
-        maxZoom={Config.MAX_ZOOM}
-        maxBounds={Config.BOUNDS}
+        minZoom={MapConfig.MIN_ZOOM}
+        maxZoom={MapConfig.MAX_ZOOM}
+        maxBounds={MapConfig.BOUNDS}
         onMoveEnd={handleMoveEnd}
+        onLoad={(e) => setBbox(e.target.getBounds())}
       >
-        <NavigationControl position="top-right" />
-        <GeolocateControl position="top-right" />
         <PoiInteraction activeMapProfile={activeMapProfile} />
         <MapStyleSwitcher
           activeMapProfile={activeMapProfile}
           onChangeMapProfile={(profile) => setActiveMapProfile(profile)}
         />
+        {activeMapProfile.id === "places" && <PlacesFeature bbox={bbox} />}
       </TypedMapLibreMap>
     </div>
   );
