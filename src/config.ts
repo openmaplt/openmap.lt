@@ -121,7 +121,7 @@ export const MAPS: MapProfile[] = [
     mapStyles: [
       {
         name: "Lankytinos",
-        style: "/styles/map.json",
+        style: "/styles/places.json",
         image: "/maps/map.png",
       },
       {
