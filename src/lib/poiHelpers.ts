@@ -1,24 +1,14 @@
-import type { Point } from "geojson";
+import type { Feature } from "geojson";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import { extractPoiData, type PoiData, parseObjectId } from "@/lib/poiData";
-
-export interface PointCoordinates {
-  longitude: number;
-  latitude: number;
-}
-
-export interface PoiFeatureData {
-  data: PoiData;
-  coordinates: PointCoordinates;
-}
+import { parseObjectId } from "@/lib/poiData";
 
 /**
- * Query and extract POI data from a map feature by object ID
+ * Query and extract POI feature by object ID
  */
 export function getPoiFromObjectId(
   map: MapLibreMap,
   objectId: string,
-): PoiFeatureData | null {
+): Feature | null {
   const parsedId = parseObjectId(objectId);
   if (!parsedId) {
     return null;
@@ -36,16 +26,7 @@ export function getPoiFromObjectId(
   });
 
   if (features.length > 0) {
-    const feature = features[0];
-    const geometry = feature.geometry as Point;
-
-    return {
-      data: extractPoiData(feature.properties),
-      coordinates: {
-        longitude: geometry.coordinates[0],
-        latitude: geometry.coordinates[1],
-      },
-    };
+    return features[0] as Feature;
   }
 
   return null;

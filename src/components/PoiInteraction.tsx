@@ -1,13 +1,11 @@
-"use client";
-
+import type { Feature } from "geojson";
 import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Marker, useMap } from "react-map-gl/maplibre";
-import { PoiDetailsSheet } from "@/components/PoiDetailsSheet";
+import { useCallback, useEffect, useState } from "react";
+import { useMap } from "react-map-gl/maplibre";
 import type { MapProfile } from "@/config/map";
 import { useHashChange } from "@/hooks/use-hash-change";
 import { getObjectId } from "@/lib/poiData";
-import { getPoiFromObjectId, type PoiFeatureData } from "@/lib/poiHelpers";
+import { getPoiFromObjectId } from "@/lib/poiHelpers";
 import {
   formatHash,
   getMapState,
@@ -19,17 +17,16 @@ const INTERACTIVE_LAYER = "label-amenity";
 
 export function PoiInteraction({
   activeMapProfile,
+  onSelectFeature,
 }: {
   activeMapProfile: MapProfile;
+  onSelectFeature: (feature: Feature | null) => void;
 }) {
   const { current: mapRef } = useMap();
   const [objectId, setObjectId] = useState<string | undefined>(() => {
     const parsedHash = parseHash(window.location.hash);
     return parsedHash?.objectId;
   });
-
-  const [poiData, setPoiData] = useState<PoiFeatureData | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
 
   // Update URL hash when objectId changes
   useEffect(() => {
@@ -111,8 +108,7 @@ export function PoiInteraction({
   // Handle object ID changes from URL
   useEffect(() => {
     if (!objectId) {
-      setIsOpen(false);
-      setPoiData(null);
+      onSelectFeature(null);
       return;
     }
 
@@ -120,10 +116,9 @@ export function PoiInteraction({
     if (!map) return;
 
     const displayPoi = () => {
-      const poiFeature = getPoiFromObjectId(map, objectId);
-      if (poiFeature) {
-        setPoiData(poiFeature);
-        setIsOpen(true);
+      const feature = getPoiFromObjectId(map, objectId);
+      if (feature) {
+        onSelectFeature(feature);
       }
     };
 
@@ -144,7 +139,7 @@ export function PoiInteraction({
     return () => {
       map.off("sourcedata", handleSourceData);
     };
-  }, [objectId, mapRef]);
+  }, [objectId, mapRef, onSelectFeature]);
 
   // Listen for hash changes to update object ID
   useHashChange(
@@ -157,25 +152,5 @@ export function PoiInteraction({
     }, [objectId]),
   );
 
-  const poiTitle = useMemo(
-    () => poiData?.data.attributes.find((attr) => attr.type === "name")?.value,
-    [poiData],
-  );
-
-  return (
-    <>
-      {poiData?.coordinates && (
-        <Marker
-          longitude={poiData.coordinates.longitude}
-          latitude={poiData.coordinates.latitude}
-        />
-      )}
-      <PoiDetailsSheet
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        title={poiTitle || "POI informacija"}
-        data={poiData?.data || null}
-      />
-    </>
-  );
+  return null;
 }

@@ -6,11 +6,14 @@ import {
   type MapProps,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import type { Feature } from "geojson";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
 import { PlacesFeature } from "@/components/PlacesFeature";
+import { PoiDetails } from "@/components/PoiDetailsSheet";
 import { PoiInteraction } from "@/components/PoiInteraction";
+import { SearchFeature } from "@/components/SearchFeature";
 import { MAPS, MapConfig, type MapProfile } from "@/config/map";
 import { useHashChange } from "@/hooks/use-hash-change";
 import {
@@ -25,16 +28,22 @@ export default function Page() {
   const mapRef = useRef<MapRef>(null);
 
   const [viewState, setViewState] = useState(() => {
-    const { latitude, longitude, zoom, bearing, pitch } = getMapState();
-    return { latitude, longitude, zoom, bearing, pitch };
+    const state = getMapState();
+    return {
+      latitude: state.latitude,
+      longitude: state.longitude,
+      zoom: state.zoom,
+      bearing: state.bearing,
+      pitch: state.pitch,
+    };
   });
 
   const [activeMapProfile, setActiveMapProfile] = useState<MapProfile>(() => {
-    const { mapType } = getMapState();
-    return findMapsByType(mapType) ?? MAPS[0];
+    const state = getMapState();
+    return findMapsByType(state.mapType) ?? MAPS[0];
   });
-
   const [bbox, setBbox] = useState<LngLatBounds | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
 
   useEffect(() => {
     const currentState = getMapState();
@@ -88,7 +97,7 @@ export default function Page() {
   >;
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen relative">
       <TypedMapLibreMap
         ref={mapRef}
         mapStyle={activeMapProfile.mapStyles[0].style}
@@ -99,12 +108,33 @@ export default function Page() {
         onMoveEnd={handleMoveEnd}
         onLoad={(e) => setBbox(e.target.getBounds())}
       >
-        <PoiInteraction activeMapProfile={activeMapProfile} />
+        {activeMapProfile.id === "places" && (
+          <>
+            <SearchFeature
+              mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
+              selectedFeature={selectedFeature}
+              onSelectFeature={setSelectedFeature}
+            />
+            <PlacesFeature
+              bbox={bbox}
+              onSelectFeature={setSelectedFeature}
+              selectedFeature={selectedFeature}
+            />
+          </>
+        )}
+        <PoiInteraction
+          activeMapProfile={activeMapProfile}
+          onSelectFeature={setSelectedFeature}
+        />
         <MapStyleSwitcher
           activeMapProfile={activeMapProfile}
           onChangeMapProfile={(profile) => setActiveMapProfile(profile)}
         />
-        {activeMapProfile.id === "places" && <PlacesFeature bbox={bbox} />}
+        <PoiDetails
+          open={!!selectedFeature}
+          onOpenChange={(open) => !open && setSelectedFeature(null)}
+          feature={selectedFeature}
+        />
       </TypedMapLibreMap>
     </div>
   );

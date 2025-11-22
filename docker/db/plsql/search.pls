@@ -11,14 +11,13 @@ begin
     l_pos = st_setsrid(st_makepoint((p_params->'pos'->>0)::float, (p_params->'pos'->>1)::float), 4326);
   end if;
   l_text = '%' || lower(p_params->>'text') || '%';
-  insert into places.log(t, l) values ('SEARCH: ' || p_params::text, now());
   select json_build_object(
       'type', 'FeatureCollection',
       'features', coalesce(json_agg(
         json_build_object(
           'type', 'Feature',
           'id', id,
-          'properties', attr || jsonb_build_object('TYPE', type) || jsonb_build_object('DIST', st_distance(geom, l_pos)),
+          'properties', attr || jsonb_build_object('TYPE', type) || jsonb_build_object('DIST', st_distance(geom::geography, l_pos::geography)),
           'geometry', ST_AsGeoJSON(geom)::json
         )
       ), '[]'::json)
@@ -28,7 +27,7 @@ begin
       select *
         from places.poi
        where (l_text is null or lower(attr->>'name') like l_text)
-       order by st_distance(geom, l_pos)
+       order by st_distance(geom::geography, l_pos::geography)
       limit 10
     ) x;
 
