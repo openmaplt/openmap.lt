@@ -89,7 +89,7 @@
       "source-layer": "landuse",
       "minzoom": 6,
       "filter": ["all", ["in", "kind", "marsh"]],
-      "paint": { "fill-color": "rgba(205, 235, 176, 1)", "fill-opacity": 1 }
+      "paint": { "fill-color": "rgba(228,255,189, 1)", "fill-opacity": 1 }
     },
     {
       "id": "landuse-scrub",
@@ -128,10 +128,7 @@
       "layout": { "visibility": "visible" },
       "paint": {
         "fill-color": {
-          "stops": [
-            [6, "rgba(255, 255, 255, 1)"],
-            [12, "rgba(136, 220, 122, 1)"]
-          ]
+          "stops": [[5, "#eeeeee"], [12, "rgba(189, 239, 156, 1)"]]
         },
         "fill-opacity": 1
       }
@@ -451,7 +448,7 @@
       "filter": ["all", ["in", "kind", "tertiary", "tertiary_link"]],
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
-        "line-color": "rgba(82,81,81,1)",
+        "line-color": "rgba(221,203,106,1)",
         "line-width": { "base": 1.55, "stops": [[5, 1], [20, 25]] }
       }
     },
@@ -595,7 +592,7 @@
       "filter": ["all", ["in", "kind", "tertiary", "tertiary_link"]],
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
-        "line-color": "rgba(215,130,140,1)",
+        "line-color": "rgba(255,255,160,1)",
         "line-width": { "base": 1.55, "stops": [[5, 0.5], [20, 20]] }
       }
     },
@@ -916,11 +913,9 @@
         "text-field": "{name}",
         "text-size": 12,
         "text-max-width": 9,
-        "text-anchor": "top",
-        "text-offset": [0, 0.6],
-        "icon-image": "park",
         "text-font": ["Roboto Condensed Italic"],
-        "text-padding": 1
+        "text-padding": 1,
+        "visibility": "visible"
       },
       "paint": {
         "text-color": "rgba(26, 92, 0, 1)",
