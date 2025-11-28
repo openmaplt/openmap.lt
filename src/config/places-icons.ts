@@ -21,6 +21,11 @@ import {
   Utensils,
 } from "lucide-react";
 import type * as React from "react";
+import {
+  Heritage,
+  Hillfort,
+  Tumulus
+} from "@/icons";
 
 export type PlaceIcon = {
   icon: React.ElementType;
@@ -55,6 +60,9 @@ export const PLACE_ICONS: Record<string, PlaceIcon> = {
   ATT: { icon: Landmark, color: "#b45309" },
   MON: { icon: Landmark, color: "#b45309" },
   VIE: { icon: Binoculars, color: "#15803d" },
+  HIL: { icon: Hillfort, color: "#b45309" },
+  TUM: { icon: Tumulus, color: "#b45309" },
+  HER: { icon: Heritage, color: "#b45309" },
   PIC: { icon: Flame, color: "#15803d" },
   CIN: { icon: Film, color: "#7f1d1d" },
   MUS: { icon: Landmark, color: "#7f1d1d" },
