@@ -21,11 +21,7 @@ import {
   Utensils,
 } from "lucide-react";
 import type * as React from "react";
-import {
-  Heritage,
-  Hillfort,
-  Tumulus
-} from "@/icons";
+import { Heritage, Hillfort, Tumulus } from "@/icons";
 
 export type PlaceIcon = {
   icon: React.ElementType;
