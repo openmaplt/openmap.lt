@@ -44,6 +44,7 @@ import {
   Wrench,
 } from "lucide-react";
 import type * as React from "react";
+import { Heritage, Hillfort, Tumulus } from "@/icons";
 
 export type FilterItem = {
   id: string;
@@ -66,10 +67,10 @@ export const PLACES_FILTERS: FilterCategory[] = [
     textColor: "text-amber-700",
     hexColor: "#b45309",
     items: [
-      { id: "b", label: "Piliakalniai", icon: Mountain },
-      { id: "e", label: "Pilkapiai", icon: Mountain },
+      { id: "b", label: "Piliakalniai", icon: Hillfort },
+      { id: "e", label: "Pilkapiai", icon: Tumulus },
       { id: "f", label: "Dvarai", icon: Castle },
-      { id: "c", label: "Paveldas", icon: Landmark },
+      { id: "c", label: "Paveldas", icon: Heritage },
       { id: "a", label: "Kiti istoriniai", icon: Landmark },
     ],
   },
