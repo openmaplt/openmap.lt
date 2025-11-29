@@ -8,6 +8,7 @@ import {
   Camera,
   CarFront,
   Castle,
+  Sofa,
   Church,
   Coffee,
   CreditCard,
@@ -87,7 +88,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
       { id: "1", label: "Pažintiniai takai", icon: Footprints },
       { id: "g", label: "Bokštai", icon: TowerControl },
       { id: "j", label: "Poilsiavietės su laužaviete", icon: Flame },
-      { id: "k", label: "Poilsiavietės be laužavietės", icon: Tent },
+      { id: "k", label: "Poilsiavietės be laužavietės", icon: Sofa },
     ],
   },
   {

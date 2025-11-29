@@ -2,16 +2,19 @@ import {
   Banknote,
   Beer,
   Binoculars,
+  Bubbles,
   Camera,
   Castle,
   Coffee,
   CreditCard,
   Film,
   Flame,
+  Footprints,
   Fuel,
   Hammer,
   Home,
   Hotel,
+  Info,
   Landmark,
   Library,
   Mail,
@@ -19,6 +22,9 @@ import {
   Pill,
   Sandwich,
   ShoppingCart,
+  Sofa,
+  TowerControl,
+  Trees,
   Utensils,
 } from "lucide-react";
 import type * as React from "react";
@@ -36,6 +42,16 @@ export const PLACE_ICONS: Record<string, PlaceIcon> = {
   MAN: { icon: Castle, color: "#b45309" },
   HER: { icon: Heritage, color: "#b45309" },
   HIS: { icon: Landmark, color: "#b45309" },
+
+  // Turizmas
+  INF: { icon: Info, color: "#15803d" },
+  ATT: { icon: MapPin, color: "#15803d" },
+  STO: { icon: Bubbles, color: "#15803d" },
+  TRE: { icon: Trees, color: "#15803d" },
+  HIK: { icon: Footprints, color: "#15803d" },
+  TOW: { icon: TowerControl, color: "#15803d" },
+  PIC: { icon: Sofa, color: "#15803d" },
+  PIF: { icon: Flame, color: "#15803d" },
 
   // Maistas, gėrimai
   CAF: { icon: Coffee, color: "#7e22ce" },
@@ -61,10 +77,8 @@ export const PLACE_ICONS: Record<string, PlaceIcon> = {
   DIY: { icon: Hammer, color: "#4338ca" },
 
   // Lankytinos vietos / Kultūra
-  ATT: { icon: Landmark, color: "#b45309" },
   MON: { icon: Landmark, color: "#b45309" },
   VIE: { icon: Binoculars, color: "#15803d" },
-  PIC: { icon: Flame, color: "#15803d" },
   CIN: { icon: Film, color: "#7f1d1d" },
   MUS: { icon: Landmark, color: "#7f1d1d" },
   LIB: { icon: Library, color: "#7f1d1d" },
