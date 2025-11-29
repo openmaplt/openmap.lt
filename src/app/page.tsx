@@ -97,45 +97,43 @@ export default function Page() {
   >;
 
   return (
-    <div className="w-full h-screen relative">
-      <TypedMapLibreMap
-        ref={mapRef}
-        mapStyle={activeMapProfile.mapStyles[0].style}
-        initialViewState={viewState}
-        minZoom={MapConfig.MIN_ZOOM}
-        maxZoom={MapConfig.MAX_ZOOM}
-        maxBounds={MapConfig.BOUNDS}
-        onMoveEnd={handleMoveEnd}
-        onLoad={(e) => setBbox(e.target.getBounds())}
-      >
-        {activeMapProfile.id === "places" && (
-          <>
-            <SearchFeature
-              mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
-              selectedFeature={selectedFeature}
-              onSelectFeature={setSelectedFeature}
-            />
-            <PlacesFeature
-              bbox={bbox}
-              onSelectFeature={setSelectedFeature}
-              selectedFeature={selectedFeature}
-            />
-          </>
-        )}
-        <PoiInteraction
-          activeMapProfile={activeMapProfile}
-          onSelectFeature={setSelectedFeature}
-        />
-        <MapStyleSwitcher
-          activeMapProfile={activeMapProfile}
-          onChangeMapProfile={(profile) => setActiveMapProfile(profile)}
-        />
-        <PoiDetails
-          open={!!selectedFeature}
-          onOpenChange={(open) => !open && setSelectedFeature(null)}
-          feature={selectedFeature}
-        />
-      </TypedMapLibreMap>
-    </div>
+    <TypedMapLibreMap
+      ref={mapRef}
+      mapStyle={activeMapProfile.mapStyles[0].style}
+      initialViewState={viewState}
+      minZoom={MapConfig.MIN_ZOOM}
+      maxZoom={MapConfig.MAX_ZOOM}
+      maxBounds={MapConfig.BOUNDS}
+      onMoveEnd={handleMoveEnd}
+      onLoad={(e) => setBbox(e.target.getBounds())}
+    >
+      {activeMapProfile.id === "places" && (
+        <>
+          <SearchFeature
+            mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
+            selectedFeature={selectedFeature}
+            onSelectFeature={setSelectedFeature}
+          />
+          <PlacesFeature
+            bbox={bbox}
+            onSelectFeature={setSelectedFeature}
+            selectedFeature={selectedFeature}
+          />
+        </>
+      )}
+      <PoiInteraction
+        activeMapProfile={activeMapProfile}
+        onSelectFeature={setSelectedFeature}
+      />
+      <MapStyleSwitcher
+        activeMapProfile={activeMapProfile}
+        onChangeMapProfile={(profile) => setActiveMapProfile(profile)}
+      />
+      <PoiDetails
+        open={!!selectedFeature}
+        onOpenChange={(open) => !open && setSelectedFeature(null)}
+        feature={selectedFeature}
+      />
+    </TypedMapLibreMap>
   );
 }
