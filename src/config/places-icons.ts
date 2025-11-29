@@ -3,6 +3,7 @@ import {
   Beer,
   Binoculars,
   Camera,
+  Castle,
   Coffee,
   CreditCard,
   Film,
@@ -29,6 +30,13 @@ export type PlaceIcon = {
 };
 
 export const PLACE_ICONS: Record<string, PlaceIcon> = {
+  // Paveldas
+  HIL: { icon: Hillfort, color: "#b45309" },
+  TUM: { icon: Tumulus, color: "#b45309" },
+  MAN: { icon: Castle, color: "#b45309" },
+  HER: { icon: Heritage, color: "#b45309" },
+  HIS: { icon: Landmark, color: "#b45309" },
+
   // Maistas, gėrimai
   CAF: { icon: Coffee, color: "#7e22ce" },
   FAS: { icon: Sandwich, color: "#7e22ce" },
@@ -56,9 +64,6 @@ export const PLACE_ICONS: Record<string, PlaceIcon> = {
   ATT: { icon: Landmark, color: "#b45309" },
   MON: { icon: Landmark, color: "#b45309" },
   VIE: { icon: Binoculars, color: "#15803d" },
-  HIL: { icon: Hillfort, color: "#b45309" },
-  TUM: { icon: Tumulus, color: "#b45309" },
-  HER: { icon: Heritage, color: "#b45309" },
   PIC: { icon: Flame, color: "#15803d" },
   CIN: { icon: Film, color: "#7f1d1d" },
   MUS: { icon: Landmark, color: "#7f1d1d" },
