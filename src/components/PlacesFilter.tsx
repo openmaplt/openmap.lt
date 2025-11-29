@@ -95,7 +95,7 @@ export function PlacesFilter({
     <div
       ref={containerRef}
       className={cn(
-        "transition-all duration-300 ease-in-out flex flex-col gap-2 absolute top-3 right-3 bottom-3",
+        "transition-all duration-300 ease-in-out flex flex-col gap-2 absolute top-3 right-3 bottom-3 z-10",
         className,
       )}
     >
@@ -121,7 +121,7 @@ export function PlacesFilter({
       </Button>
 
       {isOpen && (
-        <div className="bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg overflow-hidden flex flex-col min-h-0 z-10">
+        <div className="bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg overflow-hidden flex flex-col min-h-0 min-w-[300px]">
           <div className="p-2 border-b flex justify-between items-center bg-muted/30">
             <span className="text-sm font-medium text-muted-foreground">
               Kategorijos

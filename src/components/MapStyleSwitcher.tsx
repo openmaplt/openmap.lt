@@ -57,7 +57,7 @@ export function MapStyleSwitcher({
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-3 right-3 flex flex-col items-center bg-white p-2 rounded-lg shadow-xl"
+      className="absolute bottom-3 right-3 flex flex-col items-center bg-white p-0.5 rounded-lg shadow-xl"
     >
       {/* Expanded List */}
       <div
