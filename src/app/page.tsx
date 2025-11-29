@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AttributionControl,
   type LngLatBounds,
   Map as MapLibreMap,
   type MapProps,
@@ -44,6 +45,9 @@ export default function Page() {
   });
   const [bbox, setBbox] = useState<LngLatBounds | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [mobileActiveMode, setMobileActiveMode] = useState<
+    "search" | "filter" | null
+  >(null);
 
   useEffect(() => {
     const currentState = getMapState();
@@ -106,6 +110,7 @@ export default function Page() {
       maxBounds={MapConfig.BOUNDS}
       onMoveEnd={handleMoveEnd}
       onLoad={(e) => setBbox(e.target.getBounds())}
+      attributionControl={false}
     >
       {activeMapProfile.id === "places" && (
         <>
@@ -113,11 +118,15 @@ export default function Page() {
             mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
             selectedFeature={selectedFeature}
             onSelectFeature={setSelectedFeature}
+            mobileActiveMode={mobileActiveMode}
+            setMobileActiveMode={setMobileActiveMode}
           />
           <PlacesFeature
             bbox={bbox}
             onSelectFeature={setSelectedFeature}
             selectedFeature={selectedFeature}
+            mobileActiveMode={mobileActiveMode}
+            setMobileActiveMode={setMobileActiveMode}
           />
         </>
       )}
@@ -134,6 +143,7 @@ export default function Page() {
         onOpenChange={(open) => !open && setSelectedFeature(null)}
         feature={selectedFeature}
       />
+      <AttributionControl position="bottom-left" />
     </TypedMapLibreMap>
   );
 }

@@ -9,12 +9,16 @@ interface SearchFeatureProps {
   mapCenter: { lat: number; lng: number };
   selectedFeature: Feature | null;
   onSelectFeature: (feature: Feature | null) => void;
+  mobileActiveMode: "search" | "filter" | null;
+  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
 }
 
 export function SearchFeature({
   mapCenter,
   selectedFeature,
   onSelectFeature,
+  mobileActiveMode,
+  setMobileActiveMode,
 }: SearchFeatureProps) {
   const { current: mapRef } = useMap();
 
@@ -35,6 +39,8 @@ export function SearchFeature({
       <SearchBox
         mapCenter={mapCenter}
         onSelectResult={handleSearchResultSelect}
+        mobileActiveMode={mobileActiveMode}
+        setMobileActiveMode={setMobileActiveMode}
       />
       {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}
     </>

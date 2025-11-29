@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
 
 interface PoiDetailsProps {
@@ -20,7 +20,7 @@ interface PoiDetailsProps {
 }
 
 export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isMobile = useIsMobile();
 
   if (!feature || feature.geometry.type !== "Point") {
     return null;
@@ -50,7 +50,7 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
       </Marker>
       <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
         <SheetContent
-          side={isDesktop ? "left" : "bottom"}
+          side={isMobile ? "bottom" : "left"}
           className="overflow-y-auto gap-1"
         >
           <SheetHeader>

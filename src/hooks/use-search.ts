@@ -15,13 +15,14 @@ export function useSearch(
       return;
     }
 
+    setLoading(true);
+
     const fetchResults = async () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
       abortControllerRef.current = new AbortController();
 
-      setLoading(true);
       try {
         const response = await fetch(
           `/api/search?pos=${mapCenter.lng},${mapCenter.lat}&text=${encodeURIComponent(

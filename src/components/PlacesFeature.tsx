@@ -13,12 +13,16 @@ interface PlacesFeatureProps {
   bbox: LngLatBounds | null;
   onSelectFeature: (feature: Feature | null) => void;
   selectedFeature: Feature | null;
+  mobileActiveMode: "search" | "filter" | null;
+  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
 }
 
 export function PlacesFeature({
   bbox,
   onSelectFeature,
   selectedFeature,
+  mobileActiveMode,
+  setMobileActiveMode,
 }: PlacesFeatureProps) {
   const [filterTypes, setFilterTypes] = useState("");
   const { current: mapRef } = useMap();
@@ -74,6 +78,8 @@ export function PlacesFeature({
       <PlacesFilter
         selectedTypes={filterTypes}
         onTypesChange={setFilterTypes}
+        mobileActiveMode={mobileActiveMode}
+        setMobileActiveMode={setMobileActiveMode}
       />
 
       <Source type="geojson" data={places}>

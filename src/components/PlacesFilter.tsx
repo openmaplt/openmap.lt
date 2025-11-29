@@ -1,28 +1,49 @@
-"use client";
-
 import { ChevronDown, ChevronRight, Filter, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { type FilterCategory, PLACES_FILTERS } from "@/config/places-filters";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 
 interface PlacesFilterProps {
   selectedTypes: string;
   onTypesChange: (types: string) => void;
   className?: string;
+  mobileActiveMode: "search" | "filter" | null;
+  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
 }
 
 export function PlacesFilter({
   selectedTypes,
   onTypesChange,
   className,
+  mobileActiveMode,
+  setMobileActiveMode,
 }: PlacesFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     PLACES_FILTERS.map((c) => c.label),
   );
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const isMobile = useIsMobile();
+
+  // Handle click outside to collapse search on mobile
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const toggleCategory = (label: string) => {
     setExpandedCategories((prev) =>
@@ -72,31 +93,35 @@ export function PlacesFilter({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
-        "absolute top-2 right-3 z-10 w-80 flex flex-col gap-2 max-h-[calc(100vh-20px)]",
+        "transition-all duration-300 ease-in-out flex flex-col gap-2 absolute top-3 right-3 bottom-3",
         className,
       )}
     >
       <Button
-        variant={selectedTypes ? "default" : "secondary"}
-        size="lg"
-        className={cn(
-          "w-full shadow-md",
-          !selectedTypes && "border-2 border-primary/50",
-        )}
-        onClick={() => setIsOpen(!isOpen)}
+        variant={selectedTypes ? "default" : "outline"}
+        className="shadow-lg gap-2"
+        onClick={() => {
+          setMobileActiveMode("filter");
+          setIsOpen(!isOpen);
+        }}
       >
-        <Filter className="w-4 h-4 mr-2" />
-        {isOpen ? "Slėpti filtrus" : "Filtruoti vietas"}
-        {selectedTypes && (
-          <span className="ml-2 bg-background/20 px-2 py-0.5 rounded text-xs">
-            {selectedTypes.length}
-          </span>
+        <Filter className="size-4" />
+        {(!isMobile || (isMobile && mobileActiveMode !== "search")) && (
+          <>
+            {isOpen ? "Uždaryti pasirinkimus" : "Pasirinkti vietas"}
+            {selectedTypes && (
+              <span className="ml-2 bg-background/20 px-2 py-0.5 rounded text-xs">
+                {selectedTypes.length}
+              </span>
+            )}
+          </>
         )}
       </Button>
 
       {isOpen && (
-        <div className="bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg overflow-hidden flex flex-col min-h-0">
+        <div className="bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg overflow-hidden flex flex-col min-h-0 z-10">
           <div className="p-2 border-b flex justify-between items-center bg-muted/30">
             <span className="text-sm font-medium text-muted-foreground">
               Kategorijos
