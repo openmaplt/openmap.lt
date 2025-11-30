@@ -157,8 +157,8 @@ export const PLACES_FILTERS: FilterCategory[] = [
     textColor: "text-indigo-700",
     hexColor: "#4338ca",
     items: [
-      { id: "E", label: "Prekybos centrai", icon: ShoppingBag },
-      { id: "F", label: "Parduotuvės", icon: ShoppingCart },
+      { id: "E", label: "Prekybos centrai", icon: ShoppingCart },
+      { id: "F", label: "Parduotuvės", icon: ShoppingBag },
       { id: "H", label: "Kioskai", icon: Store },
       { id: "I", label: "Pasidaryk pats", icon: Hammer },
       { id: "R", label: "Kitos parduotuvės", icon: ShoppingCart },
