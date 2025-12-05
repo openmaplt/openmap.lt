@@ -125,7 +125,7 @@ export default function Page() {
           <PlacesFeature
             bbox={bbox}
             onSelectFeature={setSelectedFeature}
-            selectedFeature={selectedf
+            selectedFeature={selectedFeature}
             mobileActiveMode={mobileActiveMode}
             setMobileActiveMode={setMobileActiveMode}
           />

@@ -23,7 +23,7 @@ export function CraftbeerFilter({
   };
 
   return (
-    <div className="absolute top-20 left-3 bg-white p-4 rounded-lg shadow-lg">
+    <div className="absolute top-3 right-3 bg-white p-4 rounded-lg shadow-lg">
       <h3 className="text-lg font-bold mb-2">Craft Beer Filters</h3>
       <div className="space-y-2">
         {filters.map((filter) => (
