@@ -10,7 +10,7 @@ export function CraftbeerFeature() {
 
   return (
     <CraftbeerFilter
-      filters={CRAFTBEER_FILTERS}
+      //filters={CRAFTBEER_FILTERS}
       onFilterChange={handleFilterChange}
     />
   );
