@@ -15,6 +15,7 @@ import { PlacesFeature } from "@/components/PlacesFeature";
 import { PoiDetails } from "@/components/PoiDetailsSheet";
 import { PoiInteraction } from "@/components/PoiInteraction";
 import { SearchFeature } from "@/components/SearchFeature";
+import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MAPS, MapConfig, type MapProfile } from "@/config/map";
 import { useHashChange } from "@/hooks/use-hash-change";
 import {
@@ -124,12 +125,13 @@ export default function Page() {
           <PlacesFeature
             bbox={bbox}
             onSelectFeature={setSelectedFeature}
-            selectedFeature={selectedFeature}
+            selectedFeature={selectedf
             mobileActiveMode={mobileActiveMode}
             setMobileActiveMode={setMobileActiveMode}
           />
         </>
       )}
+      {activeMapProfile.id === "craftbeer" && <CraftbeerFeature />}
       <PoiInteraction
         activeMapProfile={activeMapProfile}
         onSelectFeature={setSelectedFeature}
