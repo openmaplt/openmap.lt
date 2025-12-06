@@ -103,6 +103,7 @@ export function MapStyleSwitcher({
           size="icon"
           className="w-full h-fit rounded-lg hover:bg-white"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label="Style switcher"
         >
           <ChevronUp
             className={cn(

@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Feature } from "geojson";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
+import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
 import { PlacesFeature } from "@/components/PlacesFeature";
 import { PoiDetails } from "@/components/PoiDetailsSheet";
@@ -130,6 +131,7 @@ export default function Page() {
           />
         </>
       )}
+      {activeMapProfile.id === "craftbeer" && <CraftbeerFeature />}
       <PoiInteraction
         activeMapProfile={activeMapProfile}
         onSelectFeature={setSelectedFeature}
