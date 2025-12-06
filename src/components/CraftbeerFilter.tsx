@@ -1,16 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { useMap } from "react-map-gl/maplibre";
-import type { FilterSpecification } from "maplibre-gl";
+import { useState, useCallback } from "react";
 
 type CraftbeerFilterProps = {
   onFilterChange?: (filters: Record<string, boolean>) => void;
 };
 
 export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
-  const { current: mapRef } = useMap();
-
   const [beerTypes, setBeerTypes] = useState<Record<string, boolean>>({
     lager: true,
     ale: true,
@@ -28,90 +24,28 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
 
   const [isVisible, setIsVisible] = useState(true);
 
-  const applyMapFilter = useCallback(
-    (
-      bTypes: Record<string, boolean>,
-      cond: "any" | "all",
-      ven: Record<string, boolean>,
-    ) => {
-      const map = mapRef?.getMap();
-      if (!map) return;
-
-      // Build beer type filters
-      const beerFiltersArray: FilterSpecification[] = [];
-
-      if (bTypes.lager) {
-        beerFiltersArray.push(["==", "style_lager", "y"]);
-      }
-      if (bTypes.ale) {
-        beerFiltersArray.push(["==", "style_ale", "y"]);
-      }
-      if (bTypes.wheat) {
-        beerFiltersArray.push(["==", "style_wheat", "y"]);
-      }
-      if (bTypes.stout) {
-        beerFiltersArray.push(["==", "style_stout", "y"]);
-      }
-      if (bTypes.ipa) {
-        beerFiltersArray.push(["==", "style_ipa", "y"]);
-      }
-
-      // Build main filter
-      const filterMain: FilterSpecification[] = [
-        "all",
-        ["==", "drink", "y"],
-      ] as FilterSpecification[];
-
-      // Replace drink filter with shop filter if needed
-      if (ven.shop && !ven.drink) {
-        filterMain[1] = ["==", "shop", "y"];
-      }
-
-      // Add beer filters if any are selected
-      if (beerFiltersArray.length > 0) {
-        const beerFilter = (
-          cond === "any"
-            ? ["any", ...beerFiltersArray]
-            : ["all", ...beerFiltersArray]
-        ) as FilterSpecification;
-        filterMain.push(beerFilter);
-      }
-
-      // Apply filter to the map layer
-      if (map.getLayer("label-amenity")) {
-        map.setFilter("label-amenity", filterMain as FilterSpecification);
-      }
-    },
-    [mapRef],
-  );
+  // map filter logic moved to CraftbeerFeature; this component only manages menu state
 
   const handleBeerTypeChange = (type: string) => {
     const newBeerTypes = { ...beerTypes, [type]: !beerTypes[type] };
     setBeerTypes(newBeerTypes);
-    applyMapFilter(newBeerTypes, condition, venue);
     const allFilters = { ...newBeerTypes, [condition]: true, ...venue };
     onFilterChange?.(allFilters);
   };
 
   const handleCondChange = (cond: "any" | "all") => {
     setCondition(cond);
-    applyMapFilter(beerTypes, cond, venue);
     const allFilters = { ...beerTypes, [cond]: true, ...venue };
+    setCondition(cond);
     onFilterChange?.(allFilters);
   };
 
   const handleVenueChange = (venueType: string) => {
     const newVenue = { ...venue, [venueType]: !venue[venueType] };
     setVenue(newVenue);
-    applyMapFilter(beerTypes, condition, newVenue);
     const allFilters = { ...beerTypes, [condition]: true, ...newVenue };
     onFilterChange?.(allFilters);
   };
-
-  // Apply initial filter when map loads
-  useEffect(() => {
-    applyMapFilter(beerTypes, condition, venue);
-  }, [applyMapFilter, beerTypes, condition, venue]);
 
   return (
     <div className="absolute top-3 right-3">
