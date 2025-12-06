@@ -1,56 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
+import { beerStyles, type CraftbeerFilters } from "@/config/craftbeer-filters";
+import { cn } from "@/lib/utils";
 
-type CraftbeerFilterProps = {
-  onFilterChange?: (filters: Record<string, boolean>) => void;
-};
+interface CraftbeerFilterProps {
+  filters: CraftbeerFilters;
+  onFiltersChange: (filters: CraftbeerFilters) => void;
+}
 
-export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
-  const [beerTypes, setBeerTypes] = useState<Record<string, boolean>>({
-    lager: true,
-    ale: true,
-    wheat: true,
-    stout: true,
-    ipa: true,
-  });
-
-  const [condition, setCondition] = useState<"any" | "all">("any");
-
-  const [venue, setVenue] = useState<Record<string, boolean>>({
-    drink: true,
-    shop: false,
-  });
-
+export function CraftbeerFilter({
+  filters,
+  onFiltersChange,
+}: CraftbeerFilterProps) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [isVisible, setIsVisible] = useState(true);
 
-  // map filter logic moved to CraftbeerFeature; this component only manages menu state
-
-  const handleBeerTypeChange = (type: string) => {
-    const newBeerTypes = { ...beerTypes, [type]: !beerTypes[type] };
-    setBeerTypes(newBeerTypes);
-    const allFilters = { ...newBeerTypes, [condition]: true, ...venue };
-    onFilterChange?.(allFilters);
+  const handleCheckboxChange = () => {
+    formRef.current?.requestSubmit();
   };
 
-  const handleCondChange = (cond: "any" | "all") => {
-    setCondition(cond);
-    const allFilters = { ...beerTypes, [cond]: true, ...venue };
-    setCondition(cond);
-    onFilterChange?.(allFilters);
-  };
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-  const handleVenueChange = (venueType: string) => {
-    const newVenue = { ...venue, [venueType]: !venue[venueType] };
-    setVenue(newVenue);
-    const allFilters = { ...beerTypes, [condition]: true, ...newVenue };
-    onFilterChange?.(allFilters);
-  };
+    const formData = new FormData(e.target as HTMLFormElement);
+
+    onFiltersChange({
+      styles: formData.getAll("styles[]"),
+      condition: formData.get("condition"),
+      venue: formData.get("venue"),
+    } as CraftbeerFilters);
+  }
 
   return (
     <div className="absolute top-3 right-3">
       {/* Scoped craftbeer-specific styles */}
-      <style>{`
+      <style>
+        {`
         .menu {
           font: 11px/18px 'Helvetica Neue', Arial, Helvetica, sans-serif;
           font-weight: 550;
@@ -65,10 +51,8 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
           width: 120px;
           transition: right 0.5s;
         }
-        .menu input[type="checkbox"] {
-          display: none;
-        }
-        .menu input[type="checkbox"] + label {
+        .menu input[type="checkbox"] + label,
+        .menu input[type="radio"] + label {
           background-color: #333333;
           display: block;
           cursor: pointer;
@@ -77,11 +61,13 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
           margin-bottom: 0px;
           text-transform: capitalize;
         }
-        .menu input[type="checkbox"]:checked + label {
+        .menu input[type="checkbox"]:checked + label,
+        .menu input[type="radio"]:checked + label {
           background-color: #fff480;
           color: #000;
         }
-        .menu input[type="checkbox"]:checked + label:before {
+        .menu input[type="checkbox"]:checked + label:before,
+        .menu input[type="radio"]:checked + label:before {
           content: '✔';
           margin-right: 5px;
         }
@@ -89,7 +75,8 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
           display: flex;
           flex-direction: row;
         }
-        .menu2 input[type=checkbox] + label {
+        .menu2 input[type=checkbox] + label,
+        .menu2 input[type=radio] + label {
           width: 56px;
         }
         .menu-control {
@@ -114,98 +101,50 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
         .menu-hidden {
           right: -200px;
           transition: right 0.5s;
-        }`}</style>
+        }`}
+      </style>
 
-      <div
+      <form
+        ref={formRef}
         id="menu"
+        onSubmit={handleSubmit}
         className={`menu rounded-lg bg-white shadow-lg overflow-hidden ${!isVisible ? "menu-hidden" : ""}`}
       >
-        {/* Beer Types */}
-        <div>
-          <input
-            type="checkbox"
-            id="label-lager"
-            checked={beerTypes.lager}
-            onChange={() => handleBeerTypeChange("lager")}
-            className="hidden"
-          />
-          <label
-            htmlFor="label-lager"
-            className="block px-4 py-2 bg-white cursor-pointer hover:bg-gray-50 border-b border-gray-200 rounded-t-lg"
-          >
-            <span>Lageris</span>
-          </label>
-          <input
-            type="checkbox"
-            id="label-ale"
-            checked={beerTypes.ale}
-            onChange={() => handleBeerTypeChange("ale")}
-            className="hidden"
-          />
-          <label
-            htmlFor="label-ale"
-            className="block px-4 py-2 bg-white cursor-pointer hover:bg-gray-50 border-b border-gray-200"
-          >
-            <span>Elis</span>
-          </label>
-        </div>
-
-        <div>
-          <input
-            type="checkbox"
-            id="label-wheat"
-            checked={beerTypes.wheat}
-            onChange={() => handleBeerTypeChange("wheat")}
-            className="hidden"
-          />
-          <label
-            htmlFor="label-wheat"
-            className="block px-4 py-2 bg-white cursor-pointer hover:bg-gray-50 border-b border-gray-200"
-          >
-            <span>Kvietinis</span>
-          </label>
-        </div>
-
-        <div>
-          <input
-            type="checkbox"
-            id="label-stout"
-            checked={beerTypes.stout}
-            onChange={() => handleBeerTypeChange("stout")}
-            className="hidden"
-          />
-          <label
-            htmlFor="label-stout"
-            className="block px-4 py-2 bg-white cursor-pointer hover:bg-gray-50 border-b border-gray-200"
-          >
-            <span>Stautas</span>
-          </label>
-        </div>
-
-        <div>
-          <input
-            type="checkbox"
-            id="label-ipa"
-            checked={beerTypes.ipa}
-            onChange={() => handleBeerTypeChange("ipa")}
-            className="hidden"
-          />
-          <label
-            htmlFor="label-ipa"
-            className="block px-4 py-2 bg-white cursor-pointer hover:bg-gray-50 border-b border-gray-200 rounded-b-lg"
-          >
-            <span>IPA</span>
-          </label>
-        </div>
+        {/* Beer Styles */}
+        {beerStyles.map((style, index) => (
+          <div key={style.value}>
+            <input
+              type="checkbox"
+              id={`label-${style.value}`}
+              name="styles[]"
+              value={style.value}
+              defaultChecked={filters.styles.includes(style.value)}
+              onChange={handleCheckboxChange}
+              className="hidden"
+            />
+            <label
+              htmlFor={`label-${style.value}`}
+              className={cn(
+                "block px-4 py-2 bg-white cursor-pointer hover:bg-gray-50 border-b border-gray-200",
+                index === 0 && "rounded-t-lg",
+                index === beerStyles.length - 1 && "rounded-b-lg",
+              )}
+            >
+              <span>{style.label}</span>
+            </label>
+          </div>
+        ))}
 
         {/* Condition Selector */}
         <div className="flex mt-1 mb-1 bg-gray-100 rounded-lg overflow-hidden">
           <div className="flex-1">
             <input
-              type="checkbox"
+              type="radio"
               id="label-or"
-              checked={condition === "any"}
-              onChange={() => handleCondChange("any")}
+              name="condition"
+              value="any"
+              defaultChecked={filters.condition === "any"}
+              onChange={handleCheckboxChange}
               className="hidden"
             />
             <label
@@ -217,10 +156,12 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
           </div>
           <div className="flex-1">
             <input
-              type="checkbox"
+              type="radio"
               id="label-and"
-              checked={condition === "all"}
-              onChange={() => handleCondChange("all")}
+              name="condition"
+              value="all"
+              defaultChecked={filters.condition === "all"}
+              onChange={handleCheckboxChange}
               className="hidden"
             />
             <label
@@ -235,10 +176,12 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
         {/* Venue Type */}
         <div>
           <input
-            type="checkbox"
+            type="radio"
             id="label-drink"
-            checked={venue.drink}
-            onChange={() => handleVenueChange("drink")}
+            name="venue"
+            value="drink"
+            defaultChecked={filters.venue === "drink"}
+            onChange={handleCheckboxChange}
             className="hidden"
           />
           <label
@@ -251,10 +194,12 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
 
         <div>
           <input
-            type="checkbox"
+            type="radio"
             id="label-shop"
-            checked={venue.shop}
-            onChange={() => handleVenueChange("shop")}
+            name="venue"
+            value="shop"
+            defaultChecked={filters.venue === "shop"}
+            onChange={handleCheckboxChange}
             className="hidden"
           />
           <label
@@ -264,7 +209,7 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
             <span>Išsinešti</span>
           </label>
         </div>
-      </div>
+      </form>
 
       {/* Hide/Show Control */}
       <div

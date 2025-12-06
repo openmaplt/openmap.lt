@@ -10,12 +10,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Feature } from "geojson";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
+import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
 import { PlacesFeature } from "@/components/PlacesFeature";
 import { PoiDetails } from "@/components/PoiDetailsSheet";
 import { PoiInteraction } from "@/components/PoiInteraction";
 import { SearchFeature } from "@/components/SearchFeature";
-import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MAPS, MapConfig, type MapProfile } from "@/config/map";
 import { useHashChange } from "@/hooks/use-hash-change";
 import {
