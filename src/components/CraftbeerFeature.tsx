@@ -7,9 +7,5 @@ export function CraftbeerFeature() {
     console.log("Craftbeer filter changed:", filters);
   };
 
-  return (
-    <CraftbeerFilter
-      onFilterChange={handleFilterChange}
-    />
-  );
+  return <CraftbeerFilter onFilterChange={handleFilterChange} />;
 }

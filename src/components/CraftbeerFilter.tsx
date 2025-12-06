@@ -57,7 +57,10 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
       }
 
       // Build main filter
-      const filterMain: FilterSpecification[] = ["all", ["==", "drink", "y"]] as FilterSpecification[];
+      const filterMain: FilterSpecification[] = [
+        "all",
+        ["==", "drink", "y"],
+      ] as FilterSpecification[];
 
       // Replace drink filter with shop filter if needed
       if (ven.shop && !ven.drink) {
@@ -66,9 +69,11 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
 
       // Add beer filters if any are selected
       if (beerFiltersArray.length > 0) {
-        const beerFilter = (cond === "any"
-          ? ["any", ...beerFiltersArray]
-          : ["all", ...beerFiltersArray]) as FilterSpecification;
+        const beerFilter = (
+          cond === "any"
+            ? ["any", ...beerFiltersArray]
+            : ["all", ...beerFiltersArray]
+        ) as FilterSpecification;
         filterMain.push(beerFilter);
       }
 
@@ -107,7 +112,6 @@ export function CraftbeerFilter({ onFilterChange }: CraftbeerFilterProps) {
   useEffect(() => {
     applyMapFilter(beerTypes, condition, venue);
   }, [applyMapFilter, beerTypes, condition, venue]);
-
 
   return (
     <div className="absolute top-3 right-3">
