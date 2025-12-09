@@ -10,6 +10,7 @@ export type MapProfile = {
   id: string;
   mapType: string;
   mapStyles: MapStyle[];
+  featureComponent?: "places" | "craftbeer";
 };
 
 type Config = {
@@ -114,6 +115,7 @@ export const MAPS: MapProfile[] = [
         image: "/maps/map_craftbeer.png",
       },
     ],
+    featureComponent: "craftbeer",
   },
   {
     id: "places",
@@ -130,6 +132,7 @@ export const MAPS: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
+    featureComponent: "places",
   },
 ];
 
