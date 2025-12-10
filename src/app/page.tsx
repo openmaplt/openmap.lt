@@ -2,6 +2,7 @@
 
 import {
   AttributionControl,
+  ScaleControl,
   type LngLatBounds,
   Map as MapLibreMap,
   type MapProps,
@@ -146,6 +147,7 @@ export default function Page() {
         feature={selectedFeature}
       />
       <AttributionControl position="bottom-left" />
+      <ScaleControl position="bottom-left" maxWidth={200} />
     </TypedMapLibreMap>
   );
 }
