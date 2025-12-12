@@ -24,8 +24,18 @@ export function PlacesFeature({
   mobileActiveMode,
   setMobileActiveMode,
 }: PlacesFeatureProps) {
-  const [filterTypes, setFilterTypes] = useState("");
   const { current: mapRef } = useMap();
+  const [filterTypes, setFilterTypes] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    return localStorage.getItem("placesFilterTypes") || "";
+  });
+
+  // Save filter types to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("placesFilterTypes", filterTypes);
+  }, [filterTypes]);
 
   // Register icons
   useMapIcons();
