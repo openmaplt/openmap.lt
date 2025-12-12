@@ -25,7 +25,7 @@ export function PlacesFeature({
   setMobileActiveMode,
 }: PlacesFeatureProps) {
   const { current: mapRef } = useMap();
-  const [filterTypes, setFilterTypes]= useState(() => {
+  const [filterTypes, setFilterTypes] = useState(() => {
     if (typeof window === "undefined") {
       return "";
     }
