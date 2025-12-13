@@ -13,10 +13,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
-import { PlacesFeature } from "@/components/PlacesFeature";
+import { PlacesProfileComponents } from "@/components/PlacesProfileComponents";
 import { PoiDetails } from "@/components/PoiDetailsSheet";
 import { PoiInteraction } from "@/components/PoiInteraction";
-import { SearchFeature } from "@/components/SearchFeature";
 import { MAPS, MapConfig, type MapProfile } from "@/config/map";
 import { useHashChange } from "@/hooks/use-hash-change";
 import {
@@ -102,6 +101,13 @@ export default function Page() {
     MapProps & React.RefAttributes<MapRef>
   >;
 
+  const FeatureComponent =
+    activeMapProfile.featureComponent &&
+    {
+      places: PlacesProfileComponents,
+      craftbeer: CraftbeerFeature,
+    }[activeMapProfile.featureComponent];
+
   return (
     <TypedMapLibreMap
       ref={mapRef}
@@ -114,25 +120,16 @@ export default function Page() {
       onLoad={(e) => setBbox(e.target.getBounds())}
       attributionControl={false}
     >
-      {activeMapProfile.id === "places" && (
-        <>
-          <SearchFeature
-            mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
-            selectedFeature={selectedFeature}
-            onSelectFeature={setSelectedFeature}
-            mobileActiveMode={mobileActiveMode}
-            setMobileActiveMode={setMobileActiveMode}
-          />
-          <PlacesFeature
-            bbox={bbox}
-            onSelectFeature={setSelectedFeature}
-            selectedFeature={selectedFeature}
-            mobileActiveMode={mobileActiveMode}
-            setMobileActiveMode={setMobileActiveMode}
-          />
-        </>
+      {FeatureComponent && (
+        <FeatureComponent
+          bbox={bbox}
+          onSelectFeature={setSelectedFeature}
+          selectedFeature={selectedFeature}
+          mobileActiveMode={mobileActiveMode}
+          setMobileActiveMode={setMobileActiveMode}
+          mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
+        />
       )}
-      {activeMapProfile.id === "craftbeer" && <CraftbeerFeature />}
       <PoiInteraction
         activeMapProfile={activeMapProfile}
         onSelectFeature={setSelectedFeature}
