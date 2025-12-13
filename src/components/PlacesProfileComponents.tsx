@@ -3,7 +3,7 @@ import type { LngLatBounds } from "react-map-gl/maplibre";
 import { PlacesFeature } from "@/components/PlacesFeature";
 import { SearchFeature } from "@/components/SearchFeature";
 
-type PlacesWithSearchFeatureProps = {
+type PlacesProfileComponents = {
   bbox: LngLatBounds | null;
   onSelectFeature: (feature: Feature | null) => void;
   selectedFeature: Feature | null;
@@ -12,14 +12,14 @@ type PlacesWithSearchFeatureProps = {
   mapCenter: { lat: number; lng: number };
 };
 
-export function PlacesWithSearchFeature({
+export function PlacesProfileComponents({
   bbox,
   onSelectFeature,
   selectedFeature,
   mobileActiveMode,
   setMobileActiveMode,
   mapCenter,
-}: PlacesWithSearchFeatureProps) {
+}: PlacesProfileComponents) {
   return (
     <>
       <SearchFeature

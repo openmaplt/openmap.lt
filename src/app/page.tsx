@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
-import { PlacesWithSearchFeature } from "@/components/PlacesProfileComponents";
+import { PlacesProfileComponents } from "@/components/PlacesProfileComponents";
 import { PoiDetails } from "@/components/PoiDetailsSheet";
 import { PoiInteraction } from "@/components/PoiInteraction";
 import { MAPS, MapConfig, type MapProfile } from "@/config/map";
@@ -103,7 +103,7 @@ export default function Page() {
   const FeatureComponent =
     activeMapProfile.featureComponent &&
     {
-      places: PlacesWithSearchFeature,
+      places: PlacesProfileComponents,
       craftbeer: CraftbeerFeature,
     }[activeMapProfile.featureComponent];
 
