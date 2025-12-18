@@ -118,8 +118,16 @@ export default function Page() {
     const path = objectId
       ? `/${activeMapProfile.mapType}/${objectId}`
       : `/${activeMapProfile.mapType}/map`;
-    router.replace(`${path}?${searchParams.toString()}`);
-  }, [selectedFeature, activeMapProfile.mapType, router, searchParams]);
+
+    const newSearchParams = new URLSearchParams();
+    newSearchParams.set("z", viewState.zoom.toFixed(2));
+    newSearchParams.set("lat", viewState.latitude.toFixed(5));
+    newSearchParams.set("lng", viewState.longitude.toFixed(5));
+    newSearchParams.set("bearing", viewState.bearing.toFixed(0));
+    newSearchParams.set("pitch", viewState.pitch.toFixed(0));
+
+    router.replace(`${path}?${newSearchParams.toString()}`);
+  }, [selectedFeature, activeMapProfile.mapType, router, viewState]);
 
   // Select feature on initial load if pointId is present
   useEffect(() => {
