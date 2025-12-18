@@ -9,7 +9,7 @@ import {
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Feature } from "geojson";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
@@ -20,8 +20,8 @@ import { MAPS, MapConfig, type MapProfile } from "@/config/map";
 import { findMapsByType } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getPointExtent } from "@/lib/api";
-import { getObjectId } from "@/lib/poiData";
 import { getPoiFromObjectId } from "@/lib/poiHelpers";
+import { getObjectId } from "@/lib/poiData";
 
 export default function Page() {
   const mapRef = useRef<MapRef>(null);
@@ -34,20 +34,23 @@ export default function Page() {
     slug && Array.isArray(slug) ? slug : [slug, undefined];
   const pointId = slugId !== "map" ? slugId : undefined;
 
-  // URL is the source of truth
+  // URL is the source of truth for map position
   const z = searchParams.get("z");
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
   const bearing = searchParams.get("bearing");
   const pitch = searchParams.get("pitch");
 
-  const viewState = {
-    latitude: lat ? parseFloat(lat) : MapConfig.DEFAULT_LATITUDE,
-    longitude: lng ? parseFloat(lng) : MapConfig.DEFAULT_LONGITUDE,
-    zoom: z ? parseFloat(z) : MapConfig.DEFAULT_ZOOM,
-    bearing: bearing ? parseFloat(bearing) : 0,
-    pitch: pitch ? parseFloat(pitch) : 0,
-  };
+  const viewState = useMemo(
+    () => ({
+      latitude: lat ? parseFloat(lat) : MapConfig.DEFAULT_LATITUDE,
+      longitude: lng ? parseFloat(lng) : MapConfig.DEFAULT_LONGITUDE,
+      zoom: z ? parseFloat(z) : MapConfig.DEFAULT_ZOOM,
+      bearing: bearing ? parseFloat(bearing) : 0,
+      pitch: pitch ? parseFloat(pitch) : 0,
+    }),
+    [lat, lng, z, bearing, pitch],
+  );
 
   const [activeMapProfile, setActiveMapProfile] = useState<MapProfile>(() => {
     const mapProfile = findMapsByType(profile) ?? MAPS[0];
@@ -83,14 +86,19 @@ export default function Page() {
     }
   }, [pointId, z, lat, lng, profile, router]);
 
-  // Update URL when map moves
-  const handleMoveEnd = useCallback(
-    ({ viewState: newViewState }: ViewStateChangeEvent) => {
-      const objectId = selectedFeature
-        ? getObjectId(
-            selectedFeature.properties,
-            (selectedFeature as any).layer.id,
-          )
+  const updateUrl = useCallback(
+    (
+      newViewState: {
+        latitude: number;
+        longitude: number;
+        zoom: number;
+        bearing: number;
+        pitch: number;
+      },
+      feature: Feature | null,
+    ) => {
+      const objectId = feature
+        ? getObjectId(feature.properties, (feature as any).layer.id)
         : null;
       const path = objectId
         ? `/${activeMapProfile.mapType}/${objectId}`
@@ -104,30 +112,23 @@ export default function Page() {
       newSearchParams.set("pitch", newViewState.pitch.toFixed(0));
       router.replace(`${path}?${newSearchParams.toString()}`);
     },
-    [selectedFeature, activeMapProfile.mapType, router],
+    [activeMapProfile.mapType, router],
   );
 
-  // Update URL when feature is selected/deselected
-  useEffect(() => {
-    const objectId = selectedFeature
-      ? getObjectId(
-          selectedFeature.properties,
-          (selectedFeature as any).layer.id,
-        )
-      : null;
-    const path = objectId
-      ? `/${activeMapProfile.mapType}/${objectId}`
-      : `/${activeMapProfile.mapType}/map`;
+  const handleMoveEnd = useCallback(
+    ({ viewState: newViewState }: ViewStateChangeEvent) => {
+      updateUrl(newViewState, selectedFeature);
+    },
+    [selectedFeature, updateUrl],
+  );
 
-    const newSearchParams = new URLSearchParams();
-    newSearchParams.set("z", viewState.zoom.toFixed(2));
-    newSearchParams.set("lat", viewState.latitude.toFixed(5));
-    newSearchParams.set("lng", viewState.longitude.toFixed(5));
-    newSearchParams.set("bearing", viewState.bearing.toFixed(0));
-    newSearchParams.set("pitch", viewState.pitch.toFixed(0));
-
-    router.replace(`${path}?${newSearchParams.toString()}`);
-  }, [selectedFeature, activeMapProfile.mapType, router, viewState]);
+  const handleSelectFeature = useCallback(
+    (feature: Feature | null) => {
+      setSelectedFeature(feature);
+      updateUrl(viewState, feature);
+    },
+    [viewState, updateUrl],
+  );
 
   // Select feature on initial load if pointId is present
   useEffect(() => {
@@ -137,13 +138,9 @@ export default function Page() {
     }
 
     const selectFeature = () => {
-      console.log("Attempting to select feature for pointId:", pointId);
       const feature = getPoiFromObjectId(map, pointId);
       if (feature) {
-        console.log("Feature found:", feature);
         setSelectedFeature(feature);
-      } else {
-        console.log("Feature not found for pointId:", pointId);
       }
     };
 
@@ -176,18 +173,18 @@ export default function Page() {
     <TypedMapLibreMap
       ref={mapRef}
       mapStyle={activeMapProfile.mapStyles[0].style}
-      initialViewState={viewState}
-      minZoom={MapConfig.MIN_ZOOM}
-      maxZoom={MapConfig.MAX_ZOOM}
-      maxBounds={MapConfig.BOUNDS}
+      {...viewState}
       onMoveEnd={handleMoveEnd}
       onLoad={(e) => setBbox(e.target.getBounds())}
       attributionControl={false}
+      minZoom={MapConfig.MIN_ZOOM}
+      maxZoom={MapConfig.MAX_ZOOM}
+      maxBounds={MapConfig.BOUNDS}
     >
       {FeatureComponent && (
         <FeatureComponent
           bbox={bbox}
-          onSelectFeature={setSelectedFeature}
+          onSelectFeature={handleSelectFeature}
           selectedFeature={selectedFeature}
           mobileActiveMode={mobileActiveMode}
           setMobileActiveMode={setMobileActiveMode}
@@ -196,19 +193,19 @@ export default function Page() {
       )}
       <PoiInteraction
         activeMapProfile={activeMapProfile}
-        onSelectFeature={setSelectedFeature}
+        onSelectFeature={handleSelectFeature}
       />
       <MapStyleSwitcher
         activeMapProfile={activeMapProfile}
         onChangeMapProfile={(profile) => {
           setActiveMapProfile(profile);
           // when profile changes, we want to clear the selected feature
-          setSelectedFeature(null);
+          handleSelectFeature(null);
         }}
       />
       <PoiDetails
         open={!!selectedFeature}
-        onOpenChange={(open) => !open && setSelectedFeature(null)}
+        onOpenChange={(open) => !open && handleSelectFeature(null)}
         feature={selectedFeature}
       />
       <AttributionControl position="bottom-left" />
