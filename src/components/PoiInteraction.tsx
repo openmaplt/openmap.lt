@@ -69,7 +69,8 @@ export function PoiInteraction({
     }
 
     return () => {
-      if (map.getLayer(INTERACTIVE_LAYER)) {
+      // Check if map style is still available before trying to get layer
+      if (map.style && map.getLayer(INTERACTIVE_LAYER)) {
         map.off("click", handleMapClick);
         map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
