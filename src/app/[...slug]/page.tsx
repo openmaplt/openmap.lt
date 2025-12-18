@@ -20,6 +20,7 @@ import { MAPS, MapConfig, type MapProfile } from "@/config/map";
 import { findMapsByType } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getPointExtent } from "@/lib/api";
+import { getObjectId } from "@/lib/poiData";
 import { getPoiFromObjectId } from "@/lib/poiHelpers";
 
 export default function Page() {
@@ -85,8 +86,14 @@ export default function Page() {
   // Update URL when map moves
   const handleMoveEnd = useCallback(
     ({ viewState: newViewState }: ViewStateChangeEvent) => {
-      const path = selectedFeature?.properties?.id
-        ? `/${activeMapProfile.mapType}/${selectedFeature.properties.id}`
+      const objectId = selectedFeature
+        ? getObjectId(
+            selectedFeature.properties,
+            (selectedFeature as any).layer.id,
+          )
+        : null;
+      const path = objectId
+        ? `/${activeMapProfile.mapType}/${objectId}`
         : `/${activeMapProfile.mapType}/map`;
 
       const newSearchParams = new URLSearchParams();
@@ -102,8 +109,14 @@ export default function Page() {
 
   // Update URL when feature is selected/deselected
   useEffect(() => {
-    const path = selectedFeature?.properties?.id
-      ? `/${activeMapProfile.mapType}/${selectedFeature.properties.id}`
+    const objectId = selectedFeature
+      ? getObjectId(
+          selectedFeature.properties,
+          (selectedFeature as any).layer.id,
+        )
+      : null;
+    const path = objectId
+      ? `/${activeMapProfile.mapType}/${objectId}`
       : `/${activeMapProfile.mapType}/map`;
     router.replace(`${path}?${searchParams.toString()}`);
   }, [selectedFeature, activeMapProfile.mapType, router, searchParams]);
