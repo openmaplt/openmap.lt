@@ -48,7 +48,12 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
           </div>
         </div>
       </Marker>
-      <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+      <Sheet
+        open={open}
+        onOpenChange={onOpenChange}
+        modal={false}
+        data-testid="poi-details-sheet"
+      >
         <SheetContent
           side={isMobile ? "bottom" : "left"}
           className="overflow-y-auto gap-1"
