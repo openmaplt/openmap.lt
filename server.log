@@ -2,10 +2,10 @@
 > openmap@0.0.0 dev
 > next dev
 
- ⚠ Port 3000 is in use by an unknown process, using available port 3006 instead.
+ ⚠ Port 3000 is in use by an unknown process, using available port 3007 instead.
    ▲ Next.js 15.5.9
-   - Local:        http://localhost:3006
-   - Network:      http://192.168.0.2:3006
+   - Local:        http://localhost:3007
+   - Network:      http://192.168.0.2:3007
 
  ✓ Starting...
- ✓ Ready in 2.6s
+ ✓ Ready in 3.9s
