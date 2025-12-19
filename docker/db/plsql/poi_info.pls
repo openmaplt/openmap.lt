@@ -17,7 +17,7 @@ begin
   FROM (
     SELECT st_transform(ST_Expand(st_transform(geom, 3346), 150), 4326) AS expanded_box
       FROM places.poi
-     --WHERE id = p_params->>'id'
+     WHERE id = (p_params->>'id')::int
      LIMIT 1
   ) AS subquery;
 
