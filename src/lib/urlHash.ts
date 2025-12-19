@@ -62,13 +62,29 @@ export function parseHash(hash: string): MapState | null {
 
 export function parseUrl(query: string, pathname: string): MapState | null {
   const searchParams = new URLSearchParams(query);
-  const [_, mapType] = pathname.split("/");
+  const [, mapType] = pathname.split("/");
 
-  const zoom = searchParams.get("z");
-  const latitude = searchParams.get("lat");
-  const longitude = searchParams.get("lng");
-  const bearing = searchParams.get("lng");
-  const pitch = searchParams.get("pitch");
+  const zoomStr = searchParams.get("z");
+  const latStr = searchParams.get("lat");
+  const lngStr = searchParams.get("lng");
+  const bearingStr = searchParams.get("bearing");
+  const pitchStr = searchParams.get("pitch");
+
+  if (
+    zoomStr === null ||
+    latStr === null ||
+    lngStr === null ||
+    bearingStr === null ||
+    pitchStr === null
+  ) {
+    return null;
+  }
+
+  const zoom = Number(zoomStr);
+  const latitude = Number(latStr);
+  const longitude = Number(lngStr);
+  const bearing = Number(bearingStr);
+  const pitch = Number(pitchStr);
 
   if (
     Number.isNaN(zoom) ||
@@ -81,16 +97,12 @@ export function parseUrl(query: string, pathname: string): MapState | null {
   }
 
   return {
-    mapType: mapType,
-    zoom: zoom ? Number.parseFloat(zoom) : MapConfig.DEFAULT_ZOOM,
-    latitude: latitude
-      ? Number.parseFloat(latitude)
-      : MapConfig.DEFAULT_LATITUDE,
-    longitude: longitude
-      ? Number.parseFloat(longitude)
-      : MapConfig.DEFAULT_LONGITUDE,
-    bearing: Number.parseFloat(bearing ?? "0"),
-    pitch: Number.parseFloat(pitch ?? "0"),
+    mapType,
+    zoom,
+    latitude,
+    longitude,
+    bearing,
+    pitch,
   };
 }
 

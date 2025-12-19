@@ -120,7 +120,7 @@ export function PlacesFeature({
             "icon-allow-overlap": true,
           }}
           {...(poiId && {
-            filter: ["!=", ["id"], poiId],
+            filter: ["!=", ["id"], Number.parseInt(poiId)],
           })}
         />
       </Source>

@@ -30,7 +30,7 @@ import { findMapsByType, slugify } from "@/lib/utils";
 
 export default function Page() {
   const pathname = usePathname();
-  const [_, mapType, poiSlug] = pathname.split("/");
+  const [, mapType, poiSlug] = pathname.split("/");
   const poiId = poiSlug !== "map" ? poiSlug?.split("-")[0] : undefined;
 
   const mapRef = useRef<MapRef>(null);
