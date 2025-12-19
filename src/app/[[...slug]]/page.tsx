@@ -2,31 +2,37 @@
 
 import {
   AttributionControl,
-  ScaleControl,
   type LngLatBounds,
   Map as MapLibreMap,
   type MapProps,
+  ScaleControl,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Feature } from "geojson";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
-import { PlacesProfileComponents } from "@/components/PlacesProfileComponents";
-import { PoiDetails } from "@/components/PoiDetailsSheet";
+import { PlacesFeature } from "@/components/PlacesFeature";
+import { PoiDetails } from "@/components/PoiDetails";
 import { PoiInteraction } from "@/components/PoiInteraction";
-import { MAPS, MapConfig, type MapProfile } from "@/config/map";
-import { useHashChange } from "@/hooks/use-hash-change";
+import { SearchFeature } from "@/components/SearchFeature";
+import { SelectedPlaceMarker } from "@/components/SelectedPlaceMarker";
+import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
+import { MapConfig } from "@/config/config";
 import {
-  formatHash,
+  formatSearchParams,
   getMapState,
-  parseHash,
   saveStateToStorage,
 } from "@/lib/urlHash";
-import { findMapsByType } from "@/lib/utils";
+import { findMapsByType, slugify } from "@/lib/utils";
 
 export default function Page() {
+  const pathname = usePathname();
+  const [_, mapType, poiSlug] = pathname.split("/");
+  const poiId = poiSlug !== "map" ? poiSlug?.split("-")[0] : undefined;
+
   const mapRef = useRef<MapRef>(null);
 
   const [viewState, setViewState] = useState(() => {
@@ -42,50 +48,52 @@ export default function Page() {
 
   const [activeMapProfile, setActiveMapProfile] = useState<MapProfile>(() => {
     const state = getMapState();
-    return findMapsByType(state.mapType) ?? MAPS[0];
+    return (
+      findMapsByType(mapType.length > 0 ? mapType : state.mapType) ??
+      MAP_PROFILES[0]
+    );
   });
   const [bbox, setBbox] = useState<LngLatBounds | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [mobileActiveMode, setMobileActiveMode] = useState<
     "search" | "filter" | null
   >(null);
+  const [selectedPoiId, setSelectedPoiId] = useState(poiId ?? null);
 
   useEffect(() => {
     const currentState = getMapState();
-    const hashData = {
+    const mapStateData = {
       ...currentState,
       mapType: activeMapProfile.mapType,
       ...viewState,
     };
 
     // Update URL without triggering page reload
-    window.history.replaceState(null, "", formatHash(hashData));
+    const poiSlugWithName = [
+      selectedPoiId,
+      selectedFeature?.properties?.name
+        ? slugify(selectedFeature.properties?.name)
+        : null,
+    ]
+      .filter((v) => v)
+      .join("-");
+
+    const url = new URL(window.location.href);
+    url.pathname = `/${activeMapProfile.mapType}/${poiSlugWithName ?? "map"}`;
+    url.search = formatSearchParams(mapStateData);
+    url.hash = "";
+
+    window.history.replaceState(null, "", url);
 
     // Save to localStorage as JSON
-    saveStateToStorage(hashData);
-  }, [viewState, activeMapProfile]);
+    saveStateToStorage(mapStateData);
+  }, [viewState, activeMapProfile, selectedPoiId, selectedFeature]);
 
-  // Listen for URL hash changes (when user manually edits URL)
-  useHashChange(
-    useCallback(() => {
-      const newState = parseHash(window.location.hash);
-      if (newState && mapRef.current) {
-        const profile = findMapsByType(newState.mapType);
-        if (profile) {
-          setActiveMapProfile(profile);
-        }
-
-        // Update map view to match the new URL
-        mapRef.current.flyTo({
-          center: [newState.longitude, newState.latitude],
-          zoom: newState.zoom,
-          bearing: newState.bearing,
-          pitch: newState.pitch,
-          duration: 1000,
-        });
-      }
-    }, []),
-  );
+  useEffect(() => {
+    if (selectedFeature) {
+      setSelectedPoiId(selectedFeature.id ?? selectedFeature.properties?.id);
+    }
+  }, [selectedFeature]);
 
   // Update URL hash and localStorage when map moves
   const handleMoveEnd = useCallback(
@@ -97,6 +105,17 @@ export default function Page() {
     [],
   );
 
+  const handleOnChangeMapProfile = useCallback((profile: MapProfile) => {
+    setActiveMapProfile(profile);
+    setSelectedPoiId(null);
+    setSelectedFeature(null);
+  }, []);
+
+  const handleOnPoiDetailsClose = useCallback(() => {
+    setSelectedFeature(null);
+    setSelectedPoiId(null);
+  }, []);
+
   const TypedMapLibreMap = MapLibreMap as React.ForwardRefExoticComponent<
     MapProps & React.RefAttributes<MapRef>
   >;
@@ -104,7 +123,7 @@ export default function Page() {
   const FeatureComponent =
     activeMapProfile.featureComponent &&
     {
-      places: PlacesProfileComponents,
+      places: PlacesFeature,
       craftbeer: CraftbeerFeature,
     }[activeMapProfile.featureComponent];
 
@@ -124,23 +143,39 @@ export default function Page() {
         <FeatureComponent
           bbox={bbox}
           onSelectFeature={setSelectedFeature}
-          selectedFeature={selectedFeature}
           mobileActiveMode={mobileActiveMode}
           setMobileActiveMode={setMobileActiveMode}
-          mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
         />
       )}
+        {activeMapProfile.id === "places" && (
+        <>
+            <SearchFeature
+                mapCenter={{ lat: viewState.latitude, lng: viewState.longitude }}
+                onSelectFeature={setSelectedFeature}
+                mobileActiveMode={mobileActiveMode}
+                setMobileActiveMode={setMobileActiveMode}
+            />
+            {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}
+            <PlacesFeature
+                bbox={bbox}
+                onSelectFeature={setSelectedFeature}
+                mobileActiveMode={mobileActiveMode}
+                setMobileActiveMode={setMobileActiveMode}
+                poiId={selectedPoiId}
+            />
+        </>
+    )}
       <PoiInteraction
-        activeMapProfile={activeMapProfile}
         onSelectFeature={setSelectedFeature}
+        poiId={selectedPoiId}
       />
       <MapStyleSwitcher
         activeMapProfile={activeMapProfile}
-        onChangeMapProfile={(profile) => setActiveMapProfile(profile)}
+        onChangeMapProfile={handleOnChangeMapProfile}
       />
       <PoiDetails
         open={!!selectedFeature}
-        onOpenChange={(open) => !open && setSelectedFeature(null)}
+        onOpenChange={handleOnPoiDetailsClose}
         feature={selectedFeature}
       />
       <AttributionControl position="bottom-left" />

@@ -1,13 +1,9 @@
-"use client";
-
 import type { Feature, Point } from "geojson";
 import { useMap } from "react-map-gl/maplibre";
 import { SearchBox } from "@/components/SearchBox";
-import { SelectedPlaceMarker } from "./SelectedPlaceMarker";
 
 interface SearchFeatureProps {
   mapCenter: { lat: number; lng: number };
-  selectedFeature: Feature | null;
   onSelectFeature: (feature: Feature | null) => void;
   mobileActiveMode: "search" | "filter" | null;
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
@@ -15,7 +11,6 @@ interface SearchFeatureProps {
 
 export function SearchFeature({
   mapCenter,
-  selectedFeature,
   onSelectFeature,
   mobileActiveMode,
   setMobileActiveMode,
@@ -35,14 +30,11 @@ export function SearchFeature({
   };
 
   return (
-    <>
-      <SearchBox
-        mapCenter={mapCenter}
-        onSelectResult={handleSearchResultSelect}
-        mobileActiveMode={mobileActiveMode}
-        setMobileActiveMode={setMobileActiveMode}
-      />
-      {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}
-    </>
+    <SearchBox
+      mapCenter={mapCenter}
+      onSelectResult={handleSearchResultSelect}
+      mobileActiveMode={mobileActiveMode}
+      setMobileActiveMode={setMobileActiveMode}
+    />
   );
 }

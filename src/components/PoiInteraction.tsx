@@ -1,58 +1,32 @@
 import type { Feature } from "geojson";
 import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useMap } from "react-map-gl/maplibre";
-import type { MapProfile } from "@/config/map";
-import { useHashChange } from "@/hooks/use-hash-change";
-import { getObjectId } from "@/lib/poiData";
 import { getPoiFromObjectId } from "@/lib/poiHelpers";
-import {
-  formatHash,
-  getMapState,
-  type MapState,
-  parseHash,
-} from "@/lib/urlHash";
 
 const INTERACTIVE_LAYER = "label-amenity";
 
-export function PoiInteraction({
-  activeMapProfile,
-  onSelectFeature,
-}: {
-  activeMapProfile: MapProfile;
+interface PoiInteractionProps {
+  poiId?: string | null;
   onSelectFeature: (feature: Feature | null) => void;
-}) {
+}
+
+export function PoiInteraction({
+  onSelectFeature,
+  poiId,
+}: PoiInteractionProps) {
   const { current: mapRef } = useMap();
-  const [objectId, setObjectId] = useState<string | undefined>(() => {
-    const parsedHash = parseHash(window.location.hash);
-    return parsedHash?.objectId;
-  });
-
-  // Update URL hash when objectId changes
-  useEffect(() => {
-    const mapState = getMapState();
-    const hashData: MapState = {
-      ...mapState,
-      objectId,
-    };
-    window.history.replaceState(null, "", formatHash(hashData));
-  }, [objectId]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: activeMapProfile.id is sufficient
-  useEffect(() => {
-    setObjectId(undefined);
-  }, [activeMapProfile.id]);
 
   // Handle click on POI and map canvas clicks
   useEffect(() => {
     const map = mapRef?.getMap();
     if (!map) return;
 
-    // Handle clicks on empty canvas (not on POI) - close the sheet
+    // Handle clicks on empty canvas (not on POI) - close the poi details
     const handleMapClick = (e: MapLayerMouseEvent) => {
       // Check if we clicked on a POI layer feature
       if (!map.getLayer(INTERACTIVE_LAYER)) {
-        setObjectId(undefined);
+        onSelectFeature(null);
         return;
       }
 
@@ -60,17 +34,13 @@ export function PoiInteraction({
         layers: [INTERACTIVE_LAYER],
       });
 
-      // If no POI features at this point, close sheet
+      // If no POI features at this point, close poi details
       if (features.length === 0) {
-        setObjectId(undefined);
+        onSelectFeature(null);
         return;
       }
 
-      const feature = features[0];
-      const objId = getObjectId(feature.properties, feature.layer.id);
-      if (objId) {
-        setObjectId(objId);
-      }
+      onSelectFeature(features[0]);
     };
 
     const handleMouseEnter = () => {
@@ -96,6 +66,7 @@ export function PoiInteraction({
     }
 
     return () => {
+      if (!map) return;
       if (map.getLayer(INTERACTIVE_LAYER)) {
         map.off("click", handleMapClick);
         map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
@@ -103,11 +74,11 @@ export function PoiInteraction({
         map.off("styledata", setupEventHandlers);
       }
     };
-  }, [mapRef]);
+  }, [mapRef, onSelectFeature]);
 
   // Handle object ID changes from URL
   useEffect(() => {
-    if (!objectId) {
+    if (!poiId) {
       onSelectFeature(null);
       return;
     }
@@ -116,7 +87,7 @@ export function PoiInteraction({
     if (!map) return;
 
     const displayPoi = () => {
-      const feature = getPoiFromObjectId(map, objectId);
+      const feature = getPoiFromObjectId(map, INTERACTIVE_LAYER, poiId);
       if (feature) {
         onSelectFeature(feature);
       }
@@ -137,20 +108,10 @@ export function PoiInteraction({
     map.on("sourcedata", handleSourceData);
 
     return () => {
+      if (!map) return;
       map.off("sourcedata", handleSourceData);
     };
-  }, [objectId, mapRef, onSelectFeature]);
-
-  // Listen for hash changes to update object ID
-  useHashChange(
-    useCallback(() => {
-      const newState = parseHash(window.location.hash);
-      const newObjectId = newState?.objectId;
-      if (newObjectId !== objectId) {
-        setObjectId(newObjectId);
-      }
-    }, [objectId]),
-  );
+  }, [mapRef, onSelectFeature, poiId]);
 
   return null;
 }

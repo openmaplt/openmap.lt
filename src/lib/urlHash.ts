@@ -2,7 +2,7 @@
  * URL hash utility functions for map state management
  * Format: #m/[zoom]/[latitude]/[longitude]/[bearing]/[pitch]
  */
-import { MapConfig } from "@/config/map";
+import { MapConfig } from "@/config/config";
 
 export interface MapState {
   mapType: string;
@@ -60,12 +60,50 @@ export function parseHash(hash: string): MapState | null {
   };
 }
 
-/**
- * Format map state to hash string
- */
-export function formatHash(state: MapState): string {
-  const baseHash = `#${state.mapType}/${state.zoom.toFixed(2)}/${state.latitude.toFixed(5)}/${state.longitude.toFixed(5)}/${state.bearing.toFixed(0)}/${state.pitch.toFixed(0)}`;
-  return state.objectId ? `${baseHash}/${state.objectId}` : baseHash;
+export function parseUrl(query: string, pathname: string): MapState | null {
+  const searchParams = new URLSearchParams(query);
+  const [_, mapType] = pathname.split("/");
+
+  const zoom = searchParams.get("z");
+  const latitude = searchParams.get("lat");
+  const longitude = searchParams.get("lng");
+  const bearing = searchParams.get("lng");
+  const pitch = searchParams.get("pitch");
+
+  if (
+    Number.isNaN(zoom) ||
+    Number.isNaN(latitude) ||
+    Number.isNaN(longitude) ||
+    Number.isNaN(bearing) ||
+    Number.isNaN(pitch)
+  ) {
+    return null;
+  }
+
+  return {
+    mapType: mapType,
+    zoom: zoom ? Number.parseFloat(zoom) : MapConfig.DEFAULT_ZOOM,
+    latitude: latitude
+      ? Number.parseFloat(latitude)
+      : MapConfig.DEFAULT_LATITUDE,
+    longitude: longitude
+      ? Number.parseFloat(longitude)
+      : MapConfig.DEFAULT_LONGITUDE,
+    bearing: Number.parseFloat(bearing ?? "0"),
+    pitch: Number.parseFloat(pitch ?? "0"),
+  };
+}
+
+export function formatSearchParams(state: MapState): string {
+  const params = new URLSearchParams({
+    z: state.zoom.toFixed(2),
+    lat: state.latitude.toFixed(5),
+    lng: state.longitude.toFixed(5),
+    bearing: state.bearing.toFixed(0),
+    pitch: state.pitch.toFixed(0),
+  });
+
+  return params.toString();
 }
 
 /**
@@ -100,6 +138,14 @@ export function loadStateFromStorage(): MapState | null {
  * Get initial map state from URL hash or localStorage
  */
 export function getMapState(): MapState {
+  // First try to parse from search URL
+  if (typeof window !== "undefined" && window.location.search) {
+    const state = parseUrl(window.location.search, window.location.pathname);
+    if (state) {
+      return state;
+    }
+  }
+
   // First try to parse from URL hash
   if (typeof window !== "undefined" && window.location.hash) {
     const state = parseHash(window.location.hash);
