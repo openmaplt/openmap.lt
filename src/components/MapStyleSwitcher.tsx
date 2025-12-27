@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { Button } from "@/components/ui/button";
-import { MAPS, type MapProfile } from "@/config/map";
+import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
 import { cn } from "@/lib/utils";
 
 type MapStyleSwitcherProps = {
@@ -68,7 +68,7 @@ export function MapStyleSwitcher({
             : "opacity-0 scale-95 translate-x-4 absolute bottom-full right-0 w-0",
         )}
       >
-        {MAPS.map((profile) => (
+        {MAP_PROFILES.map((profile) => (
           <Button
             key={profile.id}
             onClick={() => handleChangeMapProfile(profile)}

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { getPoiList } from "@/data/poiList";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,25 +20,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const [left, bottom, right, top] = coords;
+    const result = await getPoiList(coords, types);
 
-    // Build the parameters JSON for the places.list function
-    const params = {
-      bbox: [left, bottom, right, top],
-      types: types,
-    };
-
-    // Call the PostgreSQL function that will handle all filtering logic
-    const result = await query("SELECT places.list($1::jsonb) as result", [
-      JSON.stringify(params),
-    ]);
-
-    // The function returns a JSON array, so we just return it
-    if (result.rows.length > 0 && result.rows[0].result) {
-      return NextResponse.json(result.rows[0].result);
-    }
-
-    return NextResponse.json([]);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Klaida gaunant POI sąrašą:", error);
     return NextResponse.json([], { status: 500 });

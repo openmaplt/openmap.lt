@@ -2,6 +2,7 @@ import type { Feature } from "geojson";
 import type { LngLatBounds } from "react-map-gl/maplibre";
 import { PlacesFeature } from "@/components/PlacesFeature";
 import { SearchFeature } from "@/components/SearchFeature";
+import { SelectedPlaceMarker } from "@/components/SelectedPlaceMarker";
 
 type PlacesProfileComponents = {
   bbox: LngLatBounds | null;
@@ -10,6 +11,8 @@ type PlacesProfileComponents = {
   mobileActiveMode: "search" | "filter" | null;
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
   mapCenter: { lat: number; lng: number };
+  poiId?: string | null;
+  initialFilterType?: string;
 };
 
 export function PlacesProfileComponents({
@@ -19,12 +22,13 @@ export function PlacesProfileComponents({
   mobileActiveMode,
   setMobileActiveMode,
   mapCenter,
+  poiId,
+  initialFilterType,
 }: PlacesProfileComponents) {
   return (
     <>
       <SearchFeature
         mapCenter={mapCenter}
-        selectedFeature={selectedFeature}
         onSelectFeature={onSelectFeature}
         mobileActiveMode={mobileActiveMode}
         setMobileActiveMode={setMobileActiveMode}
@@ -32,10 +36,12 @@ export function PlacesProfileComponents({
       <PlacesFeature
         bbox={bbox}
         onSelectFeature={onSelectFeature}
-        selectedFeature={selectedFeature}
         mobileActiveMode={mobileActiveMode}
         setMobileActiveMode={setMobileActiveMode}
+        poiId={poiId}
+        initialFilterType={initialFilterType}
       />
+      {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}
     </>
   );
 }

@@ -1,30 +1,26 @@
+"use server";
+
 import { Pool } from "pg";
 
-// Validuojame DATABASE_URL aplinkos kintamąjį
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL aplinkos kintamasis nenustatytas. Patikrinkite .env.local failą.",
   );
 }
 
-// Sukuriame connection pool PostgreSQL duomenų bazei
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Eksportuojame query funkciją
 export const query = async (text: string, params?: unknown[]) => {
-  const start = Date.now();
   try {
     const res = await pool.query(text, params);
-    const duration = Date.now() - start;
-    console.log("Užklausa įvykdyta:", { text, duration, rows: res.rowCount });
+
+    console.log("Užklausa įvykdyta:", { text, params, rows: res.rowCount });
+
     return res;
   } catch (error) {
     console.error("Klaida vykdant užklausą:", error);
     throw error;
   }
 };
-
-// Eksportuojame pool jei reikia tiesioginės prieigos
-export default pool;

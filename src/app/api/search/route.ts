@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { search } from "@/data/search";
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,23 +32,9 @@ export async function GET(request: NextRequest) {
 
     const [lng, lat] = coords;
 
-    // Build the parameters JSON for the places.search function
-    const params = {
-      pos: [lng, lat],
-      text: text,
-    };
+    const result = await search(text, [lng, lat]);
 
-    // Call the PostgreSQL function
-    const result = await query("SELECT places.search($1::jsonb) as result", [
-      JSON.stringify(params),
-    ]);
-
-    // The function returns a JSON object (FeatureCollection)
-    if (result.rows.length > 0 && result.rows[0].result) {
-      return NextResponse.json(result.rows[0].result);
-    }
-
-    return NextResponse.json({ type: "FeatureCollection", features: [] });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Klaida ieškant vietų:", error);
     return NextResponse.json(

@@ -12,24 +12,29 @@ import { usePlaces } from "@/hooks/use-places";
 interface PlacesFeatureProps {
   bbox: LngLatBounds | null;
   onSelectFeature: (feature: Feature | null) => void;
-  selectedFeature: Feature | null;
   mobileActiveMode: "search" | "filter" | null;
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
+  poiId?: string | null;
+  initialFilterType?: string;
 }
 
 export function PlacesFeature({
   bbox,
   onSelectFeature,
-  selectedFeature,
   mobileActiveMode,
   setMobileActiveMode,
+  poiId,
+  initialFilterType,
 }: PlacesFeatureProps) {
   const { current: mapRef } = useMap();
   const [filterTypes, setFilterTypes] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    return localStorage.getItem("placesFilterTypes") || "";
+    const typesFromLocalStorage =
+      localStorage.getItem("placesFilterTypes") || "";
+    const typeByPoi = initialFilterType ?? "";
+
+    return typesFromLocalStorage.includes(typeByPoi)
+      ? typesFromLocalStorage
+      : `${typeByPoi}${typesFromLocalStorage}`;
   });
 
   // Save filter types to localStorage whenever they change
@@ -63,6 +68,23 @@ export function PlacesFeature({
       map.getCanvas().style.cursor = "";
     };
 
+    const setupEventHandlers = () => {
+      if (poiId && map.getSource("places-source")) {
+        const features = map
+          .querySourceFeatures("places-source")
+          .filter((f) => f.id === Number.parseInt(poiId, 10));
+        if (features.length > 0) {
+          onSelectFeature(features[0]);
+        }
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      setupEventHandlers();
+    } else {
+      map.on("sourcedata", setupEventHandlers);
+    }
+
     map.on("click", "places-layer", onLayerClick);
     map.on("mouseenter", "places-layer", onMouseEnter);
     map.on("mouseleave", "places-layer", onMouseLeave);
@@ -71,8 +93,9 @@ export function PlacesFeature({
       map.off("click", "places-layer", onLayerClick);
       map.off("mouseenter", "places-layer", onMouseEnter);
       map.off("mouseleave", "places-layer", onMouseLeave);
+      map.off("sourcedata", setupEventHandlers);
     };
-  }, [mapRef, onSelectFeature]);
+  }, [mapRef, onSelectFeature, poiId]);
 
   // Construct match expression for icon-image
   // ['match', ['get', 'TYPE'], 'CAF', 'icon-CAF', 'FUE', 'icon-FUE', ..., 'icon-default']
@@ -91,8 +114,7 @@ export function PlacesFeature({
         mobileActiveMode={mobileActiveMode}
         setMobileActiveMode={setMobileActiveMode}
       />
-
-      <Source type="geojson" data={places}>
+      <Source id="places-source" type="geojson" data={places}>
         <Layer
           id="places-layer"
           type="symbol"
@@ -102,8 +124,8 @@ export function PlacesFeature({
             "icon-size": 1,
             "icon-allow-overlap": true,
           }}
-          {...(selectedFeature?.id && {
-            filter: ["!=", ["id"], selectedFeature.id],
+          {...(poiId && {
+            filter: ["!=", ["id"], Number.parseInt(poiId, 10)],
           })}
         />
       </Source>
