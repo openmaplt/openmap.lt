@@ -11,11 +11,30 @@ export function findMapsByType(mapType: string): MapProfile | undefined {
 }
 
 export function slugify(str: string): string {
-  str = str.replace(/^\s+|\s+$/g, ""); // trim leading/trailing white space
-  str = str.toLowerCase(); // convert string to lowercase
-  str = str
-    .replace(/[^a-z0-9 -]/g, "") // remove any non-alphanumeric characters
-    .replace(/\s+/g, "-") // replace spaces with hyphens
-    .replace(/-+/g, "-"); // remove consecutive hyphens
-  return str;
+  if (!str) return "";
+
+  const charMap: Record<string, string> = {
+    ą: "a",
+    č: "c",
+    ę: "e",
+    ė: "e",
+    į: "i",
+    š: "s",
+    ų: "u",
+    ū: "u",
+    ž: "z",
+  };
+
+  return str
+    .toString()
+    .toLowerCase()
+    .trim()
+    .split("")
+    .map((char) => charMap[char] || char)
+    .join("")
+    .replace(/\s+/g, "-") // Replace spaces with -
+    .replace(/[^\w-]+/g, "") // Remove all non-word chars
+    .replace(/--+/g, "-") // Replace multiple - with single -
+    .replace(/^-+/, "") // Trim - from start of text
+    .replace(/-+$/, ""); // Trim - from end of text
 }

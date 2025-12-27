@@ -66,8 +66,7 @@ export function PoiInteraction({
     }
 
     return () => {
-      if (!map) return;
-      if (map.getLayer(INTERACTIVE_LAYER)) {
+      if (map?.getLayer(INTERACTIVE_LAYER)) {
         map.off("click", handleMapClick);
         map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);

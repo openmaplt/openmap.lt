@@ -15,6 +15,7 @@ interface PlacesFeatureProps {
   mobileActiveMode: "search" | "filter" | null;
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
   poiId?: string | null;
+  initialFilterType?: string;
 }
 
 export function PlacesFeature({
@@ -23,13 +24,17 @@ export function PlacesFeature({
   mobileActiveMode,
   setMobileActiveMode,
   poiId,
+  initialFilterType,
 }: PlacesFeatureProps) {
   const { current: mapRef } = useMap();
   const [filterTypes, setFilterTypes] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    return localStorage.getItem("placesFilterTypes") || "";
+    const typesFromLocalStorage =
+      localStorage.getItem("placesFilterTypes") || "";
+    const typeByPoi = initialFilterType ?? "";
+
+    return typesFromLocalStorage.includes(typeByPoi)
+      ? typesFromLocalStorage
+      : `${typeByPoi}${typesFromLocalStorage}`;
   });
 
   // Save filter types to localStorage whenever they change
@@ -120,7 +125,7 @@ export function PlacesFeature({
             "icon-allow-overlap": true,
           }}
           {...(poiId && {
-            filter: ["!=", ["id"], Number.parseInt(poiId)],
+            filter: ["!=", ["id"], Number.parseInt(poiId, 10)],
           })}
         />
       </Source>
