@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "openmap.lt",
+  "name": "openmap.lt - places",
   "metadata": { "maputnik:renderer": "mbgljs" },
   "center": [23.871, 55.19114],
   "sources": {
@@ -299,57 +299,6 @@
       }
     },
     {
-      "id": "boundary-national-park-outline",
-      "type": "line",
-      "source": "tilezen",
-      "source-layer": "protected",
-      "minzoom": 0,
-      "maxzoom": 20,
-      "filter": ["all", ["==", "kind", "national_park"]],
-      "layout": { "visibility": "visible" },
-      "paint": {
-        "line-color": "rgba(11, 119, 14, 1)",
-        "line-dasharray": [2, 4],
-        "line-width": { "stops": [[8, 1], [18, 3]] }
-      }
-    },
-    {
-      "id": "boundary-national-park",
-      "type": "fill",
-      "source": "tilezen",
-      "source-layer": "protected",
-      "minzoom": 7,
-      "maxzoom": 12,
-      "filter": ["all", ["==", "kind", "national_park"]],
-      "layout": { "visibility": "visible" },
-      "paint": {
-        "fill-color": {
-          "stops": [[7, "rgba(34, 183, 44, 0.2)"], [12, "rgba(34, 183, 44, 0)"]]
-        }
-      }
-    },
-    {
-      "id": "boundary-country",
-      "type": "line",
-      "source": "tilezen",
-      "source-layer": "boundaries",
-      "minzoom": 0,
-      "maxzoom": 20,
-      "filter": ["all", ["==", "kind", "country"]],
-      "layout": {
-        "line-cap": "round",
-        "line-join": "round",
-        "line-miter-limit": 2,
-        "line-round-limit": 1.1
-      },
-      "paint": {
-        "line-color": "rgba(214, 157, 157, 1)",
-        "line-width": { "stops": [[7, 2], [16, 14]] },
-        "line-translate-anchor": "map",
-        "line-offset": { "stops": [[7, 1], [16, -7]] }
-      }
-    },
-    {
       "id": "link-tunnel",
       "type": "line",
       "source": "tilezen",
@@ -417,6 +366,57 @@
       }
     },
     {
+      "id": "boundary-national-park-outline",
+      "type": "line",
+      "source": "tilezen",
+      "source-layer": "protected",
+      "minzoom": 0,
+      "maxzoom": 20,
+      "filter": ["all", ["==", "kind", "national_park"]],
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "line-color": "rgba(11, 119, 14, 1)",
+        "line-dasharray": [2, 4],
+        "line-width": { "stops": [[8, 1], [18, 3]] }
+      }
+    },
+    {
+      "id": "boundary-national-park",
+      "type": "fill",
+      "source": "tilezen",
+      "source-layer": "protected",
+      "minzoom": 7,
+      "maxzoom": 12,
+      "filter": ["all", ["==", "kind", "national_park"]],
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "fill-color": {
+          "stops": [[7, "rgba(34, 183, 44, 0.2)"], [12, "rgba(34, 183, 44, 0)"]]
+        }
+      }
+    },
+    {
+      "id": "boundary-country",
+      "type": "line",
+      "source": "tilezen",
+      "source-layer": "boundaries",
+      "minzoom": 0,
+      "maxzoom": 20,
+      "filter": ["all", ["==", "kind", "country"]],
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round",
+        "line-miter-limit": 2,
+        "line-round-limit": 1.1
+      },
+      "paint": {
+        "line-color": "rgba(214, 157, 157, 1)",
+        "line-width": { "stops": [[7, 2], [16, 14]] },
+        "line-translate-anchor": "map",
+        "line-offset": { "stops": [[7, 1], [16, -7]] }
+      }
+    },
+    {
       "id": "casing-road",
       "type": "line",
       "source": "tilezen",
@@ -441,15 +441,35 @@
       }
     },
     {
-      "id": "casing-tertiary",
+      "id": "casing-tertiary-unpaved",
       "type": "line",
       "source": "tilezen",
       "source-layer": "roads",
-      "filter": ["all", ["in", "kind", "tertiary", "tertiary_link"]],
+      "filter": [
+        "all",
+        ["in", "kind", "tertiary", "tertiary_link"],
+        ["in", "surface", "unpaved"]
+      ],
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
         "line-color": "rgba(221,203,106,1)",
-        "line-width": { "base": 1.55, "stops": [[5, 2], [20, 30]] }
+        "line-width": { "base": 1.55, "stops": [[5, 3], [20, 30]] }
+      }
+    },
+    {
+      "id": "casing-tertiary-paved",
+      "type": "line",
+      "source": "tilezen",
+      "source-layer": "roads",
+      "filter": [
+        "all",
+        ["in", "kind", "tertiary", "tertiary_link"],
+        ["in", "surface", "paved"]
+      ],
+      "layout": { "line-join": "round", "line-cap": "round" },
+      "paint": {
+        "line-color": "rgba(91, 79, 80, 1)",
+        "line-width": { "base": 1.55, "stops": [[5, 3], [20, 30]] }
       }
     },
     {
@@ -461,7 +481,7 @@
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
         "line-color": "rgba(91, 79, 80, 1)",
-        "line-width": { "base": 1.55, "stops": [[5, 2], [20, 30]] }
+        "line-width": { "base": 1.55, "stops": [[5, 3], [20, 30]] }
       }
     },
     {
@@ -473,7 +493,7 @@
       "layout": { "line-join": "round", "line-cap": "butt" },
       "paint": {
         "line-color": "rgba(78, 57, 58, 1)",
-        "line-width": { "base": 1.55, "stops": [[5, 2], [20, 40]] }
+        "line-width": { "base": 1.55, "stops": [[5, 3], [20, 40]] }
       }
     },
     {
@@ -488,7 +508,7 @@
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
         "line-color": "rgba(120, 70, 0, 1)",
-        "line-width": { "base": 1.55, "stops": [[5, 2], [20, 40]] }
+        "line-width": { "base": 1.55, "stops": [[5, 3], [20, 40]] }
       }
     },
     {
@@ -585,14 +605,34 @@
       }
     },
     {
-      "id": "road-tertiary",
+      "id": "road-tertiary-unpaved",
       "type": "line",
       "source": "tilezen",
       "source-layer": "roads",
-      "filter": ["all", ["in", "kind", "tertiary", "tertiary_link"]],
+      "filter": [
+        "all",
+        ["in", "kind", "tertiary", "tertiary_link"],
+        ["in", "surface", "unpaved"]
+      ],
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
         "line-color": "rgba(255,255,160,1)",
+        "line-width": { "base": 1.55, "stops": [[5, 1.5], [20, 25]] }
+      }
+    },
+    {
+      "id": "road-tertiary-paved",
+      "type": "line",
+      "source": "tilezen",
+      "source-layer": "roads",
+      "filter": [
+        "all",
+        ["in", "kind", "tertiary", "tertiary_link"],
+        ["in", "surface", "paved"]
+      ],
+      "layout": { "line-join": "round", "line-cap": "round" },
+      "paint": {
+        "line-color": "rgba(217, 130, 140, 1)",
         "line-width": { "base": 1.55, "stops": [[5, 1.5], [20, 25]] }
       }
     },
@@ -1265,5 +1305,5 @@
     }
   ],
   "id": "asgr00hhi",
-  "owner": ""
+  "owner": "OpenMap Lietuva"
 }
