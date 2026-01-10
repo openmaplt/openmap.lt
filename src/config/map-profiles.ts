@@ -122,7 +122,7 @@ export const MAP_PROFILES: MapProfile[] = [
     featureComponent: "places",
   },
   {
-    id: "saugomos",
+    id: "protected",
     mapType: "s",
     mapStyles: [
       {
