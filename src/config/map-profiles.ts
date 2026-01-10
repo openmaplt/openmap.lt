@@ -30,7 +30,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "speed",
-    mapType: "s",
+    mapType: "e",
     mapStyles: [
       {
         name: "Greičiai",
@@ -120,5 +120,21 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     featureComponent: "places",
+  },
+  {
+    id: "saugomos",
+    mapType: "s",
+    mapStyles: [
+      {
+        name: "Saugomos",
+        style: "/styles/saugomos.json",
+        image: "/maps/map.png",
+      },
+      {
+        name: "Orto",
+        style: "/styles/hybrid.json",
+        image: "/maps/map_orto.png",
+      },
+    ],
   },
 ];
