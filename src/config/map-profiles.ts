@@ -8,7 +8,7 @@ export type MapProfile = {
   id: string;
   mapType: string;
   mapStyles: MapStyle[];
-  featureComponent?: "places" | "craftbeer";
+  featureComponent?: "places" | "craftbeer" | "protected";
 };
 
 export const MAP_PROFILES: MapProfile[] = [
@@ -136,5 +136,6 @@ export const MAP_PROFILES: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
+    featureComponent: "protected"
   },
 ];
