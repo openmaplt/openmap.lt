@@ -1881,7 +1881,7 @@
       }
     },
     {
-      "id": "stvk_rezervatai",
+      "id": "stvk-rezervatai",
       "type": "line",
       "source": "stvk",
       "source-layer": "rezervatai",
@@ -1889,7 +1889,7 @@
       "paint": { "line-color": "#407842", "line-width": 2 }
     },
     {
-      "id": "rezervatai_hash",
+      "id": "stvk-rezervatai-hash",
       "type": "fill",
       "source": "stvk",
       "source-layer": "rezervatai",
@@ -1897,7 +1897,7 @@
       "paint": { "fill-pattern": "rezervatai" }
     },
     {
-      "id": "stvk_draustiniai",
+      "id": "stvk-draustiniai",
       "type": "line",
       "source": "stvk",
       "source-layer": "draustiniai",
@@ -1905,7 +1905,7 @@
       "paint": { "line-color": "#a6a533", "line-width": 2 }
     },
     {
-      "id": "draustiniai_hash",
+      "id": "stvk-draustiniai-hash",
       "type": "fill",
       "source": "stvk",
       "source-layer": "draustiniai",
@@ -1913,7 +1913,7 @@
       "paint": { "fill-pattern": "draustiniai" }
     },
     {
-      "id": "stvk_nacionaliniai",
+      "id": "stvk-nacionaliniai",
       "type": "line",
       "source": "stvk",
       "source-layer": "parkai",
@@ -1922,7 +1922,7 @@
       "paint": { "line-color": "#e60000", "line-width": 2 }
     },
     {
-      "id": "nacionaliniai_hash",
+      "id": "stvk-nacionaliniai-hash",
       "type": "fill",
       "source": "stvk",
       "source-layer": "parkai",
@@ -1931,7 +1931,7 @@
       "paint": { "fill-pattern": "nacionaliniai" }
     },
     {
-      "id": "stvk_regioniniai",
+      "id": "stvk-regioniniai",
       "type": "line",
       "source": "stvk",
       "source-layer": "parkai",
@@ -1939,7 +1939,7 @@
       "paint": { "line-color": "#e69900", "line-width": 2 }
     },
     {
-      "id": "regioniniai_hash",
+      "id": "stvk-regioniniai-hash",
       "type": "fill",
       "source": "stvk",
       "source-layer": "parkai",
@@ -1948,7 +1948,7 @@
       "paint": { "fill-pattern": "regioniniai" }
     },
     {
-      "id": "draustiniai-label",
+      "id": "stvk-draustiniai-label",
       "type": "symbol",
       "source": "stvk",
       "source-layer": "draustiniai_c",
@@ -1995,7 +1995,7 @@
       }
     },
     {
-      "id": "gpo_t",
+      "id": "stvk-gpo-t",
       "type": "symbol",
       "source": "stvk",
       "source-layer": "gpo_t",
