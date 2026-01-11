@@ -136,6 +136,6 @@ export const MAP_PROFILES: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
-    featureComponent: "protected"
+    featureComponent: "protected",
   },
 ];

@@ -5,9 +5,29 @@ export type FilterItem = {
 };
 
 export const PROTECTED_FILTERS: FilterItem[] = [
-    { id: 'rzv', label: 'Rezervatai', layers: ['stvk-rezervatai', 'stvk-rezervatai-hash'] },
-    { id: 'dra', label: 'Draustiniai', layers: ['stvk-draustiniai', 'stvk-draustiniai-hash'] },
-    { id: 'npa', label: 'Nacionaliniai parkai', layers: ['stvk-nacionaliniai', 'stvk-nacionaliniai-hash'] },
-    { id: 'rpa', label: 'Regioniniai parkai', layers: ['stvk-regioniniai', 'stvk-regioniniai-hash'] },
-    { id: 'gpo', label: 'Gamtos paveldo objektai', layers: ['stvk-gpo-t'] }
-]
+  {
+    id: "rzv",
+    label: "Rezervatai",
+    layers: ["stvk-rezervatai", "stvk-rezervatai-hash"],
+  },
+  {
+    id: "dra",
+    label: "Draustiniai",
+    layers: ["stvk-draustiniai", "stvk-draustiniai-hash"],
+  },
+  {
+    id: "npa",
+    label: "Nacionaliniai parkai",
+    layers: ["stvk-nacionaliniai", "stvk-nacionaliniai-hash"],
+  },
+  {
+    id: "rpa",
+    label: "Regioniniai parkai",
+    layers: ["stvk-regioniniai", "stvk-regioniniai-hash"],
+  },
+  {
+    id: "gpo",
+    label: "Gamtos paveldo objektai",
+    layers: ["stvk-gpo-t", "stvk-gpo", "stvk-gpo-outline"],
+  },
+];

@@ -1948,6 +1948,59 @@
       "paint": { "fill-pattern": "regioniniai" }
     },
     {
+      "id": "stvk-gpo",
+      "type": "fill",
+      "source": "stvk",
+      "source-layer": "gpo",
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "fill-color": [
+          "match",
+          ["get", "kind"],
+          "gpo_geo",
+          "#ffecb0",
+          "gpo_gmo",
+          "#ffa900",
+          "gpo_hge",
+          "#ffecb0",
+          "gpo_hgr",
+          "#bee8ff",
+          "gpo_bot",
+          "#d1ff74",
+          "gpo_zoo",
+          "#ffd2f2",
+          "#000000"
+        ],
+        "fill-opacity": 0.7
+      }
+    },
+    {
+      "id": "stvk-gpo-outline",
+      "type": "line",
+      "source": "stvk",
+      "source-layer": "gpo",
+      "paint": {
+        "line-color": [
+          "match",
+          ["get", "kind"],
+          "gpo_geo",
+          "#a86f00",
+          "gpo_gmo",
+          "#b97b00",
+          "gpo_hge",
+          "#3399aa",
+          "gpo_hgr",
+          "#0085a8",
+          "gpo_bot",
+          "#247100",
+          "gpo_zoo",
+          "#a80085",
+          "#000000"
+        ],
+        "line-width": 1.5
+      }
+    },
+    {
       "id": "stvk-draustiniai-label",
       "type": "symbol",
       "source": "stvk",

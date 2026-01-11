@@ -114,7 +114,10 @@ export function ProtectedFilter({
                 checked={allSelected}
                 onCheckedChange={toggleAll}
               />
-              <Label htmlFor="all" className="w-full cursor-pointer font-medium">
+              <Label
+                htmlFor="all"
+                className="w-full cursor-pointer font-medium"
+              >
                 Visi tipai
               </Label>
             </div>
