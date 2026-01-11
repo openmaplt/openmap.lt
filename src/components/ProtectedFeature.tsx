@@ -3,40 +3,47 @@
 import { useEffect, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { ProtectedFilter } from "@/components/ProtectedFilter";
-import { beerStyles, type CraftbeerFilters } from "@/config/craftbeer-filters";
+import { PROTECTED_FILTERS } from "@/config/protected-filters";
 
 export function ProtectedFeature() {
   const { current: mapRef } = useMap();
-  const [filters, setFilters] = useState<CraftbeerFilters>({
-    styles: beerStyles.map(({ value }) => value),
-    condition: "any",
-    venue: "drink",
-  });
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(
+    PROTECTED_FILTERS.map((f) => f.id),
+  );
 
   useEffect(() => {
     const map = mapRef?.getMap();
     if (!map) return;
 
-    const applyFilter = () => {
-      if (map.getLayer("label-amenity")) {
-        map.setFilter("label-amenity", [
-          "all",
-          ["==", filters.venue, "y"],
-          [
-            filters.condition,
-            ...filters.styles.map((style) => ["==", `style_${style}`, "y"]),
-          ] as any,
-        ]);
-      }
+    const updateLayerVisibility = () => {
+      PROTECTED_FILTERS.forEach((filter) => {
+        const isVisible = selectedTypes.includes(filter.id);
+        filter.layers.forEach((layerId) => {
+          if (map.getLayer(layerId)) {
+            map.setLayoutProperty(
+              layerId,
+              "visibility",
+              isVisible ? "visible" : "none",
+            );
+          }
+        });
+      });
     };
 
-    applyFilter();
-    map.once("styledata", applyFilter);
+    map.on("load", updateLayerVisibility);
+    updateLayerVisibility();
 
     return () => {
-      map.off("styledata", applyFilter);
+      map.off("load", updateLayerVisibility);
     };
-  }, [filters, mapRef]);
+  }, [selectedTypes, mapRef]);
 
-  return <ProtectedFilter filters={filters} onFiltersChange={setFilters} />;
+  return (
+    <ProtectedFilter
+      selectedTypes={selectedTypes}
+      onTypesChange={setSelectedTypes}
+      mobileActiveMode={null}
+      setMobileActiveMode={() => {}}
+    />
+  );
 }
