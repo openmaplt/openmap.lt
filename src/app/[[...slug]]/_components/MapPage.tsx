@@ -16,6 +16,7 @@ import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
 import { PlacesProfileComponents } from "@/components/PlacesProfileComponents";
+import { ProtectedProfileComponents } from "@/components/ProtectedProfileComponents";
 import { PoiDetails } from "@/components/PoiDetails";
 import { PoiInteraction } from "@/components/PoiInteraction";
 import { MapConfig } from "@/config/config";
@@ -155,6 +156,7 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
     {
       places: PlacesProfileComponents,
       craftbeer: CraftbeerFeature,
+      protected: ProtectedProfileComponents,
     }[activeMapProfile.featureComponent];
 
   return (
