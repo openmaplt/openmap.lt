@@ -31,3 +31,7 @@ export const PROTECTED_FILTERS: FilterItem[] = [
     layers: ["stvk-gpo-t", "stvk-gpo", "stvk-gpo-outline"],
   },
 ];
+
+export const PROTECTED_ACTIVE_LAYERS: string[] = [
+  'stvk_rezervatai', 'stvk-draustiniai', 'stvk-nacionaliniai', 'stvk-regioniniai', 'stvk-gpo', 'stvk-gpo-t'
+];
