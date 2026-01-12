@@ -33,5 +33,5 @@ export const PROTECTED_FILTERS: FilterItem[] = [
 ];
 
 export const PROTECTED_ACTIVE_LAYERS: string[] = [
-  'stvk-rezervatai-hash', 'stvk-draustiniai-hash', 'stvk-nacionaliniai-hash', 'stvk-regioniniai-hash', 'stvk-gpo', 'stvk-gpo-t'
+  'stvk_rezervatai', 'stvk-draustiniai', 'stvk-nacionaliniai', 'stvk-regioniniai', 'stvk-gpo', 'stvk-gpo-t'
 ];
