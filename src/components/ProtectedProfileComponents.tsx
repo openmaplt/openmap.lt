@@ -35,7 +35,7 @@ export function ProtectedProfileComponents({
         setMobileActiveMode={setMobileActiveMode}
       />
       <ProtectedFeature onSelectFeature={onSelectFeature} />
-      {selectedFeature && selectedFeature.properties?.gid && (
+      {selectedFeature && selectedFeature.properties?.id && (
         <ProtectedAttributes feature={selectedFeature} />
       )}
       {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}

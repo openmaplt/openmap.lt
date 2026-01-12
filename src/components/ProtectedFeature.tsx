@@ -55,7 +55,6 @@ export function ProtectedFeature({ onSelectFeature }: ProtectedFeatureProps) {
     const onLayerClick = (e: MapLayerMouseEvent) => {
       if (e.features && e.features.length > 0) {
         const feature = e.features[0];
-        console.log("Clicked feature properties:", feature.properties);
         onSelectFeature(feature as Feature);
       }
     };

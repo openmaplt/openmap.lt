@@ -7,7 +7,7 @@ interface ProtectedAttributesProps {
 }
 
 export function ProtectedAttributes({ feature }: ProtectedAttributesProps) {
-  const { gid, pavadinimas } = feature.properties || {};
+  const { id, pavadinimas } = feature.properties || {};
 
   return (
     <div
@@ -17,7 +17,7 @@ export function ProtectedAttributes({ feature }: ProtectedAttributesProps) {
       <h3 className="text-lg font-bold">Saugomos teritorijos atributai</h3>
       <div className="mt-2">
         <p>
-          <strong>gid:</strong> {gid}
+          <strong>id:</strong> {id}
         </p>
         <p>
           <strong>pavadinimas:</strong> {pavadinimas}
