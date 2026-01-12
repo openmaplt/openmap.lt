@@ -1,5 +1,6 @@
 import type { Feature } from "geojson";
 import type { LngLatBounds } from "react-map-gl/maplibre";
+import { ProtectedAttributes } from "@/components/ProtectedAttributes";
 import { ProtectedFeature } from "@/components/ProtectedFeature";
 import { SearchFeature } from "@/components/SearchFeature";
 import { SelectedPlaceMarker } from "@/components/SelectedPlaceMarker";
@@ -33,7 +34,10 @@ export function ProtectedProfileComponents({
         mobileActiveMode={mobileActiveMode}
         setMobileActiveMode={setMobileActiveMode}
       />
-      <ProtectedFeature />
+      <ProtectedFeature onSelectFeature={onSelectFeature} />
+      {selectedFeature && selectedFeature.properties?.gid && (
+        <ProtectedAttributes feature={selectedFeature} />
+      )}
       {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}
     </>
   );
