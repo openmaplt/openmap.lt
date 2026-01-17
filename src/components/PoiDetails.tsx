@@ -3,6 +3,7 @@
 import type { Feature } from "geojson";
 import { MapPin } from "lucide-react";
 import { Marker } from "react-map-gl/maplibre";
+import { useEffect, useState } from "react";
 import { PoiContent } from "@/components/PoiContent";
 import {
   Sheet,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
+import { getPoiOne } from "@/data/poiInfo";
 
 interface PoiDetailsProps {
   open: boolean;
@@ -21,19 +23,76 @@ interface PoiDetailsProps {
 
 export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
   const isMobile = useIsMobile();
+  const [enrichedFeature, setEnrichedFeature] = useState<Feature | null>(null);
 
-  if (!feature || feature.geometry.type !== "Point") {
+  useEffect(() => {
+    if (!feature) {
+      setEnrichedFeature(null);
+      return;
+    }
+
+    // If source is 'stvk', fetch enriched data
+    const featureWithSource = feature as any;
+    if (featureWithSource.source === "stvk" && feature.properties?.id) {
+      getPoiOne(feature.properties.id, "s")
+        .then((poiFeature) => {
+          if (poiFeature) {
+            // Replace with the enriched feature from database
+            setEnrichedFeature(poiFeature);
+          } else {
+            setEnrichedFeature(feature);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching enriched POI info:", error);
+          setEnrichedFeature(feature);
+        });
+    } else {
+      setEnrichedFeature(feature);
+    }
+  }, [feature]);
+
+  const currentFeature = enrichedFeature || feature;
+
+  if (
+    !currentFeature ||
+    (currentFeature.geometry.type !== "Point" && currentFeature.geometry.type !== "Polygon")
+  ) {
     return null;
   }
 
-  const poiData = feature
+  const poiData = currentFeature
     ? {
-        data: extractPoiData(feature.properties || {}),
-        name: feature.properties?.name || "Be pavadinimo",
+        data: extractPoiData(currentFeature.properties || {}),
+        name:
+          currentFeature.properties?.name ||
+          currentFeature.properties?.pavadinimas ||
+          "Be pavadinimo",
       }
     : null;
 
-  const [lng, lat] = feature.geometry.coordinates;
+  // Extract coordinates: Point has direct [lng, lat], Polygon needs centroid calculation
+  // TODO: later change to GIS point in polygon function, because for some geometries
+  //       centroid could be out of actual polygon geometry.
+  let lng: number;
+  let lat: number;
+
+  if (currentFeature.geometry.type === "Point") {
+    [lng, lat] = currentFeature.geometry.coordinates as [number, number];
+  } else if (currentFeature.geometry.type === "Polygon") {
+    // Calculate centroid of the polygon (outer ring only)
+    const coordinates = currentFeature.geometry.coordinates[0] as Array<[number, number]>;
+    let sumLng = 0;
+    let sumLat = 0;
+    for (const [lon, la] of coordinates) {
+      sumLng += lon;
+      sumLat += la;
+    }
+    lng = sumLng / coordinates.length;
+    lat = sumLat / coordinates.length;
+  } else {
+    return null;
+  }
 
   return (
     <>
