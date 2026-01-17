@@ -56,7 +56,8 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
 
   if (
     !currentFeature ||
-    (currentFeature.geometry.type !== "Point" && currentFeature.geometry.type !== "Polygon")
+    (currentFeature.geometry.type !== "Point" &&
+      currentFeature.geometry.type !== "Polygon")
   ) {
     return null;
   }
@@ -81,7 +82,9 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
     [lng, lat] = currentFeature.geometry.coordinates as [number, number];
   } else if (currentFeature.geometry.type === "Polygon") {
     // Calculate centroid of the polygon (outer ring only)
-    const coordinates = currentFeature.geometry.coordinates[0] as Array<[number, number]>;
+    const coordinates = currentFeature.geometry.coordinates[0] as Array<
+      [number, number]
+    >;
     let sumLng = 0;
     let sumLat = 0;
     for (const [lon, la] of coordinates) {
