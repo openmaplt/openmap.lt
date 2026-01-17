@@ -31,3 +31,12 @@ export const PROTECTED_FILTERS: FilterItem[] = [
     layers: ["stvk-gpo-t", "stvk-gpo", "stvk-gpo-outline"],
   },
 ];
+
+export const PROTECTED_ACTIVE_LAYERS: string[] = [
+  "stvk-rezervatai-hash",
+  "stvk-draustiniai-hash",
+  "stvk-nacionaliniai-hash",
+  "stvk-regioniniai-hash",
+  "stvk-gpo",
+  "stvk-gpo-t",
+];
