@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
-import { getPoiOne } from "@/data/poiInfo";
+import { getPoiInfo } from "@/data/poiInfo";
 
 interface PoiDetailsProps {
   open: boolean;
@@ -34,8 +34,9 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
     // If source is 'stvk', fetch enriched data
     const featureWithSource = feature as any;
     if (featureWithSource.source === "stvk" && feature.properties?.id) {
-      getPoiOne(feature.properties.id, "s")
+      getPoiInfo(feature.properties.id, "s")
         .then((poiFeature) => {
+          console.log("poiFeature", poiFeature);
           if (poiFeature) {
             // Replace with the enriched feature from database
             setEnrichedFeature(poiFeature);
@@ -57,7 +58,8 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
   if (
     !currentFeature ||
     (currentFeature.geometry.type !== "Point" &&
-      currentFeature.geometry.type !== "Polygon")
+      currentFeature.geometry.type !== "Polygon" &&
+      currentFeature.geometry.type !== "MultiPolygon")
   ) {
     return null;
   }
@@ -65,14 +67,11 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
   const poiData = currentFeature
     ? {
         data: extractPoiData(currentFeature.properties || {}),
-        name:
-          currentFeature.properties?.name ||
-          currentFeature.properties?.pavadinimas ||
-          "Be pavadinimo",
+        name: currentFeature.properties?.name || "Be pavadinimo",
       }
     : null;
 
-  // Extract coordinates: Point has direct [lng, lat], Polygon needs centroid calculation
+  // Extract coordinates: Point has direct [lng, lat], Polygon/MultiPolygon need centroid calculation
   // TODO: later change to GIS point in polygon function, because for some geometries
   //       centroid could be out of actual polygon geometry.
   let lng: number;
@@ -80,11 +79,17 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
 
   if (currentFeature.geometry.type === "Point") {
     [lng, lat] = currentFeature.geometry.coordinates as [number, number];
-  } else if (currentFeature.geometry.type === "Polygon") {
+  } else if (
+    currentFeature.geometry.type === "Polygon" ||
+    currentFeature.geometry.type === "MultiPolygon"
+  ) {
     // Calculate centroid of the polygon (outer ring only)
-    const coordinates = currentFeature.geometry.coordinates[0] as Array<
-      [number, number]
-    >;
+    // For MultiPolygon, use the first polygon
+    const polygonCoordinates =
+      currentFeature.geometry.type === "Polygon"
+        ? currentFeature.geometry.coordinates
+        : currentFeature.geometry.coordinates[0];
+    const coordinates = polygonCoordinates[0] as Array<[number, number]>;
     let sumLng = 0;
     let sumLat = 0;
     for (const [lon, la] of coordinates) {
