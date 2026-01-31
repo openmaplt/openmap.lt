@@ -5,13 +5,13 @@ r jsonb;
 begin
   SELECT
     json_build_object(
-        'extent', ARRAY[
-            ST_XMin(expanded_box),
-            ST_YMin(expanded_box),
-            ST_XMax(expanded_box),
-            ST_YMax(expanded_box)
-        ],
-        'filter', case
+      'extent', ARRAY[
+          ST_XMin(expanded_box),
+          ST_YMin(expanded_box),
+          ST_XMax(expanded_box),
+          ST_YMax(expanded_box)
+      ],
+      'filter', case
           when type = 'HIL' then 'b'
           when type = 'TUM' then 'e'
           when type = 'MAN' then 'f'
@@ -64,14 +64,35 @@ begin
           when type = 'UNI' then '.'
           when type = 'POS' then '.'
           else 'a'
-        end
+        end,
+      'properties', properties,
+      'geometry', ST_AsGeoJSON(geom)::json
     ) AS json
   INTO r
   FROM (
-    SELECT st_transform(ST_Expand(st_transform(geom, 3346), 150), 4326) AS expanded_box, type
+    SELECT st_transform(ST_Expand(st_transform(geom, 3346), 150), 4326) AS expanded_box
+          ,type
+          ,attr AS properties
+          ,geom
       FROM places.poi
-     WHERE id = (p_params->>'id')::int
-     LIMIT 1
+     WHERE id = (p_params->>'id')::bigint
+       and p_params->>'mapType' = 'p'
+    union
+    SELECT st_transform(ST_Expand(st_transform(way, 3346), 150), 4326) AS expanded_box
+          ,null AS type
+          ,'{"bim":"bam","tramp":"pampam"}'::jsonb AS properties
+          ,geom
+      FROM places.poi
+     WHERE id = 34
+       and p_params->>'mapType' = 'c'
+    union
+    SELECT st_transform(ST_Expand(st_transform(geom, 3346), 150), 4326) AS expanded_box
+          ,null AS type
+          ,jsonb_build_object('name','Pavadinimas') AS properties
+          ,geom
+      FROM places.poi
+     WHERE id = 34
+       and p_params->>'mapType' = 's'
   ) AS subquery;
 
   if r is null then
