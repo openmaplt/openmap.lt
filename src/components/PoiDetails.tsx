@@ -34,7 +34,13 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
     // If source is 'stvk', fetch enriched data
     const featureWithSource = feature as any;
     if (featureWithSource.source === "stvk" && feature.properties?.id) {
-      getPoiInfo(feature.properties.id, "s")
+      fetch(`/api/poiInfo?id=${feature.properties.id}&mapType=s`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch POI info");
+          }
+          return response.json();
+        })
         .then((poiFeature) => {
           console.log("poiFeature", poiFeature);
           if (poiFeature) {

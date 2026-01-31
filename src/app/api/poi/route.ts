@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get("id");
+    const mapType = searchParams.get("mapType");
 
     if (!id) {
       return NextResponse.json(
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await getPoiInfo(poiId);
+    const result = await getPoiInfo(poiId, mapType);
 
     if (result) {
       return NextResponse.json(result);
