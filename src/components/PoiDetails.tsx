@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
-import { getPoiInfo } from "@/data/poiInfo";
 
 interface PoiDetailsProps {
   open: boolean;
