@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
+import { getPoiInfo } from "@/data/poiInfo";
 
 interface PoiDetailsProps {
   open: boolean;
@@ -33,13 +34,7 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
     // If source is 'stvk', fetch enriched data
     const featureWithSource = feature as any;
     if (featureWithSource.source === "stvk" && feature.properties?.id) {
-      fetch(`/api/poiInfo?id=${feature.properties.id}&mapType=s`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch POI info");
-          }
-          return response.json();
-        })
+      getPoiInfo(feature.properties.id, "s")
         .then((poiFeature) => {
           console.log("poiFeature", poiFeature);
           if (poiFeature) {

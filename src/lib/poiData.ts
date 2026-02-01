@@ -40,7 +40,8 @@ export interface PoiAttribute {
     | "image"
     | "height"
     | "fee"
-    | "beer_styles";
+    | "beer_styles"
+    | "description";
   icon?: string;
   label?: string;
 }
@@ -69,6 +70,7 @@ const SHOW_ATTRIBUTES = [
   "fee",
   "beer_styles",
   "image",
+  "description",
 ];
 
 // Lithuanian labels for attributes
@@ -80,6 +82,7 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   phone: "Telefono nr.",
   fee: "Mokestis",
   beer_styles: "Alaus stiliai",
+  description: "Aprašymas",
 };
 
 // Lucide React icon names for attributes
@@ -93,6 +96,7 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
   height: "Ruler",
   street: "MapPin",
   beer_styles: "Beer",
+  description: "BookOpen",
 };
 
 // Layer code mapping (for object IDs)
@@ -216,6 +220,8 @@ function getAttributeType(key: string): PoiAttribute["type"] {
       return "fee";
     case "beer_styles":
       return "beer_styles";
+    case "description":
+      return "description";
     default:
       return "text";
   }
