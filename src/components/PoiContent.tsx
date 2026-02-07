@@ -15,6 +15,7 @@ import {
   type PoiAttribute,
   type PoiData,
 } from "@/lib/poiData";
+import ReactMarkdown from "react-markdown";
 
 interface PoiContentProps {
   data: PoiData;
@@ -128,6 +129,10 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
           ))}
         </div>
       );
+    }
+
+    case "description": {
+      return <ReactMarkdown>{value}</ReactMarkdown>;
     }
 
     default:

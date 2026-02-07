@@ -24,8 +24,8 @@ export function PoiInteraction({
 
     // Handle clicks on empty canvas (not on POI) - close the poi details
     const handleMapClick = (e: MapLayerMouseEvent) => {
-      // Check if we clicked on a POI layer feature
-      if (!map.getLayer(INTERACTIVE_LAYER)) {
+      // Check if we clicked on a POI layer feature (guard if style is not yet set)
+      if (!map.getStyle() || !map.getLayer(INTERACTIVE_LAYER)) {
         onSelectFeature(null);
         return;
       }
@@ -66,12 +66,14 @@ export function PoiInteraction({
     }
 
     return () => {
-      if (map?.getLayer(INTERACTIVE_LAYER)) {
-        map.off("click", handleMapClick);
+      if (!map) return;
+      // Always remove the click handler; remove layer-specific handlers only if style/layer exist
+      map.off("click", handleMapClick);
+      if (map.getStyle() && map.getLayer(INTERACTIVE_LAYER)) {
         map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
         map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
-        map.off("styledata", setupEventHandlers);
       }
+      map.off("styledata", setupEventHandlers);
     };
   }, [mapRef, onSelectFeature]);
 
