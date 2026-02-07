@@ -15,6 +15,7 @@ import {
   type PoiAttribute,
   type PoiData,
 } from "@/lib/poiData";
+import ReactMarkdown from "react-markdown";
 
 interface PoiContentProps {
   data: PoiData;
@@ -131,28 +132,7 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
     }
 
     case "description": {
-      // Escape everything first to prevent arbitrary HTML, then unescape only a small
-      // set of allowed tags (br, b, strong). Also convert newlines to <br/>.
-      const escapeHtml = (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-      let html = escapeHtml(value)
-        // Normalize CRLF
-        .replace(/\r\n/g, "\n")
-        // Preserve newlines as breaks
-        .replace(/\n/g, "<br/>");
-
-      // Allow certain tags encoded as entities (&lt;b&gt;, &lt;br&gt;, &lt;strong&gt;)
-      html = html.replace(/&lt;(\/?)\s*(b|strong)\s*&gt;/gi, "<$1$2>");
-      html = html.replace(/&lt;br\s*\/?&gt;/gi, "<br/>");
-
-      // NOTE: This is a lightweight sanitizer. For untrusted input consider
-      // using a robust library like DOMPurify to allow a controlled tag/set.
-      return (
-        <div
-          className="text-lg text-foreground"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      );
+      return <ReactMarkdown>{value}</ReactMarkdown>;
     }
 
     default:
