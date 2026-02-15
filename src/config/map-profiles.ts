@@ -128,12 +128,12 @@ export const MAP_PROFILES: MapProfile[] = [
       {
         name: "Saugomos",
         style: "/styles/saugomos.json",
-        image: "/maps/map.png",
+        image: "/maps/map_protected.png",
       },
       {
         name: "Orto",
-        style: "/styles/hybrid.json",
-        image: "/maps/map_orto.png",
+        style: "/styles/saugomos_hybrid.json",
+        image: "/maps/map_protected_hybrid.png",
       },
     ],
     featureComponent: "protected",

@@ -1,0 +1,729 @@
+{
+  "version": 8,
+  "name": "openmap.lt",
+  "metadata": {
+    "maputnik:renderer": "mbgljs"
+  },
+  "sources": {
+    "orto": {
+      "type": "raster",
+      "attribution": "© NŽT ORT10LT",
+      "tiles": ["https://ort10lt.openmap.lt/g16/{z}/{x}/{y}.jpeg"],
+      "tileSize": 256
+    },
+    "osm": {
+      "type": "vector",
+      "url": "https://openmap.lt/capabilities/all.json"
+    },
+    "stvk": { "type": "vector", "url": "https://test.stvk.lt/stvk_.json" }
+  },
+  "sprite": "https://openmap.lt/sprites/openmaplt",
+  "glyphs": "https://openmap.lt/glyphs/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "overlay",
+      "type": "raster",
+      "source": "orto",
+      "minzoom": 0,
+      "maxzoom": 20,
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "boundary-state",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "boundaries",
+      "minzoom": 6,
+      "maxzoom": 20,
+      "filter": ["all", ["==", "kind", "region"]],
+      "layout": {},
+      "paint": {
+        "line-color": "rgba(175, 175, 175, 1)",
+        "line-width": 1,
+        "line-dasharray": [3, 7]
+      }
+    },
+    {
+      "id": "boundary-country",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "boundaries",
+      "minzoom": 0,
+      "maxzoom": 20,
+      "filter": ["all", ["==", "kind", "country"]],
+      "layout": {
+        "line-cap": "butt",
+        "line-join": "bevel"
+      },
+      "paint": {
+        "line-color": "rgba(204, 98, 98, 1)",
+        "line-width": 1,
+        "line-translate-anchor": "map"
+      }
+    },
+    {
+      "id": "link-tunnel",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "roads",
+      "filter": ["any", ["==", "is_tunnel", "yes"]],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#afd3d3",
+        "line-width": {
+          "base": 1.55,
+          "stops": [[4, 0.25], [20, 30]]
+        },
+        "line-dasharray": [1, 2]
+      }
+    },
+    {
+      "id": "road",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "roads",
+      "minzoom": 8,
+      "filter": [
+        "any",
+        [
+          "in",
+          "kind",
+          "residential",
+          "unclassified",
+          "living_street",
+          "service"
+        ],
+        [
+          "in",
+          "kind",
+          "trunk",
+          "trunk_link",
+          "primary",
+          "primary_link",
+          "secondary",
+          "secondary_link",
+          "tertiary",
+          "tertiary_link"
+        ]
+      ],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#c0c4c2",
+        "line-width": {
+          "base": 1.55,
+          "stops": [[4, 0.25], [20, 30]]
+        },
+        "line-opacity": 0.5
+      }
+    },
+    {
+      "id": "road-oneway",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "roads",
+      "minzoom": 8,
+      "filter": [
+        "all",
+        [
+          "in",
+          "kind",
+          "residential",
+          "unclassified",
+          "living_street",
+          "service",
+          "tertiary",
+          "tertiary_link",
+          "secondary",
+          "secondary_link",
+          "primary",
+          "primary_link",
+          "trunk",
+          "trunk_link",
+          "motorway",
+          "motorway_link"
+        ],
+        ["==", "oneway", "yes"]
+      ],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-width": {
+          "base": 1.55,
+          "stops": [[4, 0.25], [20, 30]]
+        },
+        "line-opacity": 0.5,
+        "line-pattern": "oneway"
+      }
+    },
+    {
+      "id": "link-bridge",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "roads",
+      "filter": ["any", ["==", "is_link", "yes"], ["==", "is_bridge", "yes"]],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#c0c4c2",
+        "line-width": {
+          "base": 1.55,
+          "stops": [[4, 0.5], [8, 1.5], [20, 40]]
+        },
+        "line-opacity": 0.5
+      }
+    },
+    {
+      "id": "highway",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "roads",
+      "filter": ["all", ["in", "kind", "motorway", "trunk"]],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#5d6765",
+        "line-width": {
+          "base": 1.55,
+          "stops": [[4, 1], [8, 2], [20, 40]]
+        },
+        "line-opacity": 0.5
+      }
+    },
+    {
+      "id": "path",
+      "type": "line",
+      "source": "osm",
+      "source-layer": "roads",
+      "minzoom": 12,
+      "maxzoom": 24,
+      "filter": ["all", ["in", "kind", "path", "footway", "cycleway", "track"]],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#5d6765",
+        "line-width": {
+          "base": 1.8,
+          "stops": [[10, 0.15], [20, 15]]
+        },
+        "line-dasharray": [2, 2],
+        "line-opacity": 0.7
+      }
+    },
+    {
+      "id": "stvk-rezervatai",
+      "type": "line",
+      "source": "stvk",
+      "source-layer": "rezervatai",
+      "layout": { "visibility": "visible" },
+      "paint": { "line-color": "#407842", "line-width": 2, "line-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-rezervatai-hash",
+      "type": "fill",
+      "source": "stvk",
+      "source-layer": "rezervatai",
+      "layout": { "visibility": "visible" },
+      "paint": { "fill-pattern": "rezervatai", "fill-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-draustiniai",
+      "type": "line",
+      "source": "stvk",
+      "source-layer": "draustiniai",
+      "layout": { "visibility": "visible" },
+      "paint": { "line-color": "#a6a533", "line-width": 2, "line-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-draustiniai-hash",
+      "type": "fill",
+      "source": "stvk",
+      "source-layer": "draustiniai",
+      "layout": { "visibility": "visible" },
+      "paint": { "fill-pattern": "draustiniai", "fill-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-nacionaliniai",
+      "type": "line",
+      "source": "stvk",
+      "source-layer": "parkai",
+      "filter": ["all", ["==", "gkodas", "np1"]],
+      "layout": { "visibility": "visible" },
+      "paint": { "line-color": "#e60000", "line-width": 2, "line-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-nacionaliniai-hash",
+      "type": "fill",
+      "source": "stvk",
+      "source-layer": "parkai",
+      "filter": ["all", ["==", "gkodas", "np1"]],
+      "layout": { "visibility": "visible" },
+      "paint": { "fill-pattern": "nacionaliniai", "fill-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-regioniniai",
+      "type": "line",
+      "source": "stvk",
+      "source-layer": "parkai",
+      "filter": ["all", ["==", "gkodas", "np2"]],
+      "paint": { "line-color": "#e69900", "line-width": 2, "line-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-regioniniai-hash",
+      "type": "fill",
+      "source": "stvk",
+      "source-layer": "parkai",
+      "filter": ["all", ["==", "gkodas", "np2"]],
+      "layout": { "visibility": "visible" },
+      "paint": { "fill-pattern": "regioniniai", "fill-opacity": 0.7 }
+    },
+    {
+      "id": "stvk-gpo",
+      "type": "fill",
+      "source": "stvk",
+      "source-layer": "gpo",
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "fill-color": [
+          "match",
+          ["get", "kind"],
+          "gpo_geo",
+          "#ffecb0",
+          "gpo_gmo",
+          "#ffa900",
+          "gpo_hge",
+          "#ffecb0",
+          "gpo_hgr",
+          "#bee8ff",
+          "gpo_bot",
+          "#d1ff74",
+          "gpo_zoo",
+          "#ffd2f2",
+          "#000000"
+        ],
+        "fill-opacity": 0.7
+      }
+    },
+    {
+      "id": "stvk-gpo-outline",
+      "type": "line",
+      "source": "stvk",
+      "source-layer": "gpo",
+      "paint": {
+        "line-color": [
+          "match",
+          ["get", "kind"],
+          "gpo_geo",
+          "#a86f00",
+          "gpo_gmo",
+          "#b97b00",
+          "gpo_hge",
+          "#3399aa",
+          "gpo_hgr",
+          "#0085a8",
+          "gpo_bot",
+          "#247100",
+          "gpo_zoo",
+          "#a80085",
+          "#000000"
+        ],
+        "line-width": 1.5,
+        "line-opacity": 0.7
+      }
+    },
+    {
+      "id": "label-state",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "places",
+      "minzoom": 6,
+      "maxzoom": 12,
+      "filter": ["all", ["==", "$type", "Point"], ["==", "kind", "state"]],
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-max-width": 8,
+        "text-size": {
+          "stops": [[7, 18], [10, 30]]
+        }
+      },
+      "paint": {
+        "text-color": "rgba(204, 204, 204, 1)",
+        "text-halo-color": "rgba(255,255,255,0.5)"
+      }
+    },
+    {
+      "id": "label-other",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "places",
+      "minzoom": 12,
+      "filter": [
+        "all",
+        ["==", "$type", "Point"],
+        ["in", "kind", "neighbourhood", "hamlet", "suburb"]
+      ],
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Roboto Regular"],
+        "text-max-width": 10,
+        "text-size": {
+          "stops": [[12, 12], [20, 11]]
+        },
+        "icon-allow-overlap": false
+      },
+      "paint": {
+        "text-color": "#cb4b49",
+        "text-halo-color": "rgba(0,0,0,0.7)",
+        "text-halo-width": 1
+      }
+    },
+    {
+      "id": "label-town",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "places",
+      "minzoom": 7,
+      "maxzoom": 14,
+      "filter": [
+        "all",
+        ["==", "$type", "Point"],
+        ["in", "kind", "county", "district", "town", "village"]
+      ],
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Roboto Medium"],
+        "text-max-width": 10,
+        "text-letter-spacing": 0.1,
+        "text-size": {
+          "stops": [[8, 11], [12, 13]]
+        },
+        "visibility": "visible",
+        "text-allow-overlap": false
+      },
+      "paint": {
+        "text-color": "#f7f9f9",
+        "text-halo-color": "rgba(0,0,0,0.7)",
+        "text-halo-width": 1
+      }
+    },
+    {
+      "id": "label-city",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "places",
+      "minzoom": 7,
+      "maxzoom": 14,
+      "filter": ["all", ["==", "$type", "Point"], ["in", "kind", "city"]],
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Roboto Medium"],
+        "text-max-width": 10,
+        "text-letter-spacing": 0.1,
+        "text-size": {
+          "stops": [[8, 15], [12, 16]]
+        },
+        "visibility": "visible",
+        "text-allow-overlap": false
+      },
+      "paint": {
+        "text-color": "#f7f9f9",
+        "text-halo-color": "rgba(0,0,0,0.5)",
+        "text-halo-width": 1
+      }
+    },
+    {
+      "id": "label-water-poly",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "places",
+      "minzoom": 10,
+      "maxzoom": 20,
+      "filter": ["all", ["==", "kind", "water"]],
+      "layout": {
+        "text-field": "{name}",
+        "symbol-placement": "point",
+        "text-rotation-alignment": "auto",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-allow-overlap": false,
+        "text-ignore-placement": false,
+        "text-size": {
+          "stops": [[6, 10], [20, 15]]
+        },
+        "visibility": "visible"
+      },
+      "paint": {
+        "text-color": "rgba(51, 51, 255, 1)",
+        "text-halo-width": 2,
+        "text-halo-color": "rgba(200, 200, 200, 0.8)"
+      }
+    },
+    {
+      "id": "label-water",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "water",
+      "minzoom": 8,
+      "maxzoom": 20,
+      "filter": ["all", ["==", "$type", "LineString"]],
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Roboto Condensed Italic"],
+        "symbol-placement": "line",
+        "text-rotation-alignment": "auto",
+        "text-size": 14
+      },
+      "paint": {
+        "text-color": "rgba(51, 51, 255, 1)",
+        "text-halo-width": 2,
+        "text-halo-color": "rgba(255, 255, 255, 0.6)"
+      }
+    },
+    {
+      "id": "label-road",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "roads",
+      "minzoom": 10,
+      "maxzoom": 20,
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Roboto Regular"],
+        "symbol-placement": "line",
+        "text-rotation-alignment": "auto",
+        "text-size": 13,
+        "visibility": "visible"
+      },
+      "paint": {
+        "text-color": "rgba(0, 0, 0, 1)",
+        "text-halo-width": 2,
+        "text-halo-color": "rgba(255, 255, 255, 0.7)"
+      }
+    },
+    {
+      "id": "label-amenity",
+      "type": "symbol",
+      "source": "osm",
+      "source-layer": "poi",
+      "minzoom": 14,
+      "maxzoom": 20,
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Roboto Regular"],
+        "symbol-placement": "point",
+        "text-rotation-alignment": "auto",
+        "text-size": 12,
+        "text-max-width": 9,
+        "text-anchor": "top",
+        "text-offset": [0, 0.6],
+        "icon-image": "{kind}"
+      },
+      "paint": {
+        "text-color": "rgba(0, 0, 0, 1)",
+        "text-halo-width": 2,
+        "text-halo-color": "rgba(255, 255, 255, 0.7)"
+      }
+    },
+    {
+      "id": "gpo-label-c",
+      "type": "symbol",
+      "source": "stvk",
+      "source-layer": "gpo_t",
+      "minzoom": 12,
+      "maxzoom": 18,
+      "layout": {
+        "text-field": "{pavadinimas}",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-size": 12,
+        "text-variable-anchor": ["left", "top", "bottom", "right"],
+        "text-radial-offset": 1.1,
+        "text-justify": "auto",
+        "text-padding": 1,
+        "visibility": "visible"
+      },
+      "paint": {
+        "text-color": [
+          "match",
+          ["get", "kind"],
+          "gpo_geo_t",
+          "#9f5519",
+          "gpo_gmo_t",
+          "#dd8900",
+          "gpo_hge_t",
+          "#3399aa",
+          "gpo_hgr_t",
+          "#000000",
+          "gpo_bot_t",
+          "#247100",
+          "gpo_zoo_t",
+          "#a80085",
+          "#000000"
+        ],
+        "text-halo-width": 1,
+        "text-halo-color": "rgba(255, 255, 255, 0.9)"
+      }
+    },
+    {
+      "id": "gpo-label",
+      "type": "symbol",
+      "source": "stvk",
+      "source-layer": "gpo",
+      "minzoom": 12,
+      "maxzoom": 18,
+      "layout": {
+        "text-field": "{pavadinimas}",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-size": 12,
+        "text-variable-anchor": ["left", "top", "bottom", "right"],
+        "text-radial-offset": 1.1,
+        "text-justify": "auto",
+        "text-padding": 1,
+        "visibility": "visible"
+      },
+      "paint": {
+        "text-color": [
+          "match",
+          ["get", "kind"],
+          "gpo_geo",
+          "#9f5519",
+          "gpo_gmo",
+          "#dd8900",
+          "gpo_hge",
+          "#3399aa",
+          "gpo_hgr",
+          "#000000",
+          "gpo_bot",
+          "#247100",
+          "gpo_zoo",
+          "#a80085",
+          "#000000"
+        ],
+        "text-halo-width": 1,
+        "text-halo-color": "rgba(255, 255, 255, 0.9)"
+      }
+    },
+    {
+      "id": "stvk-gpo-t",
+      "type": "symbol",
+      "source": "stvk",
+      "source-layer": "gpo_t",
+      "layout": {
+        "icon-image": [
+          "match",
+          ["get", "kind"],
+          "gpo_geo_t",
+          "gpo_geologinis",
+          "gpo_gmo_t",
+          "gpo_geomorfologinis",
+          "gpo_hge_t",
+          "gpo_hidrogeologinis",
+          "gpo_hgr_t",
+          "gpo_hidrogeografinis",
+          "gpo_bot_t",
+          "gpo_botaninis",
+          "gpo_zoo_t",
+          "gpo_zoologinis",
+          "gpo_botaninis"
+        ],
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "stvk-regioniniai-label",
+      "type": "symbol",
+      "source": "stvk",
+      "source-layer": "parkai_c",
+      "minzoom": 10,
+      "maxzoom": 18,
+      "filter": ["all", ["==", "gkodas", "np2"]],
+      "layout": {
+        "text-field": "{pavadinimas}",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-max-width": 10,
+        "text-size": 16,
+        "visibility": "visible"
+      },
+      "paint": {
+        "text-color": "#e69900",
+        "text-halo-width": 1.4,
+        "text-halo-color": "rgba(255, 255, 255, 0.9)"
+      }
+    },
+    {
+      "id": "stvk-nacionaliniai-label",
+      "type": "symbol",
+      "source": "stvk",
+      "source-layer": "parkai_c",
+      "minzoom": 10,
+      "maxzoom": 18,
+      "filter": ["all", ["==", "gkodas", "np1"]],
+      "layout": {
+        "text-field": "{pavadinimas}",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-max-width": 10,
+        "text-size": 16,
+        "visibility": "visible"
+      },
+      "paint": {
+        "text-color": "#e60000",
+        "text-halo-width": 1.4,
+        "text-halo-color": "rgba(255, 255, 255, 0.9)"
+      }
+    },
+    {
+      "id": "stvk-rezervatai-label",
+      "type": "symbol",
+      "source": "stvk",
+      "source-layer": "rezervatai_c",
+      "minzoom": 11,
+      "maxzoom": 18,
+      "layout": {
+        "text-field": "{pavadinimas}",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-max-width": 10,
+        "text-size": 16
+      },
+      "paint": {
+        "text-color": "#407842",
+        "text-halo-width": 1,
+        "text-halo-color": "rgba(255, 255, 255, 0.9)"
+      }
+    },
+    {
+      "id": "stvk-draustiniai-label",
+      "type": "symbol",
+      "source": "stvk",
+      "source-layer": "draustiniai_c",
+      "minzoom": 11,
+      "maxzoom": 18,
+      "layout": {
+        "text-field": "{pavadinimas}",
+        "text-font": ["Roboto Condensed Italic"],
+        "text-max-width": 10,
+        "text-size": 16
+      },
+      "paint": {
+        "text-color": "#a6a533",
+        "text-halo-width": 1.4,
+        "text-halo-color": "rgba(255, 255, 255, 0.9)"
+      }
+    }
+  ],
+  "id": "openmap-stvk-hybrid",
+  "owner": "Atvirasis žemėlapis"
+}
