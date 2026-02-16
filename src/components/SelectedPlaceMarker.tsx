@@ -10,7 +10,7 @@ interface SelectedPlaceMarkerProps {
 }
 
 export function SelectedPlaceMarker({ feature }: SelectedPlaceMarkerProps) {
-  if (!feature || feature.geometry.type !== "Point") {
+  if (!feature || !feature.geometry || feature.geometry.type !== "Point") {
     return null;
   }
 

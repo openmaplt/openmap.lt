@@ -3,7 +3,6 @@
 import type { Feature } from "geojson";
 import { MapPin } from "lucide-react";
 import { Marker } from "react-map-gl/maplibre";
-import { useEffect, useState } from "react";
 import { PoiContent } from "@/components/PoiContent";
 import {
   Sheet,
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
-import { getPoiInfo } from "@/data/poiInfo";
+import { getFeatureCenter } from "@/lib/poiHelpers";
 
 interface PoiDetailsProps {
   open: boolean;
@@ -23,85 +22,14 @@ interface PoiDetailsProps {
 
 export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
   const isMobile = useIsMobile();
-  const [enrichedFeature, setEnrichedFeature] = useState<Feature | null>(null);
 
-  useEffect(() => {
-    if (!feature) {
-      setEnrichedFeature(null);
-      return;
-    }
+  const center = getFeatureCenter(feature);
 
-    // If source is 'stvk', fetch enriched data
-    const featureWithSource = feature as any;
-    if (featureWithSource.source === "stvk" && feature.properties?.id) {
-      getPoiInfo(feature.properties.id, "s")
-        .then((poiFeature) => {
-          console.log("poiFeature", poiFeature);
-          if (poiFeature) {
-            // Replace with the enriched feature from database
-            setEnrichedFeature(poiFeature);
-          } else {
-            setEnrichedFeature(feature);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching enriched POI info:", error);
-          setEnrichedFeature(feature);
-        });
-    } else {
-      setEnrichedFeature(feature);
-    }
-  }, [feature]);
-
-  const currentFeature = enrichedFeature || feature;
-
-  if (
-    !currentFeature ||
-    !currentFeature.geometry ||
-    (currentFeature.geometry.type !== "Point" &&
-      currentFeature.geometry.type !== "Polygon" &&
-      currentFeature.geometry.type !== "MultiPolygon")
-  ) {
+  if (!feature || !center) {
     return null;
   }
 
-  const poiData = currentFeature
-    ? {
-        data: extractPoiData(currentFeature.properties || {}),
-        name: currentFeature.properties?.name || "Be pavadinimo",
-      }
-    : null;
-
-  // Extract coordinates: Point has direct [lng, lat], Polygon/MultiPolygon need centroid calculation
-  // TODO: later change to GIS point in polygon function, because for some geometries
-  //       centroid could be out of actual polygon geometry.
-  let lng: number;
-  let lat: number;
-
-  if (currentFeature.geometry.type === "Point") {
-    [lng, lat] = currentFeature.geometry.coordinates as [number, number];
-  } else if (
-    currentFeature.geometry.type === "Polygon" ||
-    currentFeature.geometry.type === "MultiPolygon"
-  ) {
-    // Calculate centroid of the polygon (outer ring only)
-    // For MultiPolygon, use the first polygon
-    const polygonCoordinates =
-      currentFeature.geometry.type === "Polygon"
-        ? currentFeature.geometry.coordinates
-        : currentFeature.geometry.coordinates[0];
-    const coordinates = polygonCoordinates[0] as Array<[number, number]>;
-    let sumLng = 0;
-    let sumLat = 0;
-    for (const [lon, la] of coordinates) {
-      sumLng += lon;
-      sumLat += la;
-    }
-    lng = sumLng / coordinates.length;
-    lat = sumLat / coordinates.length;
-  } else {
-    return null;
-  }
+  const [lng, lat] = center;
 
   return (
     <>
@@ -123,10 +51,10 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
         >
           <SheetHeader>
             <SheetTitle className="text-lg text-foreground mr-5">
-              {poiData?.name}
+              {feature.properties?.name || "Be pavadinimo"}
             </SheetTitle>
           </SheetHeader>
-          {poiData && <PoiContent data={poiData.data} />}
+          <PoiContent data={extractPoiData(feature.properties || {})} />
         </SheetContent>
       </Sheet>
     </>

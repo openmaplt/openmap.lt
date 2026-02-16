@@ -1,3 +1,5 @@
+import { PROTECTED_ACTIVE_LAYERS } from "./protected-filters";
+
 export type MapStyle = {
   name: string;
   style: string;
@@ -9,7 +11,10 @@ export type MapProfile = {
   mapType: string;
   mapStyles: MapStyle[];
   featureComponent?: "places" | "craftbeer" | "protected";
+  interactiveLayers?: string[];
 };
+
+const GENERAL_ACTIVE_LAYERS = ["label-amenity"];
 
 export const MAP_PROFILES: MapProfile[] = [
   {
@@ -27,6 +32,7 @@ export const MAP_PROFILES: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
+    interactiveLayers: GENERAL_ACTIVE_LAYERS,
   },
   {
     id: "speed",
@@ -43,6 +49,7 @@ export const MAP_PROFILES: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
+    interactiveLayers: GENERAL_ACTIVE_LAYERS,
   },
   {
     id: "bicycle",
@@ -59,6 +66,7 @@ export const MAP_PROFILES: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
+    interactiveLayers: GENERAL_ACTIVE_LAYERS,
   },
   {
     id: "river",
@@ -75,6 +83,7 @@ export const MAP_PROFILES: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
+    interactiveLayers: GENERAL_ACTIVE_LAYERS,
   },
   {
     id: "topo",
@@ -91,6 +100,7 @@ export const MAP_PROFILES: MapProfile[] = [
         image: "/maps/map_orto.png",
       },
     ],
+    interactiveLayers: GENERAL_ACTIVE_LAYERS,
   },
   {
     id: "craftbeer",
@@ -103,6 +113,7 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     featureComponent: "craftbeer",
+    interactiveLayers: GENERAL_ACTIVE_LAYERS,
   },
   {
     id: "places",
@@ -120,6 +131,7 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     featureComponent: "places",
+    interactiveLayers: ["places-layer"],
   },
   {
     id: "protected",
@@ -137,5 +149,6 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     featureComponent: "protected",
+    interactiveLayers: PROTECTED_ACTIVE_LAYERS,
   },
 ];

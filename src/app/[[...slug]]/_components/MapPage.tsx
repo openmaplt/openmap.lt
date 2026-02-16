@@ -16,9 +16,9 @@ import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { CraftbeerFeature } from "@/components/CraftbeerFeature";
 import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
 import { PlacesProfileComponents } from "@/components/PlacesProfileComponents";
-import { ProtectedProfileComponents } from "@/components/ProtectedProfileComponents";
 import { PoiDetails } from "@/components/PoiDetails";
 import { PoiInteraction } from "@/components/PoiInteraction";
+import { ProtectedProfileComponents } from "@/components/ProtectedProfileComponents";
 import { MapConfig } from "@/config/config";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
 import {
@@ -189,6 +189,7 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
       <PoiInteraction
         onSelectFeature={setSelectedFeature}
         poiId={selectedPoiId}
+        layers={activeMapProfile.interactiveLayers}
       />
       <MapStyleSwitcher
         activeMapProfile={activeMapProfile}

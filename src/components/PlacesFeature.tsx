@@ -1,13 +1,14 @@
 "use client";
 
 import type { Feature } from "geojson";
-import type { LngLatBounds, MapLayerMouseEvent } from "maplibre-gl";
+import type { LngLatBounds } from "maplibre-gl";
 import { useEffect, useState } from "react";
 import { Layer, Source, useMap } from "react-map-gl/maplibre";
 import { PlacesFilter } from "@/components/PlacesFilter";
 import { PLACE_ICONS } from "@/config/places-icons";
 import { useMapIcons } from "@/hooks/use-map-icons";
 import { usePlaces } from "@/hooks/use-places";
+import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
 
 interface PlacesFeatureProps {
   bbox: LngLatBounds | null;
@@ -47,55 +48,35 @@ export function PlacesFeature({
 
   // Fetch places based on bbox and filter types
   const { places } = usePlaces(bbox, filterTypes);
+  const { enrichFeature } = usePoiEnrichment();
 
   // Handle map events for the layer
   useEffect(() => {
     const map = mapRef?.getMap();
     if (!map) return;
 
-    const onLayerClick = (e: MapLayerMouseEvent) => {
-      if (e.features && e.features.length > 0) {
-        const feature = e.features[0];
-        onSelectFeature(feature as Feature);
-      }
-    };
-
-    const onMouseEnter = () => {
-      map.getCanvas().style.cursor = "pointer";
-    };
-
-    const onMouseLeave = () => {
-      map.getCanvas().style.cursor = "";
-    };
-
-    const setupEventHandlers = () => {
+    const setupInitialSelection = async () => {
       if (poiId && map.getSource("places-source")) {
         const features = map
           .querySourceFeatures("places-source")
           .filter((f) => f.id === Number.parseInt(poiId, 10));
         if (features.length > 0) {
-          onSelectFeature(features[0]);
+          const enriched = await enrichFeature(features[0] as Feature);
+          onSelectFeature(enriched);
         }
       }
     };
 
     if (map.isStyleLoaded()) {
-      setupEventHandlers();
+      setupInitialSelection();
     } else {
-      map.on("sourcedata", setupEventHandlers);
+      map.on("sourcedata", setupInitialSelection);
     }
 
-    map.on("click", "places-layer", onLayerClick);
-    map.on("mouseenter", "places-layer", onMouseEnter);
-    map.on("mouseleave", "places-layer", onMouseLeave);
-
     return () => {
-      map.off("click", "places-layer", onLayerClick);
-      map.off("mouseenter", "places-layer", onMouseEnter);
-      map.off("mouseleave", "places-layer", onMouseLeave);
-      map.off("sourcedata", setupEventHandlers);
+      map.off("sourcedata", setupInitialSelection);
     };
-  }, [mapRef, onSelectFeature, poiId]);
+  }, [mapRef, onSelectFeature, poiId, enrichFeature]);
 
   // Construct match expression for icon-image
   // ['match', ['get', 'TYPE'], 'CAF', 'icon-CAF', 'FUE', 'icon-FUE', ..., 'icon-default']

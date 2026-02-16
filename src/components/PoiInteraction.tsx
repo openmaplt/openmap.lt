@@ -1,96 +1,60 @@
 import type { Feature } from "geojson";
-import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
-import { useEffect } from "react";
+import type { MapSourceDataEvent } from "maplibre-gl";
+import { useEffect, useRef } from "react";
 import { useMap } from "react-map-gl/maplibre";
+import { useMapInteraction } from "@/hooks/use-map-interaction";
+import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
 import { getPoiFromObjectId } from "@/lib/poiHelpers";
-
-const INTERACTIVE_LAYER = "label-amenity";
 
 interface PoiInteractionProps {
   poiId?: string | null;
   onSelectFeature: (feature: Feature | null) => void;
+  layers?: string[];
 }
 
 export function PoiInteraction({
   onSelectFeature,
   poiId,
+  layers = [],
 }: PoiInteractionProps) {
   const { current: mapRef } = useMap();
+  const { enrichFeature } = usePoiEnrichment();
+  const lastSelectedPoiIdRef = useRef<string | null>(null);
 
-  // Handle click on POI and map canvas clicks
-  useEffect(() => {
-    const map = mapRef?.getMap();
-    if (!map) return;
-
-    // Handle clicks on empty canvas (not on POI) - close the poi details
-    const handleMapClick = (e: MapLayerMouseEvent) => {
-      // Check if we clicked on a POI layer feature (guard if style is not yet set)
-      if (!map.getStyle() || !map.getLayer(INTERACTIVE_LAYER)) {
-        onSelectFeature(null);
-        return;
-      }
-
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [INTERACTIVE_LAYER],
-      });
-
-      // If no POI features at this point, close poi details
-      if (features.length === 0) {
-        onSelectFeature(null);
-        return;
-      }
-
-      onSelectFeature(features[0]);
-    };
-
-    const handleMouseEnter = () => {
-      map.getCanvas().style.cursor = "pointer";
-    };
-
-    const handleMouseLeave = () => {
-      map.getCanvas().style.cursor = "";
-    };
-
-    const setupEventHandlers = () => {
-      if (map.getLayer(INTERACTIVE_LAYER)) {
-        map.on("click", handleMapClick);
-        map.on("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
-        map.on("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
-      }
-    };
-
-    if (map.isStyleLoaded()) {
-      setupEventHandlers();
-    } else {
-      map.on("styledata", setupEventHandlers);
-    }
-
-    return () => {
-      if (!map) return;
-      // Always remove the click handler; remove layer-specific handlers only if style/layer exist
-      map.off("click", handleMapClick);
-      if (map.getStyle() && map.getLayer(INTERACTIVE_LAYER)) {
-        map.off("mouseenter", INTERACTIVE_LAYER, handleMouseEnter);
-        map.off("mouseleave", INTERACTIVE_LAYER, handleMouseLeave);
-      }
-      map.off("styledata", setupEventHandlers);
-    };
-  }, [mapRef, onSelectFeature]);
+  useMapInteraction({
+    layers,
+    onSelectFeature: async (feature) => {
+      lastSelectedPoiIdRef.current =
+        feature?.id ?? feature?.properties?.id ?? null;
+      onSelectFeature(feature);
+    },
+  });
 
   // Handle object ID changes from URL
   useEffect(() => {
     if (!poiId) {
       onSelectFeature(null);
+      lastSelectedPoiIdRef.current = null;
       return;
     }
+
+    // If already selected, don't re-select
+    if (lastSelectedPoiIdRef.current === poiId) return;
 
     const map = mapRef?.getMap();
     if (!map) return;
 
-    const displayPoi = () => {
-      const feature = getPoiFromObjectId(map, INTERACTIVE_LAYER, poiId);
-      if (feature) {
-        onSelectFeature(feature);
+    const displayPoi = async () => {
+      if (lastSelectedPoiIdRef.current === poiId) return;
+
+      for (const layerId of layers) {
+        const feature = getPoiFromObjectId(map, layerId, poiId);
+        if (feature) {
+          lastSelectedPoiIdRef.current = poiId;
+          const enriched = await enrichFeature(feature);
+          onSelectFeature(enriched);
+          break;
+        }
       }
     };
 
@@ -112,7 +76,7 @@ export function PoiInteraction({
       if (!map) return;
       map.off("sourcedata", handleSourceData);
     };
-  }, [mapRef, onSelectFeature, poiId]);
+  }, [mapRef, onSelectFeature, poiId, enrichFeature, layers]);
 
   return null;
 }

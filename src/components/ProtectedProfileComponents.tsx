@@ -33,7 +33,7 @@ export function ProtectedProfileComponents({
         mobileActiveMode={mobileActiveMode}
         setMobileActiveMode={setMobileActiveMode}
       />
-      <ProtectedFeature onSelectFeature={onSelectFeature} />
+      <ProtectedFeature />
       {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}
     </>
   );

@@ -1,6 +1,8 @@
-import type { Feature, Point } from "geojson";
+import type { Feature } from "geojson";
 import { useMap } from "react-map-gl/maplibre";
 import { SearchBox } from "@/components/SearchBox";
+import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
+import { getFeatureCenter } from "@/lib/poiHelpers";
 
 interface SearchFeatureProps {
   mapCenter: { lat: number; lng: number };
@@ -16,16 +18,19 @@ export function SearchFeature({
   setMobileActiveMode,
 }: SearchFeatureProps) {
   const { current: mapRef } = useMap();
+  const { enrichFeature } = usePoiEnrichment();
 
-  const handleSearchResultSelect = (feature: Feature) => {
-    if (feature.geometry.type === "Point" && mapRef?.getMap()) {
-      const [lng, lat] = (feature.geometry as Point).coordinates;
+  const handleSearchResultSelect = async (feature: Feature) => {
+    const center = getFeatureCenter(feature);
+    if (center && mapRef?.getMap()) {
+      const [lng, lat] = center;
       mapRef.getMap().flyTo({
         center: [lng, lat],
         zoom: 16,
         duration: 1500,
       });
-      onSelectFeature(feature);
+      const enriched = await enrichFeature(feature);
+      onSelectFeature(enriched);
     }
   };
 

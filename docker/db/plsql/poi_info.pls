@@ -78,7 +78,7 @@ begin
      WHERE id = (p_params->>'id')::bigint
        and p_params->>'mapType' = 'p'
     union
-    SELECT st_transform(ST_Expand(st_transform(way, 3346), 150), 4326) AS expanded_box
+    SELECT st_transform(ST_Expand(st_transform(geom, 3346), 150), 4326) AS expanded_box
           ,null AS type
           ,'{"bim":"bam","tramp":"pampam"}'::jsonb AS properties
           ,geom

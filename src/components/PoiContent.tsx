@@ -10,12 +10,12 @@ import {
   Phone,
   Ruler,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import {
   formatOpeningHours,
   type PoiAttribute,
   type PoiData,
 } from "@/lib/poiData";
-import ReactMarkdown from "react-markdown";
 
 interface PoiContentProps {
   data: PoiData;
