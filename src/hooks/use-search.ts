@@ -1,5 +1,6 @@
 import type { Feature } from "geojson";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { search } from "@/data/search";
 
 export function useSearch(
   query: string,
@@ -7,7 +8,6 @@ export function useSearch(
 ) {
   const [results, setResults] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (query.length < 3) {
@@ -18,27 +18,11 @@ export function useSearch(
     setLoading(true);
 
     const fetchResults = async () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-
       try {
-        const response = await fetch(
-          `/api/search?pos=${mapCenter.lng},${mapCenter.lat}&text=${encodeURIComponent(
-            query,
-          )}`,
-          { signal: abortControllerRef.current.signal },
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setResults(data.features || []);
-        }
+        const data = await search(query, [mapCenter.lng, mapCenter.lat]);
+        setResults(data.features || []);
       } catch (error) {
-        if (error instanceof Error && error.name !== "AbortError") {
-          console.error("Search error:", error);
-        }
+        console.error("Search error:", error);
       } finally {
         setLoading(false);
       }
@@ -48,9 +32,6 @@ export function useSearch(
 
     return () => {
       clearTimeout(timer);
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
     };
   }, [query, mapCenter]);
 

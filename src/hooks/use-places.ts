@@ -1,6 +1,7 @@
 import type { FeatureCollection } from "geojson";
 import type { LngLatBounds } from "maplibre-gl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { getPoiList } from "@/data/poiList";
 
 export function usePlaces(bbox: LngLatBounds | null, types: string) {
   const [places, setPlaces] = useState<FeatureCollection>({
@@ -8,7 +9,6 @@ export function usePlaces(bbox: LngLatBounds | null, types: string) {
     features: [],
   });
   const [loading, setLoading] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!bbox || !types) {
@@ -17,32 +17,25 @@ export function usePlaces(bbox: LngLatBounds | null, types: string) {
     }
 
     const fetchPlaces = async () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-
       setLoading(true);
       try {
-        const [west, south, east, north] = bbox.toArray().flat();
-        const res = await fetch(
-          `/api/list?bbox=${west},${south},${east},${north}&type=${types}`,
-          { signal: abortControllerRef.current.signal },
-        );
+        const coords = bbox.toArray().flat() as number[];
+        const data = await getPoiList(coords, types);
 
-        if (res.ok) {
-          const data: FeatureCollection = await res.json();
-
-          if (data && data.type === "FeatureCollection") {
-            setPlaces(data);
-          } else {
-            setPlaces({ type: "FeatureCollection", features: [] });
-          }
+        if (
+          data &&
+          data.type === "FeatureCollection" &&
+          Array.isArray(data.features)
+        ) {
+          setPlaces(data);
+        } else {
+          setPlaces({
+            type: "FeatureCollection",
+            features: Array.isArray(data) ? data : [],
+          });
         }
       } catch (e) {
-        if (e instanceof Error && e.name !== "AbortError") {
-          console.error("Failed to fetch places:", e);
-        }
+        console.error("Failed to fetch places:", e);
       } finally {
         setLoading(false);
       }
@@ -52,9 +45,6 @@ export function usePlaces(bbox: LngLatBounds | null, types: string) {
     const timeout = setTimeout(fetchPlaces, 300);
     return () => {
       clearTimeout(timeout);
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
     };
   }, [bbox, types]);
 

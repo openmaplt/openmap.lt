@@ -1,8 +1,17 @@
 "use server";
 
+import type { FeatureCollection } from "geojson";
 import { query } from "@/lib/db";
 
-export async function getPoiList(bbox: number[], types: string) {
+const EMPTY_FEATURE_COLLECTION: FeatureCollection = {
+  type: "FeatureCollection",
+  features: [],
+};
+
+export async function getPoiList(
+  bbox: number[],
+  types: string,
+): Promise<FeatureCollection> {
   try {
     const result = await query("SELECT places.list($1::jsonb) as result", [
       JSON.stringify({
@@ -19,5 +28,5 @@ export async function getPoiList(bbox: number[], types: string) {
     throw error;
   }
 
-  return [];
+  return EMPTY_FEATURE_COLLECTION;
 }
