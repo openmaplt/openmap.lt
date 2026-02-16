@@ -57,6 +57,7 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
 
   if (
     !currentFeature ||
+    !currentFeature.geometry ||
     (currentFeature.geometry.type !== "Point" &&
       currentFeature.geometry.type !== "Polygon" &&
       currentFeature.geometry.type !== "MultiPolygon")

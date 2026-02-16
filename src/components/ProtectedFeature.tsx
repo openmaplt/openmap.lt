@@ -39,11 +39,11 @@ export function ProtectedFeature({ onSelectFeature }: ProtectedFeatureProps) {
       });
     };
 
-    map.on("load", updateLayerVisibility);
+    map.on("styledata", updateLayerVisibility);
     updateLayerVisibility();
 
     return () => {
-      map.off("load", updateLayerVisibility);
+      map.off("styledata", updateLayerVisibility);
     };
   }, [selectedTypes, mapRef]);
 
@@ -78,6 +78,15 @@ export function ProtectedFeature({ onSelectFeature }: ProtectedFeatureProps) {
     };
 
     const setupEventHandlers = () => {
+      // First, remove any existing listeners to avoid duplicates
+      map.off("click", onMapClick);
+      PROTECTED_ACTIVE_LAYERS.forEach((layerId) => {
+        map.off("click", layerId, onLayerClick);
+        map.off("mouseenter", layerId, onMouseEnter);
+        map.off("mouseleave", layerId, onMouseLeave);
+      });
+
+      // Then set them up if layers exist
       map.on("click", onMapClick);
       PROTECTED_ACTIVE_LAYERS.forEach((layerId) => {
         if (map.getLayer(layerId)) {
@@ -90,9 +99,9 @@ export function ProtectedFeature({ onSelectFeature }: ProtectedFeatureProps) {
 
     if (map.isStyleLoaded()) {
       setupEventHandlers();
-    } else {
-      map.on("load", setupEventHandlers);
     }
+
+    map.on("styledata", setupEventHandlers);
 
     return () => {
       map.off("click", onMapClick);
@@ -103,7 +112,7 @@ export function ProtectedFeature({ onSelectFeature }: ProtectedFeatureProps) {
           map.off("mouseleave", layerId, onMouseLeave);
         }
       });
-      map.off("load", setupEventHandlers);
+      map.off("styledata", setupEventHandlers);
     };
   }, [mapRef, onSelectFeature]);
 
