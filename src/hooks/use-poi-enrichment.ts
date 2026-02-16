@@ -23,6 +23,7 @@ export function usePoiEnrichment() {
 
         try {
           const poiFeature = await getPoiInfo(id, "s");
+          console.log("Enriched POI info:", poiFeature);
           if (poiFeature) {
             enrichedCacheRef.current[cacheKey] = poiFeature;
             return poiFeature;
