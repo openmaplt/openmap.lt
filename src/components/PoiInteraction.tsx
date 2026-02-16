@@ -1,33 +1,57 @@
 import type { Feature } from "geojson";
 import type { MapSourceDataEvent } from "maplibre-gl";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { useMapInteraction } from "@/hooks/use-map-interaction";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
 import { getPoiFromObjectId } from "@/lib/poiHelpers";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface PoiInteractionProps {
   poiId?: string | null;
   onSelectFeature: (feature: Feature | null) => void;
   layers?: string[];
+  getLayerLabel?: (layerId: string) => string;
 }
 
 export function PoiInteraction({
   onSelectFeature,
   poiId,
   layers = [],
+  getLayerLabel,
 }: PoiInteractionProps) {
   const { current: mapRef } = useMap();
   const { enrichFeature } = usePoiEnrichment();
   const lastSelectedPoiIdRef = useRef<string | null>(null);
+  const isMobile = useIsMobile();
+  const [candidateFeatures, setCandidateFeatures] = useState<Feature[]>([]);
 
   useMapInteraction({
     layers,
-    onSelectFeature: (feature) => {
-      lastSelectedPoiIdRef.current = feature
-        ? (feature.id ?? feature.properties?.id)?.toString()
-        : null;
-      onSelectFeature(feature);
+    onSelectFeatures: async (features) => {
+      if (features.length === 0) {
+        lastSelectedPoiIdRef.current = null;
+        onSelectFeature(null);
+        setCandidateFeatures([]);
+        return;
+      }
+
+      if (features.length === 1) {
+        const enriched = await enrichFeature(features[0]);
+        lastSelectedPoiIdRef.current = (
+          enriched?.properties?.id ?? enriched?.id
+        )?.toString();
+        onSelectFeature(enriched);
+        setCandidateFeatures([]);
+      } else {
+        setCandidateFeatures(features);
+      }
     },
   });
 
@@ -79,5 +103,43 @@ export function PoiInteraction({
     };
   }, [mapRef, onSelectFeature, poiId, enrichFeature, layers]);
 
-  return null;
+  const handleSelectCandidate = async (feature: Feature) => {
+    const enriched = await enrichFeature(feature);
+    lastSelectedPoiIdRef.current = (
+      enriched?.properties?.id ?? enriched?.id
+    )?.toString();
+    onSelectFeature(enriched);
+    setCandidateFeatures([]);
+  };
+
+  return (
+    <Sheet
+      open={candidateFeatures.length > 0}
+      onOpenChange={(open) => !open && setCandidateFeatures([])}
+    >
+      <SheetContent side={isMobile ? "bottom" : "left"} className="p-0 gap-0">
+        <SheetHeader className="p-4 border-b">
+          <SheetTitle>Pasirinkite objektą</SheetTitle>
+        </SheetHeader>
+        <div className="flex flex-col overflow-y-auto">
+          {candidateFeatures.map((feature, index) => (
+            <button
+              type="button"
+              key={`${feature.id}-${index}`}
+              className="flex flex-col items-start px-4 py-4 hover:bg-accent transition-colors border-b text-left w-full"
+              onClick={() => handleSelectCandidate(feature)}
+            >
+              <span className="font-medium text-foreground">
+                {feature.properties?.name || "Be pavadinimo"}
+              </span>
+              <span className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
+                {getLayerLabel?.((feature as any).layer?.id) ||
+                  (feature as any).layer?.id}
+              </span>
+            </button>
+          ))}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
 }

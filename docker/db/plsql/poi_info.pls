@@ -80,7 +80,7 @@ begin
     union
     SELECT st_transform(ST_Expand(st_transform(geom, 3346), 150), 4326) AS expanded_box
           ,null AS type
-          ,'{"bim":"bam","tramp":"pampam"}'::jsonb AS properties
+          ,'{"id": 34, "bim":"bam","tramp":"pampam"}'::jsonb AS properties
           ,geom
       FROM places.poi
      WHERE id = 34
@@ -88,7 +88,7 @@ begin
     union
     SELECT st_transform(ST_Expand(st_transform(geom, 3346), 150), 4326) AS expanded_box
           ,null AS type
-          ,jsonb_build_object('name','Pavadinimas') AS properties
+          ,'{"id":34,"name":"Pavadinimas"}'::jsonb AS properties
           ,geom
       FROM places.poi
      WHERE id = 34

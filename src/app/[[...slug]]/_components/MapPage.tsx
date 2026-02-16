@@ -21,6 +21,7 @@ import { PoiInteraction } from "@/components/PoiInteraction";
 import { ProtectedProfileComponents } from "@/components/ProtectedProfileComponents";
 import { MapConfig } from "@/config/config";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
+import { PROTECTED_FILTERS } from "@/config/protected-filters";
 import {
   formatSearchParams,
   getMapState,
@@ -32,6 +33,7 @@ interface MapPageProps {
   initialPoiData?: {
     extent: LngLatBoundsLike;
     filter: string;
+    properties?: Record<string, string>;
   } | null;
 }
 
@@ -100,12 +102,9 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
     };
 
     // Update URL without triggering page reload
-    const poiSlugWithName = [
-      selectedPoiId,
-      selectedFeature?.properties?.name
-        ? slugify(selectedFeature.properties?.name)
-        : null,
-    ]
+    const poiName =
+      selectedFeature?.properties?.name ?? initialPoiData?.properties?.name;
+    const poiSlugWithName = [selectedPoiId, poiName ? slugify(poiName) : null]
       .filter((v) => v)
       .join("-");
 
@@ -190,6 +189,16 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
         onSelectFeature={setSelectedFeature}
         poiId={selectedPoiId}
         layers={activeMapProfile.interactiveLayers}
+        getLayerLabel={(layerId) => {
+          if (activeMapProfile.id === "protected") {
+            return (
+              PROTECTED_FILTERS.find((f) => f.layers.includes(layerId))
+                ?.label || layerId
+            );
+          }
+
+          return layerId;
+        }}
       />
       <MapStyleSwitcher
         activeMapProfile={activeMapProfile}

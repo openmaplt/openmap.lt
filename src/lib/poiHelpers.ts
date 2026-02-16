@@ -15,9 +15,11 @@ export function getPoiFromObjectId(
 
   // Query for the feature
   const parsedId = Number.parseInt(objectId, 10);
-  const filter = (Number.isNaN(parsedId)
-    ? ["==", "id", objectId]
-    : ["any", ["==", "id", objectId], ["==", "id", parsedId]]) as any;
+  const filter = (
+    Number.isNaN(parsedId)
+      ? ["==", "id", objectId]
+      : ["any", ["==", "id", objectId], ["==", "id", parsedId]]
+  ) as any;
 
   const features = map.queryRenderedFeatures({
     layers: [layerId],

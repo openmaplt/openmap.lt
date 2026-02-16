@@ -4,21 +4,19 @@ import type { Feature } from "geojson";
 import type { MapLayerMouseEvent } from "maplibre-gl";
 import { useEffect } from "react";
 import { useMap } from "react-map-gl/maplibre";
-import { usePoiEnrichment } from "./use-poi-enrichment";
 
 interface UseMapInteractionProps {
   layers: string[];
-  onSelectFeature: (feature: Feature | null) => void;
+  onSelectFeatures: (features: Feature[]) => void;
   enabled?: boolean;
 }
 
 export function useMapInteraction({
   layers,
-  onSelectFeature,
+  onSelectFeatures,
   enabled = true,
 }: UseMapInteractionProps) {
   const { current: mapRef } = useMap();
-  const { enrichFeature } = usePoiEnrichment();
 
   useEffect(() => {
     const map = mapRef?.getMap();
@@ -39,14 +37,9 @@ export function useMapInteraction({
       const interactiveFeatures = map.queryRenderedFeatures(e.point, {
         layers: activeLayers,
       });
-
-      if (interactiveFeatures.length > 0) {
-        const feature = interactiveFeatures[0] as Feature;
-        const enriched = await enrichFeature(feature);
-        onSelectFeature(enriched);
-      } else {
-        onSelectFeature(null);
-      }
+      onSelectFeatures(
+        interactiveFeatures.length > 0 ? interactiveFeatures : [],
+      );
     };
 
     const cleanup = () => {
@@ -79,5 +72,5 @@ export function useMapInteraction({
       cleanup();
       map.off("styledata", setupHandlers);
     };
-  }, [mapRef, layers, onSelectFeature, enabled, enrichFeature]);
+  }, [mapRef, layers, onSelectFeatures, enabled]);
 }
