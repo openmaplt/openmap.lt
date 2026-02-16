@@ -122,7 +122,7 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
 
   useEffect(() => {
     if (selectedFeature) {
-      setSelectedPoiId(selectedFeature.id ?? selectedFeature.properties?.id);
+      setSelectedPoiId(selectedFeature.properties?.id ?? selectedFeature.id);
     }
   }, [selectedFeature]);
 

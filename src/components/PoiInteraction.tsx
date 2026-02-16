@@ -23,9 +23,10 @@ export function PoiInteraction({
 
   useMapInteraction({
     layers,
-    onSelectFeature: async (feature) => {
-      lastSelectedPoiIdRef.current =
-        feature?.id ?? feature?.properties?.id ?? null;
+    onSelectFeature: (feature) => {
+      lastSelectedPoiIdRef.current = feature
+        ? (feature.id ?? feature.properties?.id)?.toString()
+        : null;
       onSelectFeature(feature);
     },
   });
