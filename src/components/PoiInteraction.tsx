@@ -130,7 +130,9 @@ export function PoiInteraction({
               onClick={() => handleSelectCandidate(feature)}
             >
               <span className="font-medium text-foreground">
-                {feature.properties?.name || "Be pavadinimo"}
+                {feature.properties?.pavadinimas ||
+                  feature.properties?.name ||
+                  "Be pavadinimo"}
               </span>
               <span className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
                 {getLayerLabel?.((feature as any).layer?.id) ||
