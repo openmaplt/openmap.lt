@@ -76,10 +76,7 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
     );
   });
   const [bbox, setBbox] = useState<LngLatBounds | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(() => {
-    console.log("Initial Poi Data: ", initialPoiData);
-    return initialPoiData;
-  });
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(initialPoiData);
   const [mobileActiveMode, setMobileActiveMode] = useState<
     "search" | "filter" | null
   >(null);
