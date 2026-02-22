@@ -16,14 +16,11 @@ type ProtectedProfileComponents = {
 };
 
 export function ProtectedProfileComponents({
-  bbox,
   onSelectFeature,
   selectedFeature,
   mobileActiveMode,
   setMobileActiveMode,
   mapCenter,
-  poiId,
-  initialFilterType,
 }: ProtectedProfileComponents) {
   return (
     <>

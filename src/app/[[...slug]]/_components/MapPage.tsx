@@ -33,6 +33,7 @@ interface MapPageProps {
   initialPoiData?: {
     extent: LngLatBoundsLike;
     filter: string;
+    id?: string;
     properties?: Record<string, string>;
   } | null;
 }
@@ -102,9 +103,17 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
     };
 
     // Update URL without triggering page reload
+    const selectedFeaturePoiId =
+      selectedFeature?.properties?.id ??
+      selectedFeature?.id ??
+      initialPoiData?.properties?.id ??
+      initialPoiData?.id;
     const poiName =
       selectedFeature?.properties?.name ?? initialPoiData?.properties?.name;
-    const poiSlugWithName = [selectedPoiId, poiName ? slugify(poiName) : null]
+    const poiSlugWithName = [
+      selectedFeaturePoiId,
+      poiName ? slugify(poiName) : null,
+    ]
       .filter((v) => v)
       .join("-");
 
@@ -117,7 +126,7 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
 
     // Save to localStorage as JSON
     saveStateToStorage(mapStateData);
-  }, [viewState, activeMapProfile, selectedPoiId, selectedFeature]);
+  }, [viewState, activeMapProfile, selectedFeature, initialPoiData]);
 
   useEffect(() => {
     if (selectedFeature) {

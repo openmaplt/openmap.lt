@@ -2,16 +2,16 @@ import type { Feature } from "geojson";
 import type { MapSourceDataEvent } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
-import { useMapInteraction } from "@/hooks/use-map-interaction";
-import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
-import { getPoiFromObjectId } from "@/lib/poiHelpers";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useMapInteraction } from "@/hooks/use-map-interaction";
+import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { getPoiFromObjectId } from "@/lib/poiHelpers";
 
 interface PoiInteractionProps {
   poiId?: string | null;
