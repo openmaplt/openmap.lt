@@ -12,12 +12,7 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
 
   let poiData = null;
   if (poiId && /^\d+$/.test(poiId)) {
-    try {
-      poiData = await getPoiInfo(poiId, mapType);
-    } catch (error) {
-      console.error('Error fetching POI info:', error);
-      poiData = null;
-    }
+    poiData = await getPoiInfo(poiId, mapType);
   }
 
   return (
