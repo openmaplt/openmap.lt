@@ -2,7 +2,7 @@
 
 import { query } from "@/lib/db";
 
-export async function getPoiInfo(id: number, mapType?: string | null) {
+export async function getPoiInfo(id: string, mapType?: string | null) {
   try {
     const result = await query("SELECT places.poi_info($1::jsonb) as result", [
       JSON.stringify({

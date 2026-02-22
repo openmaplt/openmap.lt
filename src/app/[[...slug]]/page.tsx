@@ -11,11 +11,8 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
   const poiId = poiSlug !== "map" ? poiSlug?.split("-")[0] : undefined;
 
   let poiData = null;
-  if (poiId) {
-    const id = Number.parseInt(poiId, 10);
-    if (!Number.isNaN(id)) {
-      poiData = await getPoiInfo(id, mapType);
-    }
+  if (poiId && /^\d+$/.test(poiId)) {
+    poiData = await getPoiInfo(poiId, mapType);
   }
 
   return <MapPage initialPoiData={poiData} />;
