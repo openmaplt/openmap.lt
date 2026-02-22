@@ -20,7 +20,10 @@ export const query = async (text: string, params?: unknown[]) => {
 
     return res;
   } catch (error) {
-    console.error("Klaida vykdant užklausą:", error);
+    console.error(
+      "Klaida vykdant užklausą:",
+      error instanceof AggregateError ? error?.errors : error,
+    );
     throw error;
   }
 };

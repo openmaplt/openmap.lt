@@ -30,12 +30,12 @@ import {
 import { findMapsByType, slugify } from "@/lib/utils";
 
 interface MapPageProps {
-  initialPoiData?: {
-    extent: LngLatBoundsLike;
-    filter: string;
-    id?: string;
-    properties?: Record<string, string>;
-  } | null;
+  initialPoiData:
+    | (Feature & {
+        extent: LngLatBoundsLike;
+        filter: string;
+      })
+    | null;
 }
 
 export default function MapPage({ initialPoiData }: MapPageProps) {
@@ -76,7 +76,9 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
     );
   });
   const [bbox, setBbox] = useState<LngLatBounds | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
+    initialPoiData,
+  );
   const [mobileActiveMode, setMobileActiveMode] = useState<
     "search" | "filter" | null
   >(null);
@@ -104,12 +106,8 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
 
     // Update URL without triggering page reload
     const selectedFeaturePoiId =
-      selectedFeature?.properties?.id ??
-      selectedFeature?.id ??
-      initialPoiData?.properties?.id ??
-      initialPoiData?.id;
-    const poiName =
-      selectedFeature?.properties?.name ?? initialPoiData?.properties?.name;
+      selectedFeature?.properties?.id ?? selectedFeature?.id;
+    const poiName = selectedFeature?.properties?.name;
     const poiSlugWithName = [
       selectedFeaturePoiId,
       poiName ? slugify(poiName) : null,
@@ -126,7 +124,7 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
 
     // Save to localStorage as JSON
     saveStateToStorage(mapStateData);
-  }, [viewState, activeMapProfile, selectedFeature, initialPoiData]);
+  }, [viewState, activeMapProfile, selectedFeature]);
 
   useEffect(() => {
     if (selectedFeature) {

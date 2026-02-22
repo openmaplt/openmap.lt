@@ -15,5 +15,11 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
     poiData = await getPoiInfo(poiId, mapType);
   }
 
-  return <MapPage initialPoiData={poiData} />;
+  return (
+    <MapPage
+      initialPoiData={
+        poiData && Object.entries(poiData).length > 0 ? poiData : null
+      }
+    />
+  );
 }
