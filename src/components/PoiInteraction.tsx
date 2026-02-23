@@ -50,6 +50,7 @@ export function PoiInteraction({
         onSelectFeature(enriched);
         setCandidateFeatures([]);
       } else {
+        console.log("Multiple features selected:", features)
         setCandidateFeatures(features);
       }
     },
