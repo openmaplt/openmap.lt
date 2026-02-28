@@ -43,6 +43,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -87,8 +88,9 @@ jobs:
             # Login to GitHub Container Registry
             echo ${{ secrets.GHCR_PAT }} | docker login ${{ env.REGISTRY }} -u paumas --password-stdin
             
-            # Pull latest image
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            # Pull correct image tag
+            IMAGE_TAG=${{ github.event_name == 'workflow_dispatch' && inputs.tag || 'latest' }}
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
             
             # Stop and remove old container
             docker compose -f docker-compose.prod.yml down
