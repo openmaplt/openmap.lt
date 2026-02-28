@@ -10,8 +10,10 @@ export type MapProfile = {
   id: string;
   mapType: string;
   mapStyles: MapStyle[];
-  featureComponent?: "places" | "craftbeer" | "protected";
+  featureComponent?: "places" | "craftbeer" | "protected" | "bicycle" | "river";
   interactiveLayers?: string[];
+  routingProfiles?: ("car" | "bike" | "foot" | "river")[];
+  routingUrl?: string;
 };
 
 const GENERAL_ACTIVE_LAYERS = ["label-amenity"];
@@ -33,6 +35,8 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     interactiveLayers: GENERAL_ACTIVE_LAYERS,
+    featureComponent: "bicycle",
+    routingProfiles: ["car", "bike", "foot"],
   },
   {
     id: "speed",
@@ -67,6 +71,8 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     interactiveLayers: GENERAL_ACTIVE_LAYERS,
+    featureComponent: "bicycle",
+    routingProfiles: ["bike"],
   },
   {
     id: "river",
@@ -84,6 +90,9 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     interactiveLayers: GENERAL_ACTIVE_LAYERS,
+    featureComponent: "river",
+    routingProfiles: ["river"],
+    routingUrl: "https://openmap.lt/river_route",
   },
   {
     id: "topo",
@@ -132,6 +141,7 @@ export const MAP_PROFILES: MapProfile[] = [
     ],
     featureComponent: "places",
     interactiveLayers: ["places-layer"],
+    routingProfiles: ["car"],
   },
   {
     id: "protected",

@@ -42,12 +42,16 @@ interface MapTransformContextType {
 interface MapSelectionContextType {
   selectedFeature: Feature | null;
   selectedPoiId: string | null;
+  routeStart: Feature | null;
+  routeEnd: Feature | null;
 }
 
 // Config Context - For map profile and UI modes
 interface MapConfigContextType {
   activeMapProfile: MapProfile;
-  mobileActiveMode: "search" | "filter" | null;
+  mobileActiveMode: "search" | "filter" | "routing" | null;
+  routingMode: boolean;
+  selectedVehicle: "car" | "bike" | "foot" | "river" | null;
 }
 
 // Actions Context - For stable functions and refs
@@ -58,7 +62,13 @@ interface MapActionsContextType {
   setBbox: (bbox: LngLatBounds | null) => void;
   setSelectedFeature: (feature: Feature | null) => void;
   setSelectedPoiId: (id: string | null) => void;
-  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
+  setRouteStart: (feature: Feature | null) => void;
+  setRouteEnd: (feature: Feature | null) => void;
+  setMobileActiveMode: (mode: "search" | "filter" | "routing" | null) => void;
+  setRoutingMode: (mode: boolean) => void;
+  setSelectedVehicle: (
+    vehicle: "car" | "bike" | "foot" | "river" | null,
+  ) => void;
   handleOnChangeMapProfile: (profile: MapProfile) => void;
   handleOnPoiDetailsClose: () => void;
 }
@@ -160,9 +170,15 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     initialPoiData,
   );
   const [mobileActiveMode, setMobileActiveMode] = useState<
-    "search" | "filter" | null
+    "search" | "filter" | "routing" | null
   >(null);
+  const [routingMode, setRoutingMode] = useState(false);
+  const [routeStart, setRouteStart] = useState<Feature | null>(null);
+  const [routeEnd, setRouteEnd] = useState<Feature | null>(null);
   const [selectedPoiId, setSelectedPoiId] = useState(poiIdFromUrl ?? null);
+  const [selectedVehicle, setSelectedVehicle] = useState<
+    "car" | "bike" | "foot" | "river" | null
+  >(() => (activeMapProfile.routingProfiles?.[0] as any) || null);
 
   // Sync map state to URL and LocalStorage
   useMapSync(viewState, activeMapProfile, selectedFeature);
@@ -186,6 +202,11 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     setActiveMapProfile(profile);
     setSelectedPoiId(null);
     setSelectedFeature(null);
+    setRouteStart(null);
+    setRouteEnd(null);
+    setRoutingMode(false);
+    setMobileActiveMode(null);
+    setSelectedVehicle((profile.routingProfiles?.[0] as any) || null);
   }, []);
 
   const handleOnPoiDetailsClose = useCallback(() => {
@@ -199,12 +220,17 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     [viewState, bbox],
   );
   const selectionValue = useMemo(
-    () => ({ selectedFeature, selectedPoiId }),
-    [selectedFeature, selectedPoiId],
+    () => ({ selectedFeature, selectedPoiId, routeStart, routeEnd }),
+    [selectedFeature, selectedPoiId, routeStart, routeEnd],
   );
   const configValue = useMemo(
-    () => ({ activeMapProfile, mobileActiveMode }),
-    [activeMapProfile, mobileActiveMode],
+    () => ({
+      activeMapProfile,
+      mobileActiveMode,
+      routingMode,
+      selectedVehicle,
+    }),
+    [activeMapProfile, mobileActiveMode, routingMode, selectedVehicle],
   );
 
   const actionsValue = useMemo(
@@ -215,7 +241,11 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
       setBbox,
       setSelectedFeature,
       setSelectedPoiId,
+      setRouteStart,
+      setRouteEnd,
       setMobileActiveMode,
+      setRoutingMode,
+      setSelectedVehicle,
       handleOnChangeMapProfile,
       handleOnPoiDetailsClose,
     }),
