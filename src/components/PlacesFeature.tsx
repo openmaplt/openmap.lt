@@ -1,35 +1,31 @@
 "use client";
 
 import type { Feature } from "geojson";
-import type { LngLatBounds } from "maplibre-gl";
+import type { GeoJSONFeature } from "maplibre-gl";
 import { useEffect, useState } from "react";
-import { Layer, Source, useMap } from "react-map-gl/maplibre";
+import { Layer, Source } from "react-map-gl/maplibre";
 import { PlacesFilter } from "@/components/PlacesFilter";
 import { PLACE_ICONS } from "@/config/places-icons";
 import { useMapIcons } from "@/hooks/use-map-icons";
 import { usePlaces } from "@/hooks/use-places";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
+import {
+  useMapActions,
+  useMapConfig,
+  useMapSelection,
+  useMapTransform,
+} from "@/providers/MapProvider";
 
 interface PlacesFeatureProps {
-  bbox: LngLatBounds | null;
-  onSelectFeature: (feature: Feature | null) => void;
-  mobileActiveMode: "search" | "filter" | null;
-  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
-  poiId?: string | null;
   initialFilterType?: string;
-  mapType?: string | null;
 }
 
-export function PlacesFeature({
-  bbox,
-  onSelectFeature,
-  mobileActiveMode,
-  setMobileActiveMode,
-  poiId,
-  initialFilterType,
-  mapType,
-}: PlacesFeatureProps) {
-  const { current: mapRef } = useMap();
+export function PlacesFeature({ initialFilterType }: PlacesFeatureProps) {
+  const { mapRef, setSelectedFeature: onSelectFeature } = useMapActions();
+  const { bbox } = useMapTransform();
+  const { selectedPoiId: poiId } = useMapSelection();
+  const { activeMapProfile } = useMapConfig();
+  const mapType = activeMapProfile.mapType;
   const [filterTypes, setFilterTypes] = useState(() => {
     const typesFromLocalStorage =
       localStorage.getItem("placesFilterTypes") || "";
@@ -54,14 +50,14 @@ export function PlacesFeature({
 
   // Handle map events for the layer
   useEffect(() => {
-    const map = mapRef?.getMap();
+    const map = mapRef.current?.getMap();
     if (!map) return;
 
     const setupInitialSelection = async () => {
       if (poiId && map.getSource("places-source")) {
         const features = map
           .querySourceFeatures("places-source")
-          .filter((f) => f.id === Number.parseInt(poiId, 10));
+          .filter((f: GeoJSONFeature) => f.id === Number.parseInt(poiId, 10));
         if (features.length > 0) {
           const enriched = await enrichFeature(features[0] as Feature);
           onSelectFeature(enriched);
@@ -94,8 +90,6 @@ export function PlacesFeature({
       <PlacesFilter
         selectedTypes={filterTypes}
         onTypesChange={setFilterTypes}
-        mobileActiveMode={mobileActiveMode}
-        setMobileActiveMode={setMobileActiveMode}
       />
       <Source id="places-source" type="geojson" data={places}>
         <Layer

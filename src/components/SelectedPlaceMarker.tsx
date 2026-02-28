@@ -1,15 +1,13 @@
 "use client";
 
-import type { Feature, Point } from "geojson";
+import type { Point } from "geojson";
 import { Marker } from "react-map-gl/maplibre";
 import { PlaceMarkerIcon } from "@/components/PlaceMarkerIcon";
 import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
+import { useMapSelection } from "@/providers/MapProvider";
 
-interface SelectedPlaceMarkerProps {
-  feature: Feature | null;
-}
-
-export function SelectedPlaceMarker({ feature }: SelectedPlaceMarkerProps) {
+export function SelectedPlaceMarker() {
+  const { selectedFeature: feature } = useMapSelection();
   if (!feature || !feature.geometry || feature.geometry.type !== "Point") {
     return null;
   }

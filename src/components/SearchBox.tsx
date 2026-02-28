@@ -14,22 +14,25 @@ import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
 import { useSearch } from "@/hooks/use-search";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
+import {
+  useMapActions,
+  useMapConfig,
+  useMapTransform,
+} from "@/providers/MapProvider";
 
 interface SearchBoxProps {
-  mapCenter: { lat: number; lng: number };
   onSelectResult: (feature: Feature) => void;
-  mobileActiveMode: "search" | "filter" | null;
-  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
-  mapType?: string | null;
 }
 
-export function SearchBox({
-  mapCenter,
-  onSelectResult,
-  mobileActiveMode,
-  setMobileActiveMode,
-  mapType,
-}: SearchBoxProps) {
+export function SearchBox({ onSelectResult }: SearchBoxProps) {
+  const { viewState } = useMapTransform();
+  const { activeMapProfile, mobileActiveMode } = useMapConfig();
+  const { setMobileActiveMode } = useMapActions();
+  const mapCenter = {
+    lat: viewState?.latitude || 0,
+    lng: viewState?.longitude || 0,
+  };
+  const mapType = activeMapProfile.mapType;
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

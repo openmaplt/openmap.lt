@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useMap } from "react-map-gl/maplibre";
 import { CraftbeerFilter } from "@/components/CraftbeerFilter";
 import { beerStyles, type CraftbeerFilters } from "@/config/craftbeer-filters";
+import { useMapActions } from "@/providers/MapProvider";
 
 export function CraftbeerFeature() {
-  const { current: mapRef } = useMap();
+  const { mapRef } = useMapActions();
   const [filters, setFilters] = useState<CraftbeerFilters>({
     styles: beerStyles.map(({ value }) => value),
     condition: "any",
@@ -14,7 +14,7 @@ export function CraftbeerFeature() {
   });
 
   useEffect(() => {
-    const map = mapRef?.getMap();
+    const map = mapRef.current?.getMap();
     if (!map) return;
 
     const applyFilter = () => {
@@ -24,7 +24,11 @@ export function CraftbeerFeature() {
           ["==", filters.venue, "y"],
           [
             filters.condition,
-            ...filters.styles.map((style) => ["==", `style_${style}`, "y"]),
+            ...filters.styles.map((style: string) => [
+              "==",
+              `style_${style}`,
+              "y",
+            ]),
           ] as any,
         ]);
       }

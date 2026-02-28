@@ -8,22 +8,21 @@ import { Label } from "@/components/ui/label";
 import { PROTECTED_FILTERS } from "@/config/protected-filters";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
+import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
 interface ProtectedFilterProps {
   selectedTypes: string[];
   onTypesChange: (types: string[]) => void;
   className?: string;
-  mobileActiveMode: "search" | "filter" | null;
-  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
 }
 
 export function ProtectedFilter({
   selectedTypes,
   onTypesChange,
   className,
-  mobileActiveMode,
-  setMobileActiveMode,
 }: ProtectedFilterProps) {
+  const { mobileActiveMode } = useMapConfig();
+  const { setMobileActiveMode } = useMapActions();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();

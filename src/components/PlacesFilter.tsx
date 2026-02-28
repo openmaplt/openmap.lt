@@ -6,22 +6,21 @@ import { Label } from "@/components/ui/label";
 import { type FilterCategory, PLACES_FILTERS } from "@/config/places-filters";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
+import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
 interface PlacesFilterProps {
   selectedTypes: string;
   onTypesChange: (types: string) => void;
   className?: string;
-  mobileActiveMode: "search" | "filter" | null;
-  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
 }
 
 export function PlacesFilter({
   selectedTypes,
   onTypesChange,
   className,
-  mobileActiveMode,
-  setMobileActiveMode,
 }: PlacesFilterProps) {
+  const { mobileActiveMode } = useMapConfig();
+  const { setMobileActiveMode } = useMapActions();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     PLACES_FILTERS.map((c) => c.label),

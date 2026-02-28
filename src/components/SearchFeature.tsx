@@ -1,32 +1,19 @@
 import type { Feature } from "geojson";
-import { useMap } from "react-map-gl/maplibre";
 import { SearchBox } from "@/components/SearchBox";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
 import { getFeatureCenter } from "@/lib/poiHelpers";
+import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
-interface SearchFeatureProps {
-  mapCenter: { lat: number; lng: number };
-  onSelectFeature: (feature: Feature | null) => void;
-  mobileActiveMode: "search" | "filter" | null;
-  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
-  mapType?: string | null;
-}
-
-export function SearchFeature({
-  mapCenter,
-  onSelectFeature,
-  mobileActiveMode,
-  setMobileActiveMode,
-  mapType,
-}: SearchFeatureProps) {
-  const { current: mapRef } = useMap();
-  const { enrichFeature } = usePoiEnrichment(mapType);
+export function SearchFeature() {
+  const { mapRef, setSelectedFeature: onSelectFeature } = useMapActions();
+  const { activeMapProfile } = useMapConfig();
+  const { enrichFeature } = usePoiEnrichment(activeMapProfile.mapType);
 
   const handleSearchResultSelect = async (feature: Feature) => {
     const center = getFeatureCenter(feature);
-    if (center && mapRef?.getMap()) {
+    if (center && mapRef.current?.getMap()) {
       const [lng, lat] = center;
-      mapRef.getMap().flyTo({
+      mapRef.current.getMap().flyTo({
         center: [lng, lat],
         zoom: 16,
         duration: 1500,
@@ -36,13 +23,5 @@ export function SearchFeature({
     }
   };
 
-  return (
-    <SearchBox
-      mapCenter={mapCenter}
-      onSelectResult={handleSearchResultSelect}
-      mobileActiveMode={mobileActiveMode}
-      setMobileActiveMode={setMobileActiveMode}
-      mapType={mapType}
-    />
-  );
+  return <SearchBox onSelectResult={handleSearchResultSelect} />;
 }

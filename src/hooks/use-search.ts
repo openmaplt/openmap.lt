@@ -38,7 +38,7 @@ export function useSearch(
     return () => {
       clearTimeout(timer);
     };
-  }, [query, mapCenter, mapType]);
+  }, [query, mapCenter.lat, mapCenter.lng, mapType]);
 
   return { results, loading };
 }

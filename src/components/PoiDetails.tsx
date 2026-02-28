@@ -1,6 +1,5 @@
 "use client";
 
-import type { Feature } from "geojson";
 import { MapPin } from "lucide-react";
 import { Marker } from "react-map-gl/maplibre";
 import { PoiContent } from "@/components/PoiContent";
@@ -13,15 +12,14 @@ import {
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
 import { getFeatureCenter } from "@/lib/poiHelpers";
+import { useMapActions, useMapSelection } from "@/providers/MapProvider";
 
-interface PoiDetailsProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  feature: Feature | null;
-}
-
-export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
+export function PoiDetails() {
+  const { selectedFeature: feature } = useMapSelection();
+  const { handleOnPoiDetailsClose: onOpenChange } = useMapActions();
   const isMobile = useIsMobile();
+
+  const open = !!feature;
 
   const center = getFeatureCenter(feature);
 
@@ -48,6 +46,7 @@ export function PoiDetails({ open, onOpenChange, feature }: PoiDetailsProps) {
         <SheetContent
           side={isMobile ? "bottom" : "left"}
           className="overflow-y-auto gap-1"
+          aria-describedby={undefined}
         >
           <SheetHeader>
             <SheetTitle className="text-lg text-foreground mr-5">

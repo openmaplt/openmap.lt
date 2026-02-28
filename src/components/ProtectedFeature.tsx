@@ -1,24 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useMap } from "react-map-gl/maplibre";
 import { ProtectedFilter } from "@/components/ProtectedFilter";
-import { PROTECTED_FILTERS } from "@/config/protected-filters";
+import { type FilterItem, PROTECTED_FILTERS } from "@/config/protected-filters";
+import { useMapActions } from "@/providers/MapProvider";
 
 export function ProtectedFeature() {
-  const { current: mapRef } = useMap();
+  const { mapRef } = useMapActions();
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
-    PROTECTED_FILTERS.map((f) => f.id),
+    PROTECTED_FILTERS.map((f: FilterItem) => f.id),
   );
 
   useEffect(() => {
-    const map = mapRef?.getMap();
+    const map = mapRef.current?.getMap();
     if (!map) return;
 
     const updateLayerVisibility = () => {
-      PROTECTED_FILTERS.forEach((filter) => {
+      PROTECTED_FILTERS.forEach((filter: FilterItem) => {
         const isVisible = selectedTypes.includes(filter.id);
-        filter.layers.forEach((layerId) => {
+        filter.layers.forEach((layerId: string) => {
           if (map.getLayer(layerId)) {
             map.setLayoutProperty(
               layerId,
@@ -42,8 +42,6 @@ export function ProtectedFeature() {
     <ProtectedFilter
       selectedTypes={selectedTypes}
       onTypesChange={setSelectedTypes}
-      mobileActiveMode={null}
-      setMobileActiveMode={() => {}}
     />
   );
 }

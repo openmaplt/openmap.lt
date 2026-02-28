@@ -1,22 +1,15 @@
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { useMap } from "react-map-gl/maplibre";
 import { Button } from "@/components/ui/button";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
 import { cn } from "@/lib/utils";
+import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
-type MapStyleSwitcherProps = {
-  activeMapProfile: MapProfile;
-  onChangeMapProfile: (profile: MapProfile) => void;
-  className?: string;
-};
-
-export function MapStyleSwitcher({
-  activeMapProfile,
-  onChangeMapProfile,
-}: MapStyleSwitcherProps) {
-  const { current: mapRef } = useMap();
+export function MapStyleSwitcher() {
+  const { mapRef, handleOnChangeMapProfile: onChangeMapProfile } =
+    useMapActions();
+  const { activeMapProfile } = useMapConfig();
   const [isOpen, setIsOpen] = useState(false);
   const [mapStyleIndex, setMapStyleIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,7 +18,9 @@ export function MapStyleSwitcher({
 
   const handleStyleChange = () => {
     setMapStyleIndex(nextMapIndex);
-    mapRef?.getMap().setStyle(activeMapProfile.mapStyles[nextMapIndex].style);
+    mapRef.current
+      ?.getMap()
+      .setStyle(activeMapProfile.mapStyles[nextMapIndex].style);
   };
 
   const handleChangeMapProfile = (profile: MapProfile) => {
@@ -85,6 +80,7 @@ export function MapStyleSwitcher({
                 alt={profile.mapStyles[0].name}
                 priority={false}
                 fill
+                sizes="80px"
                 className="object-cover"
               />
               <span className="absolute bottom-0 w-full text-center bg-white/80 text-xs font-medium text-black py-0.5 backdrop-blur-sm">
@@ -120,8 +116,9 @@ export function MapStyleSwitcher({
               <Image
                 src={activeMapProfile.mapStyles[nextMapIndex].image}
                 alt={activeMapProfile.mapStyles[nextMapIndex].name}
-                priority={false}
+                priority
                 fill
+                sizes="80px"
                 className="object-cover"
                 unoptimized
               />

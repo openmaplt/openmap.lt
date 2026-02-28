@@ -1,34 +1,41 @@
 import type { Feature } from "geojson";
 import type { MapSourceDataEvent } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
-import { useMap } from "react-map-gl/maplibre";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { PROTECTED_FILTERS } from "@/config/protected-filters";
 import { useMapInteraction } from "@/hooks/use-map-interaction";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { getPoiFromObjectId } from "@/lib/poiHelpers";
+import {
+  useMapActions,
+  useMapConfig,
+  useMapSelection,
+} from "@/providers/MapProvider";
 
-interface PoiInteractionProps {
-  poiId?: string | null;
-  onSelectFeature: (feature: Feature | null) => void;
-  layers?: string[];
-  getLayerLabel?: (layerId: string) => string;
-  mapType?: string | null;
-}
+export function PoiInteraction() {
+  const { mapRef, setSelectedFeature: onSelectFeature } = useMapActions();
+  const { activeMapProfile } = useMapConfig();
+  const { selectedPoiId: poiId } = useMapSelection();
 
-export function PoiInteraction({
-  onSelectFeature,
-  poiId,
-  layers = [],
-  getLayerLabel,
-  mapType,
-}: PoiInteractionProps) {
-  const { current: mapRef } = useMap();
+  const layers = activeMapProfile.interactiveLayers || [];
+  const mapType = activeMapProfile.mapType;
+
+  const getLayerLabel = (layerId: string) => {
+    if (activeMapProfile.id === "protected") {
+      return (
+        PROTECTED_FILTERS.find((f) => f.layers.includes(layerId))?.label ||
+        layerId
+      );
+    }
+    return layerId;
+  };
+
   const { enrichFeature } = usePoiEnrichment(mapType);
   const lastSelectedPoiIdRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
@@ -69,7 +76,7 @@ export function PoiInteraction({
     // If already selected, don't re-select
     if (lastSelectedPoiIdRef.current === poiId) return;
 
-    const map = mapRef?.getMap();
+    const map = mapRef.current?.getMap();
     if (!map) return;
 
     const displayPoi = async () => {
@@ -120,7 +127,11 @@ export function PoiInteraction({
       open={candidateFeatures.length > 0}
       onOpenChange={(open) => !open && setCandidateFeatures([])}
     >
-      <SheetContent side={isMobile ? "bottom" : "left"} className="p-0 gap-0">
+      <SheetContent
+        side={isMobile ? "bottom" : "left"}
+        className="p-0 gap-0"
+        aria-describedby={undefined}
+      >
         <SheetHeader className="p-4 border-b">
           <SheetTitle>Pasirinkite objektą</SheetTitle>
         </SheetHeader>
