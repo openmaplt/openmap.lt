@@ -4,11 +4,15 @@ import { SearchFeature } from "@/components/SearchFeature";
 import { SelectedPlaceMarker } from "@/components/SelectedPlaceMarker";
 
 type ProtectedProfileComponents = {
+  bbox?: any;
   onSelectFeature: (feature: Feature | null) => void;
   selectedFeature: Feature | null;
   mobileActiveMode: "search" | "filter" | null;
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
   mapCenter: { lat: number; lng: number };
+  poiId?: string | null;
+  initialFilterType?: string;
+  mapType?: string | null;
 };
 
 export function ProtectedProfileComponents({
@@ -17,6 +21,7 @@ export function ProtectedProfileComponents({
   mobileActiveMode,
   setMobileActiveMode,
   mapCenter,
+  mapType,
 }: ProtectedProfileComponents) {
   return (
     <>
@@ -25,6 +30,7 @@ export function ProtectedProfileComponents({
         onSelectFeature={onSelectFeature}
         mobileActiveMode={mobileActiveMode}
         setMobileActiveMode={setMobileActiveMode}
+        mapType={mapType}
       />
       <ProtectedFeature />
       {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}

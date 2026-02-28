@@ -13,6 +13,7 @@ type PlacesProfileComponents = {
   mapCenter: { lat: number; lng: number };
   poiId?: string | null;
   initialFilterType?: string;
+  mapType?: string | null;
 };
 
 export function PlacesProfileComponents({
@@ -24,6 +25,7 @@ export function PlacesProfileComponents({
   mapCenter,
   poiId,
   initialFilterType,
+  mapType,
 }: PlacesProfileComponents) {
   return (
     <>
@@ -32,6 +34,7 @@ export function PlacesProfileComponents({
         onSelectFeature={onSelectFeature}
         mobileActiveMode={mobileActiveMode}
         setMobileActiveMode={setMobileActiveMode}
+        mapType={mapType}
       />
       <PlacesFeature
         bbox={bbox}
@@ -40,6 +43,7 @@ export function PlacesProfileComponents({
         setMobileActiveMode={setMobileActiveMode}
         poiId={poiId}
         initialFilterType={initialFilterType}
+        mapType={mapType}
       />
       {selectedFeature && <SelectedPlaceMarker feature={selectedFeature} />}
     </>

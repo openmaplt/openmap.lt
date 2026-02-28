@@ -5,6 +5,7 @@ import { search } from "@/data/search";
 export function useSearch(
   query: string,
   mapCenter: { lat: number; lng: number },
+  mapType?: string | null,
 ) {
   const [results, setResults] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,11 @@ export function useSearch(
 
     const fetchResults = async () => {
       try {
-        const data = await search(query, [mapCenter.lng, mapCenter.lat]);
+        const data = await search(
+          query,
+          [mapCenter.lng, mapCenter.lat],
+          mapType,
+        );
         setResults(data.features || []);
       } catch (error) {
         console.error("Search error:", error);
@@ -33,7 +38,7 @@ export function useSearch(
     return () => {
       clearTimeout(timer);
     };
-  }, [query, mapCenter]);
+  }, [query, mapCenter, mapType]);
 
   return { results, loading };
 }

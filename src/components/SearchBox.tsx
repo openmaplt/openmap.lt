@@ -20,6 +20,7 @@ interface SearchBoxProps {
   onSelectResult: (feature: Feature) => void;
   mobileActiveMode: "search" | "filter" | null;
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
+  mapType?: string | null;
 }
 
 export function SearchBox({
@@ -27,12 +28,13 @@ export function SearchBox({
   onSelectResult,
   mobileActiveMode,
   setMobileActiveMode,
+  mapType,
 }: SearchBoxProps) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { results, loading } = useSearch(query, mapCenter);
+  const { results, loading } = useSearch(query, mapCenter, mapType);
 
   const isMobile = useIsMobile();
 

@@ -17,6 +17,7 @@ interface PlacesFeatureProps {
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
   poiId?: string | null;
   initialFilterType?: string;
+  mapType?: string | null;
 }
 
 export function PlacesFeature({
@@ -26,6 +27,7 @@ export function PlacesFeature({
   setMobileActiveMode,
   poiId,
   initialFilterType,
+  mapType,
 }: PlacesFeatureProps) {
   const { current: mapRef } = useMap();
   const [filterTypes, setFilterTypes] = useState(() => {
@@ -48,7 +50,7 @@ export function PlacesFeature({
 
   // Fetch places based on bbox and filter types
   const { places } = usePlaces(bbox, filterTypes);
-  const { enrichFeature } = usePoiEnrichment();
+  const { enrichFeature } = usePoiEnrichment(mapType);
 
   // Handle map events for the layer
   useEffect(() => {

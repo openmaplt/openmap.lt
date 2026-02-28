@@ -18,6 +18,7 @@ interface PoiInteractionProps {
   onSelectFeature: (feature: Feature | null) => void;
   layers?: string[];
   getLayerLabel?: (layerId: string) => string;
+  mapType?: string | null;
 }
 
 export function PoiInteraction({
@@ -25,9 +26,10 @@ export function PoiInteraction({
   poiId,
   layers = [],
   getLayerLabel,
+  mapType,
 }: PoiInteractionProps) {
   const { current: mapRef } = useMap();
-  const { enrichFeature } = usePoiEnrichment();
+  const { enrichFeature } = usePoiEnrichment(mapType);
   const lastSelectedPoiIdRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
   const [candidateFeatures, setCandidateFeatures] = useState<Feature[]>([]);
@@ -50,7 +52,7 @@ export function PoiInteraction({
         onSelectFeature(enriched);
         setCandidateFeatures([]);
       } else {
-        console.log("Multiple features selected:", features)
+        console.log("Multiple features selected:", features);
         setCandidateFeatures(features);
       }
     },

@@ -11,12 +11,14 @@ const EMPTY_SEARCH_RESULT: FeatureCollection = {
 export async function search(
   text: string,
   pos: [number, number],
+  mapType?: string | null,
 ): Promise<FeatureCollection> {
   try {
     const result = await query("SELECT places.search($1::jsonb) as result", [
       JSON.stringify({
         text,
         pos,
+        mapType,
       }),
     ]);
 

@@ -76,7 +76,9 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
     );
   });
   const [bbox, setBbox] = useState<LngLatBounds | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(initialPoiData);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
+    initialPoiData,
+  );
   const [mobileActiveMode, setMobileActiveMode] = useState<
     "search" | "filter" | null
   >(null);
@@ -188,12 +190,14 @@ export default function MapPage({ initialPoiData }: MapPageProps) {
           }}
           poiId={selectedPoiId}
           initialFilterType={initialPoiData?.filter}
+          mapType={activeMapProfile.mapType}
         />
       )}
       <PoiInteraction
         onSelectFeature={setSelectedFeature}
         poiId={selectedPoiId}
         layers={activeMapProfile.interactiveLayers}
+        mapType={activeMapProfile.mapType}
         getLayerLabel={(layerId) => {
           if (activeMapProfile.id === "protected") {
             return (

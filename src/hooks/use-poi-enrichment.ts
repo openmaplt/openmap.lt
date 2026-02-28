@@ -4,7 +4,7 @@ import type { Feature } from "geojson";
 import { useCallback } from "react";
 import { getPoiInfo } from "@/data/poiInfo";
 
-export function usePoiEnrichment() {
+export function usePoiEnrichment(mapType?: string | null) {
   const enrichFeature = useCallback(
     async (feature: Feature | null): Promise<Feature | null> => {
       if (!feature) return null;
@@ -15,7 +15,7 @@ export function usePoiEnrichment() {
 
       if (source === "stvk" && id) {
         try {
-          const poiFeature = await getPoiInfo(id, "s");
+          const poiFeature = await getPoiInfo(id, mapType);
           console.log("Enriched POI info:", poiFeature);
           if (poiFeature) {
             return poiFeature;
@@ -27,7 +27,7 @@ export function usePoiEnrichment() {
 
       return feature;
     },
-    [],
+    [mapType],
   );
 
   return { enrichFeature };

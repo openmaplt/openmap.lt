@@ -9,6 +9,7 @@ interface SearchFeatureProps {
   onSelectFeature: (feature: Feature | null) => void;
   mobileActiveMode: "search" | "filter" | null;
   setMobileActiveMode: (mode: "search" | "filter" | null) => void;
+  mapType?: string | null;
 }
 
 export function SearchFeature({
@@ -16,9 +17,10 @@ export function SearchFeature({
   onSelectFeature,
   mobileActiveMode,
   setMobileActiveMode,
+  mapType,
 }: SearchFeatureProps) {
   const { current: mapRef } = useMap();
-  const { enrichFeature } = usePoiEnrichment();
+  const { enrichFeature } = usePoiEnrichment(mapType);
 
   const handleSearchResultSelect = async (feature: Feature) => {
     const center = getFeatureCenter(feature);
@@ -40,6 +42,7 @@ export function SearchFeature({
       onSelectResult={handleSearchResultSelect}
       mobileActiveMode={mobileActiveMode}
       setMobileActiveMode={setMobileActiveMode}
+      mapType={mapType}
     />
   );
 }
