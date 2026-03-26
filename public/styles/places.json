@@ -149,7 +149,7 @@
       "source": "tilezen",
       "source-layer": "landuse",
       "minzoom": 6,
-      "filter": ["all", ["in", "kind", "residential"]],
+      "filter": ["all", ["in", "kind", "residential", "garages"]],
       "paint": { "fill-color": "rgba(221, 221, 221, 1)", "fill-opacity": 1 }
     },
     {
