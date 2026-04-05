@@ -59,7 +59,7 @@ const SHOW_ATTRIBUTES = [
   "name",
   "official_name",
   "alt_name",
-  "street",
+  "address",
   "opening_hours",
   "email",
   "phone",
@@ -77,7 +77,7 @@ const SHOW_ATTRIBUTES = [
 const ATTRIBUTE_LABELS: Record<string, string> = {
   official_name: "Oficialus pavadinimas",
   alt_name: "Kiti pavadinimai",
-  street: "Adresas",
+  address: "Adresas",
   email: "E-paštas",
   phone: "Telefono nr.",
   fee: "Mokestis",
@@ -94,7 +94,7 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
   heritage: "Landmark",
   wikipedia: "BookOpen",
   height: "Ruler",
-  street: "MapPin",
+  address: "MapPin",
   beer_styles: "Beer",
   description: "BookOpen",
 };
