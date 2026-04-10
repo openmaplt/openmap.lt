@@ -70,7 +70,7 @@
       "source-layer": "landuse",
       "minzoom": 6,
       "filter": ["all", ["in", "kind", "meadow"]],
-      "paint": { "fill-color": "rgba(228,255,189,1)", "fill-opacity": 1 }
+      "paint": { "fill-color": "rgba(220,250,185,1)", "fill-opacity": 1 }
     },
     {
       "id": "landuse-sand",
@@ -107,7 +107,7 @@
       "source-layer": "landuse",
       "minzoom": 6,
       "filter": ["all", ["in", "kind", "farmland"]],
-      "paint": { "fill-color": "rgba(250, 250, 225, 1)", "fill-opacity": 1 }
+      "paint": { "fill-color": "rgba(240, 240, 215, 1)", "fill-opacity": 1 }
     },
     {
       "id": "landuse-marsh-symbol",
@@ -159,7 +159,7 @@
       "source-layer": "landuse",
       "minzoom": 6,
       "filter": ["all", ["in", "kind", "industrial"]],
-      "paint": { "fill-color": "rgba(244,229,234,1)", "fill-opacity": 1 }
+      "paint": { "fill-color": "rgba(245,230,255,1)", "fill-opacity": 1 }
     },
     {
       "id": "landuse-allotments",
@@ -265,7 +265,7 @@
       "layout": {},
       "paint": {
         "line-color": "rgba(149, 154, 212, 0.8)",
-        "line-width": { "stops": [[7, 0], [12, 1]] }
+        "line-width": { "stops": [[9, 0], [12, 0.9]] }
       }
     },
     {
@@ -481,7 +481,7 @@
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
         "line-color": "rgba(91, 79, 80, 1)",
-        "line-width": { "base": 1.55, "stops": [[5, 3], [20, 30]] }
+        "line-width": { "base": 1.55, "stops": [[7, 2], [20, 30]] }
       }
     },
     {
@@ -493,7 +493,7 @@
       "layout": { "line-join": "round", "line-cap": "butt" },
       "paint": {
         "line-color": "rgba(78, 57, 58, 1)",
-        "line-width": { "base": 1.55, "stops": [[5, 3], [20, 40]] }
+        "line-width": { "base": 1.55, "stops": [[6, 2.5], [20, 40]] }
       }
     },
     {
@@ -645,7 +645,7 @@
       "layout": { "line-join": "round", "line-cap": "round" },
       "paint": {
         "line-color": "rgba(217, 130, 140, 1)",
-        "line-width": { "base": 1.55, "stops": [[5, 1.5], [20, 25]] }
+        "line-width": { "base": 1.55, "stops": [[7, 1], [20, 25]] }
       }
     },
     {
@@ -657,7 +657,7 @@
       "layout": { "line-join": "round", "line-cap": "butt" },
       "paint": {
         "line-color": "rgba(190, 80, 90, 1)",
-        "line-width": { "base": 1.55, "stops": [[5, 1.5], [20, 34]] }
+        "line-width": { "base": 1.55, "stops": [[6, 1.3], [20, 34]] }
       }
     },
     {
