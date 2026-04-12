@@ -42,12 +42,17 @@ interface MapTransformContextType {
 interface MapSelectionContextType {
   selectedFeature: Feature | null;
   selectedPoiId: string | null;
+  routeStart: Feature | null;
+  routeEnd: Feature | null;
+  highlightedRoutePoint: [number, number] | null;
 }
 
 // Config Context - For map profile and UI modes
 interface MapConfigContextType {
   activeMapProfile: MapProfile;
-  mobileActiveMode: "search" | "filter" | null;
+  mobileActiveMode: "search" | "filter" | "routing" | null;
+  routingMode: boolean;
+  selectedRouteProfile: "car" | "bike" | "foot" | "kayak" | null;
 }
 
 // Actions Context - For stable functions and refs
@@ -58,7 +63,14 @@ interface MapActionsContextType {
   setBbox: (bbox: LngLatBounds | null) => void;
   setSelectedFeature: (feature: Feature | null) => void;
   setSelectedPoiId: (id: string | null) => void;
-  setMobileActiveMode: (mode: "search" | "filter" | null) => void;
+  setRouteStart: (feature: Feature | null) => void;
+  setRouteEnd: (feature: Feature | null) => void;
+  setMobileActiveMode: (mode: "search" | "filter" | "routing" | null) => void;
+  setRoutingMode: (mode: boolean) => void;
+  setSelectedRouteProfile: (
+    profile: "car" | "bike" | "foot" | "kayak" | null,
+  ) => void;
+  setHighlightedRoutePoint: (point: [number, number] | null) => void;
   handleOnChangeMapProfile: (profile: MapProfile) => void;
   handleOnPoiDetailsClose: () => void;
 }
@@ -160,9 +172,18 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     initialPoiData,
   );
   const [mobileActiveMode, setMobileActiveMode] = useState<
-    "search" | "filter" | null
+    "search" | "filter" | "routing" | null
   >(null);
+  const [routingMode, setRoutingMode] = useState(false);
+  const [routeStart, setRouteStart] = useState<Feature | null>(null);
+  const [routeEnd, setRouteEnd] = useState<Feature | null>(null);
   const [selectedPoiId, setSelectedPoiId] = useState(poiIdFromUrl ?? null);
+  const [selectedRouteProfile, setSelectedRouteProfile] = useState<
+    "car" | "bike" | "foot" | "kayak" | null
+  >(() => (activeMapProfile.routingProfiles?.[0] as any) || null);
+  const [highlightedRoutePoint, setHighlightedRoutePoint] = useState<
+    [number, number] | null
+  >(null);
 
   // Sync map state to URL and LocalStorage
   useMapSync(viewState, activeMapProfile, selectedFeature);
@@ -186,6 +207,12 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     setActiveMapProfile(profile);
     setSelectedPoiId(null);
     setSelectedFeature(null);
+    setRouteStart(null);
+    setRouteEnd(null);
+    setRoutingMode(false);
+    setMobileActiveMode(null);
+    setSelectedRouteProfile((profile.routingProfiles?.[0] as any) || null);
+    setHighlightedRoutePoint(null);
   }, []);
 
   const handleOnPoiDetailsClose = useCallback(() => {
@@ -199,12 +226,29 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     [viewState, bbox],
   );
   const selectionValue = useMemo(
-    () => ({ selectedFeature, selectedPoiId }),
-    [selectedFeature, selectedPoiId],
+    () => ({
+      selectedFeature,
+      selectedPoiId,
+      routeStart,
+      routeEnd,
+      highlightedRoutePoint,
+    }),
+    [
+      selectedFeature,
+      selectedPoiId,
+      routeStart,
+      routeEnd,
+      highlightedRoutePoint,
+    ],
   );
   const configValue = useMemo(
-    () => ({ activeMapProfile, mobileActiveMode }),
-    [activeMapProfile, mobileActiveMode],
+    () => ({
+      activeMapProfile,
+      mobileActiveMode,
+      routingMode,
+      selectedRouteProfile,
+    }),
+    [activeMapProfile, mobileActiveMode, routingMode, selectedRouteProfile],
   );
 
   const actionsValue = useMemo(
@@ -215,7 +259,12 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
       setBbox,
       setSelectedFeature,
       setSelectedPoiId,
+      setRouteStart,
+      setRouteEnd,
       setMobileActiveMode,
+      setRoutingMode,
+      setSelectedRouteProfile,
+      setHighlightedRoutePoint,
       handleOnChangeMapProfile,
       handleOnPoiDetailsClose,
     }),

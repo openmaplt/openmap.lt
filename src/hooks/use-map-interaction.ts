@@ -23,14 +23,19 @@ export function useMapInteraction({
     if (!map || !enabled) return;
 
     const handleMouseEnter = () => {
-      map.getCanvas().style.cursor = "pointer";
+      if (!map) return;
+      const canvas = map.getCanvas();
+      if (canvas) canvas.style.cursor = "pointer";
     };
 
     const handleMouseLeave = () => {
-      map.getCanvas().style.cursor = "";
+      if (!map) return;
+      const canvas = map.getCanvas();
+      if (canvas) canvas.style.cursor = "";
     };
 
     const handleMapClick = async (e: MapLayerMouseEvent) => {
+      if (!map) return;
       const activeLayers = layers.filter((l) => map.getLayer(l));
 
       // Find features from our target layers
@@ -43,6 +48,7 @@ export function useMapInteraction({
     };
 
     const cleanup = () => {
+      if (!map) return;
       map.off("click", handleMapClick);
       for (const layerId of layers) {
         if (map.getLayer(layerId)) {
@@ -53,6 +59,7 @@ export function useMapInteraction({
     };
 
     const setupHandlers = () => {
+      if (!map) return;
       cleanup();
       map.on("click", handleMapClick);
       for (const layerId of layers) {
@@ -69,8 +76,10 @@ export function useMapInteraction({
     map.on("styledata", setupHandlers);
 
     return () => {
-      cleanup();
-      map.off("styledata", setupHandlers);
+      if (map) {
+        cleanup();
+        map.off("styledata", setupHandlers);
+      }
     };
   }, [mapRef, layers, onSelectFeatures, enabled]);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Feature } from "geojson";
-import { Search, X } from "lucide-react";
+import { Navigation, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,8 +26,8 @@ interface SearchBoxProps {
 
 export function SearchBox({ onSelectResult }: SearchBoxProps) {
   const { viewState } = useMapTransform();
-  const { activeMapProfile, mobileActiveMode } = useMapConfig();
-  const { setMobileActiveMode } = useMapActions();
+  const { activeMapProfile, mobileActiveMode, routingMode } = useMapConfig();
+  const { setMobileActiveMode, setRoutingMode } = useMapActions();
   const mapCenter = {
     lat: viewState?.latitude || 0,
     lng: viewState?.longitude || 0,
@@ -71,6 +71,8 @@ export function SearchBox({ onSelectResult }: SearchBoxProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setMobileActiveMode, isMobile]);
 
+  if (routingMode) return null;
+
   return (
     <div
       ref={containerRef}
@@ -104,6 +106,20 @@ export function SearchBox({ onSelectResult }: SearchBoxProps) {
               </InputGroupButton>
             </InputGroupAddon>
           )}
+          {activeMapProfile.routingProfiles &&
+            activeMapProfile.routingProfiles.length > 0 && (
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  onClick={() => {
+                    setRoutingMode(true);
+                    setMobileActiveMode("routing");
+                  }}
+                  title="Maršrutas"
+                >
+                  <Navigation className="w-4 h-4 text-blue-500" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            )}
         </InputGroup>
       )}
 
