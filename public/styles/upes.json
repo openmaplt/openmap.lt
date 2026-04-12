@@ -159,7 +159,7 @@
       "id": "waterway-other",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 14,
       "filter": ["all", ["==", "$type", "LineString"], ["in", "kind", "ditch"]],
       "paint": {
@@ -171,7 +171,7 @@
       "id": "waterway-river",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 6,
       "filter": [
         "all",
@@ -189,7 +189,7 @@
       "id": "waterway-stream-etc",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 11,
       "filter": [
         "all",
@@ -209,7 +209,7 @@
       "id": "waterway-stream-etc-fill",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 15,
       "filter": [
         "all",
@@ -226,7 +226,7 @@
       "id": "waterway-stream-direction",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 16,
       "maxzoom": 24,
       "filter": ["all", ["in", "kind", "stream", "canal"]],
@@ -265,7 +265,7 @@
       "id": "waterway-river-fill",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 12,
       "maxzoom": 20,
       "filter": [
@@ -284,7 +284,7 @@
       "id": "waterway-river-direction",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 15,
       "maxzoom": 24,
       "filter": ["all", ["==", "kind", "river"], ["==", "virtual", "N"]],
@@ -300,7 +300,7 @@
       "id": "waterway-virtual",
       "type": "line",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 6,
       "filter": [
         "all",
@@ -1479,10 +1479,7 @@
       "source-layer": "point",
       "minzoom": 12,
       "filter": ["all"],
-      "layout": {
-        "icon-image": "{kind}",
-        "icon-allow-overlap": true
-      }
+      "layout": { "icon-image": "{kind}", "icon-allow-overlap": true }
     }
   ],
   "id": "asgr00hhi",
