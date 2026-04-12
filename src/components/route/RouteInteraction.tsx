@@ -22,8 +22,11 @@ export function RouteInteraction() {
   useEffect(() => {
     if (!map) return;
 
+    let touchTimeout: any;
+    let touchStartDetail: { x: number; y: number } | null = null;
+
     const handleContextMenu = (e: any) => {
-      e.originalEvent.preventDefault();
+      if (e.originalEvent) e.originalEvent.preventDefault();
 
       const features = map.queryRenderedFeatures(e.point);
       let name = "Pažymėtas taškas";
@@ -40,15 +43,49 @@ export function RouteInteraction() {
       });
     };
 
+    const handleTouchStart = (e: any) => {
+      if (e.originalEvent.touches.length > 1) {
+        clearTimeout(touchTimeout);
+        return;
+      }
+      touchStartDetail = { x: e.point.x, y: e.point.y };
+      touchTimeout = setTimeout(() => {
+        handleContextMenu(e);
+      }, 600);
+    };
+
+    const handleTouchEnd = () => {
+      clearTimeout(touchTimeout);
+      touchStartDetail = null;
+    };
+
+    const handleTouchMove = (e: any) => {
+      if (!touchStartDetail) return;
+      const dist = Math.sqrt(
+        (e.point.x - touchStartDetail.x) ** 2 +
+          (e.point.y - touchStartDetail.y) ** 2,
+      );
+      if (dist > 10) {
+        clearTimeout(touchTimeout);
+      }
+    };
+
     const closeMenu = () => setMenuData(null);
 
     map.on("contextmenu", handleContextMenu);
+    map.on("touchstart", handleTouchStart);
+    map.on("touchend", handleTouchEnd);
+    map.on("touchmove", handleTouchMove);
     map.on("click", closeMenu);
     map.on("drag", closeMenu);
     map.on("zoom", closeMenu);
 
     return () => {
+      clearTimeout(touchTimeout);
       map.off("contextmenu", handleContextMenu);
+      map.off("touchstart", handleTouchStart);
+      map.off("touchend", handleTouchEnd);
+      map.off("touchmove", handleTouchMove);
       map.off("click", closeMenu);
       map.off("drag", closeMenu);
       map.off("zoom", closeMenu);
@@ -79,22 +116,22 @@ export function RouteInteraction() {
 
   return (
     <div
-      className="absolute z-50 bg-white rounded-md shadow-lg border border-gray-200 py-1 flex flex-col min-w-[160px]"
+      className="absolute z-50 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 flex flex-col min-w-[200px] animate-in fade-in zoom-in-95 duration-100"
       style={{ left: menuData.x, top: menuData.y }}
     >
       <button
         type="button"
-        className="px-4 py-2 text-sm text-left hover:bg-gray-100 text-gray-800"
+        className="px-5 py-3 text-[15px] font-medium text-left hover:bg-gray-50 text-gray-900 transition-colors first:rounded-t-xl"
         onClick={() => handleSetPoint("start")}
       >
-        Maršrutas iš čia
+        🚩 Maršrutas iš čia
       </button>
       <button
         type="button"
-        className="px-4 py-2 text-sm text-left hover:bg-gray-100 text-gray-800"
+        className="px-5 py-3 text-[15px] font-medium text-left hover:bg-gray-50 text-gray-900 transition-colors last:rounded-b-xl"
         onClick={() => handleSetPoint("end")}
       >
-        Maršrutas į čia
+        🏁 Maršrutas į čia
       </button>
     </div>
   );
