@@ -1,6 +1,6 @@
 "use client";
 
-import { Bike, Car, Footprints, Navigation } from "lucide-react";
+import { Bike, Car, Footprints, Navigation, Sailboat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useMapActions, useMapConfig } from "@/providers/MapProvider";
@@ -10,8 +10,8 @@ interface VehicleSelectorProps {
 }
 
 export function VehicleSelector({ className }: VehicleSelectorProps) {
-  const { activeMapProfile, selectedVehicle } = useMapConfig();
-  const { setSelectedVehicle } = useMapActions();
+  const { activeMapProfile, selectedRouteProfile } = useMapConfig();
+  const { setSelectedRouteProfile } = useMapActions();
 
   if (
     !activeMapProfile.routingProfiles ||
@@ -23,7 +23,7 @@ export function VehicleSelector({ className }: VehicleSelectorProps) {
   return (
     <div className={cn("flex gap-2", className)}>
       {activeMapProfile.routingProfiles.map((profile) => {
-        const isSelected = selectedVehicle === profile;
+        const isSelected = selectedRouteProfile === profile;
         const Icon =
           profile === "car"
             ? Car
@@ -31,7 +31,9 @@ export function VehicleSelector({ className }: VehicleSelectorProps) {
               ? Bike
               : profile === "foot"
                 ? Footprints
-                : Navigation;
+                : profile === "kayak"
+                  ? Sailboat
+                  : Navigation;
 
         return (
           <Button
@@ -44,7 +46,7 @@ export function VehicleSelector({ className }: VehicleSelectorProps) {
                 ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : "text-gray-600 border-gray-200",
             )}
-            onClick={() => setSelectedVehicle(profile)}
+            onClick={() => setSelectedRouteProfile(profile)}
           >
             <Icon className="w-4 h-4" />
             <span className="capitalize text-xs">
@@ -54,7 +56,9 @@ export function VehicleSelector({ className }: VehicleSelectorProps) {
                   ? "Dviratis"
                   : profile === "foot"
                     ? "Pėsčiomis"
-                    : profile}
+                    : profile === "kayak"
+                      ? "Baidarė"
+                      : profile}
             </span>
           </Button>
         );

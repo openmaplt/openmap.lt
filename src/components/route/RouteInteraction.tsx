@@ -8,7 +8,8 @@ import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 export function RouteInteraction() {
   const { current: map } = useMap();
   const { routingMode } = useMapConfig();
-  const { setRouteStart, setRouteEnd } = useMapActions();
+  const { setRouteStart, setRouteEnd, setRoutingMode, setMobileActiveMode } =
+    useMapActions();
 
   const [menuData, setMenuData] = useState<{
     x: number;
@@ -19,7 +20,7 @@ export function RouteInteraction() {
   } | null>(null);
 
   useEffect(() => {
-    if (!map || !routingMode) return;
+    if (!map) return;
 
     const handleContextMenu = (e: any) => {
       e.originalEvent.preventDefault();
@@ -52,7 +53,7 @@ export function RouteInteraction() {
       map.off("drag", closeMenu);
       map.off("zoom", closeMenu);
     };
-  }, [map, routingMode]);
+  }, [map]);
 
   const handleSetPoint = (type: "start" | "end") => {
     if (!menuData) return;
@@ -66,10 +67,15 @@ export function RouteInteraction() {
     if (type === "start") setRouteStart(feature);
     else setRouteEnd(feature);
 
+    if (!routingMode) {
+      setRoutingMode(true);
+      setMobileActiveMode("routing");
+    }
+
     setMenuData(null);
   };
 
-  if (!menuData || !routingMode) return null;
+  if (!menuData) return null;
 
   return (
     <div

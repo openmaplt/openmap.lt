@@ -10,7 +10,6 @@ import { ProtectedProfileComponents } from "@/components/ProtectedProfileCompone
 import { RiverProfileComponents } from "@/components/RiverProfileComponents";
 import { RouteInteraction } from "@/components/route/RouteInteraction";
 import { RouteManager } from "@/components/route/RouteManager";
-import { RoutingUI } from "@/components/route/RoutingUI";
 import { useMapConfig } from "@/providers/MapProvider";
 
 interface MapContentProps {
@@ -40,7 +39,6 @@ export function MapContent({ initialFilterType }: MapContentProps) {
       <PoiDetails />
       <RouteInteraction />
       <RouteManager />
-      <RoutingUI />
     </>
   );
 }

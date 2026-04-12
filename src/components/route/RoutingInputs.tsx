@@ -1,7 +1,7 @@
 "use client";
 
 import type { Feature } from "geojson";
-import { ArrowLeftRight, Navigation, X } from "lucide-react";
+import { ArrowLeftRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/input-group";
 import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
 import { useSearch } from "@/hooks/use-search";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 import {
   useMapActions,
@@ -22,11 +21,10 @@ import {
 } from "@/providers/MapProvider";
 import { VehicleSelector } from "./VehicleSelector";
 
-export function RoutingUI() {
+export function RoutingInputs({ className }: { className?: string }) {
   const { viewState } = useMapTransform();
-  const { mobileActiveMode, routingMode, activeMapProfile } = useMapConfig();
-  const { setMobileActiveMode, setRoutingMode, setRouteStart, setRouteEnd } =
-    useMapActions();
+  const { activeMapProfile } = useMapConfig();
+  const { setRouteStart, setRouteEnd } = useMapActions();
   const { routeStart, routeEnd } = useMapSelection();
 
   const mapCenter = {
@@ -56,12 +54,16 @@ export function RoutingUI() {
   useEffect(() => {
     if (routeStart) {
       setStartQuery(routeStart.properties?.name || "Pasirinkta vieta");
+    } else {
+      setStartQuery("");
     }
   }, [routeStart]);
 
   useEffect(() => {
     if (routeEnd) {
       setEndQuery(routeEnd.properties?.name || "Pasirinkta vieta");
+    } else {
+      setEndQuery("");
     }
   }, [routeEnd]);
 
@@ -92,36 +94,19 @@ export function RoutingUI() {
   const swapEndpoints = () => {
     const tempStart = routeStart;
     const tempEnd = routeEnd;
-    const tempStartQuery = startQuery;
-    const tempEndQuery = endQuery;
-
     setRouteStart(tempEnd);
     setRouteEnd(tempStart);
-    setStartQuery(tempEndQuery);
-    setEndQuery(tempStartQuery);
-  };
-
-  const closeRouting = () => {
-    setRoutingMode(false);
-    setMobileActiveMode(null);
-    setRouteStart(null);
-    setRouteEnd(null);
-    setStartQuery("");
-    setEndQuery("");
   };
 
   const getIcon = (type: string) => {
     return PLACE_ICONS[type] || DEFAULT_ICON;
   };
 
-  if (!routingMode) return null;
-
   const renderResults = (type: "start" | "end") => {
     const results = type === "start" ? startResults : endResults;
     const loading = type === "start" ? startLoading : endLoading;
     const query = type === "start" ? startQuery : endQuery;
 
-    // Only show autocomplete if user is typing (active input matches and user isn't just looking at the populated search text)
     const isEditing =
       activeInput === type &&
       ((type === "start" && !routeStart) ||
@@ -132,7 +117,7 @@ export function RoutingUI() {
     if (!isEditing || query.length < 3) return null;
 
     return (
-      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-lg shadow-xl max-h-96 overflow-y-auto animate-in fade-in slide-in-from-top-2 z-20">
+      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-lg shadow-2xl max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-2 z-[100] border border-gray-100">
         <ul className="py-1 text-sm text-gray-700">
           {results.length > 0 ? (
             results.map((feature) => {
@@ -144,23 +129,23 @@ export function RoutingUI() {
               return (
                 <li
                   key={feature.id}
-                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-start gap-3 border-b last:border-b-0 border-gray-100"
+                  className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-start gap-3 border-b last:border-b-0 border-gray-50 transition-colors"
                   onClick={() => handleSelect(feature, type)}
                 >
                   <div
-                    className="p-2 rounded-full shrink-0"
+                    className="p-2 rounded-full shrink-0 shadow-sm"
                     style={{
                       backgroundColor: iconConfig.color,
                       color: "white",
                     }}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3.5 h-3.5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-semibold text-gray-900 truncate">
                       {props.name || "Be pavadinimo"}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-[11px] text-gray-500 truncate mt-0.5">
                       {[
                         props["addr:street"],
                         props["addr:housenumber"],
@@ -171,7 +156,7 @@ export function RoutingUI() {
                     </div>
                   </div>
                   {dist && (
-                    <div className="text-xs text-gray-400 whitespace-nowrap">
+                    <div className="text-xs font-medium text-blue-600 whitespace-nowrap bg-blue-50 px-1.5 py-0.5 rounded">
                       {dist} km
                     </div>
                   )}
@@ -179,7 +164,7 @@ export function RoutingUI() {
               );
             })
           ) : (
-            <li className="py-2 hover:bg-gray-100 cursor-pointer text-center text-muted-foreground border-b last:border-b-0 border-gray-100">
+            <li className="py-4 text-center text-gray-400 text-xs italic">
               {loading ? "Ieškoma..." : "Nieko nerasta"}
             </li>
           )}
@@ -189,40 +174,23 @@ export function RoutingUI() {
   };
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "absolute top-3 left-3 z-10 font-sans transition-all duration-300 ease-in-out bg-white p-3 rounded-xl shadow-lg border border-gray-200 w-auto md:w-[400px]",
-        (mobileActiveMode === "routing" || mobileActiveMode === "search") &&
-          "w-[calc(100%-24px)]",
-      )}
-    >
-      <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-          <Navigation className="w-4 h-4 text-blue-600" /> Maršrutas
-        </h3>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={closeRouting}
-          className="h-8 w-8 text-gray-500 hover:text-gray-800"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <VehicleSelector className="mb-4 px-1" />
+    <div ref={containerRef} className={cn("flex flex-col gap-3", className)}>
+      <VehicleSelector className="w-full" />
 
       <div className="flex gap-2 relative">
         <div className="flex flex-col gap-2 flex-1 relative">
           <div className="relative">
-            <InputGroup className="bg-gray-50 border-gray-200">
+            <InputGroup className="bg-gray-50/80 border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all rounded-lg">
+              <InputGroupAddon>
+                <div className="w-2 h-2 rounded-full bg-green-500 ml-1" />
+              </InputGroupAddon>
               <InputGroupInput
-                placeholder="Pradžios taškas"
+                placeholder="Iš kur..."
                 value={startQuery}
+                className="bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
                 onChange={(e) => {
                   setStartQuery(e.target.value);
-                  if (routeStart) setRouteStart(null); // Clear start feature if user modifies input
+                  if (routeStart) setRouteStart(null);
                 }}
                 onFocus={() => setActiveInput("start")}
               />
@@ -234,7 +202,7 @@ export function RoutingUI() {
                       setRouteStart(null);
                     }}
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3.5 h-3.5" />
                   </InputGroupButton>
                 </InputGroupAddon>
               )}
@@ -243,10 +211,14 @@ export function RoutingUI() {
           </div>
 
           <div className="relative">
-            <InputGroup className="bg-gray-50 border-gray-200">
+            <InputGroup className="bg-gray-50/80 border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all rounded-lg">
+              <InputGroupAddon>
+                <div className="w-2 h-2 rounded-full bg-red-500 ml-1" />
+              </InputGroupAddon>
               <InputGroupInput
-                placeholder="Pabaigos taškas"
+                placeholder="Į kur..."
                 value={endQuery}
+                className="bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
                 onChange={(e) => {
                   setEndQuery(e.target.value);
                   if (routeEnd) setRouteEnd(null);
@@ -261,7 +233,7 @@ export function RoutingUI() {
                       setRouteEnd(null);
                     }}
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3.5 h-3.5" />
                   </InputGroupButton>
                 </InputGroupAddon>
               )}
@@ -274,7 +246,7 @@ export function RoutingUI() {
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9 text-gray-600 hover:text-blue-600 border-gray-200 transition-colors"
+            className="h-9 w-9 text-gray-400 hover:text-blue-600 border-gray-200 hover:border-blue-200 bg-white shadow-sm transition-all"
             onClick={swapEndpoints}
             title="Sukeisti kryptis"
           >

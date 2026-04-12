@@ -15,7 +15,7 @@ interface RouteLayerProps {
 }
 
 export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
-  const { routeStart, routeEnd } = useMapSelection();
+  const { routeStart, routeEnd, highlightedRoutePoint } = useMapSelection();
   const { mapRef, setRouteStart, setRouteEnd } = useMapActions();
 
   useEffect(() => {
@@ -116,6 +116,20 @@ export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
           <div className="w-4 h-4 rounded-full bg-white border-4 border-red-600 shadow-md cursor-move" />
         </Marker>
       )}
+
+      {highlightedRoutePoint && (
+        <Marker
+          longitude={highlightedRoutePoint[0]}
+          latitude={highlightedRoutePoint[1]}
+          anchor="center"
+        >
+          <div className="relative flex h-8 w-8 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+            <span className="relative inline-flex h-4 w-4 rounded-full bg-blue-600 border-2 border-white shadow-lg" />
+          </div>
+        </Marker>
+      )}
+
       {loading && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-gray-200 z-10 font-sans text-sm font-medium text-gray-800 animate-pulse">
           Skaičiuojamas maršrutas...

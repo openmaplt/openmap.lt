@@ -10,6 +10,9 @@ export interface RouteInstruction {
   text: string;
   time: number;
   street_name: string;
+  waterway_milestone_value?: number;
+  waterway_obstacle?: string;
+  waterway_obstacle_description?: string;
 }
 
 interface RouteResult {
@@ -25,7 +28,7 @@ export function useRoute(
   startFeature: Feature | null,
   endFeature: Feature | null,
   routingProfile: string = "car",
-  routingUrl: string = "https://openmap.lt/route",
+  routingUrl: string = "https://nextgen.openmap.lt/route",
 ): RouteResult {
   const [routeLine, setRouteLine] = useState<Feature<LineString> | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
@@ -72,7 +75,7 @@ export function useRoute(
         // GraphHopper Routing API requires points as lat,lng
         url.searchParams.append("point", `${startCoords[1]},${startCoords[0]}`);
         url.searchParams.append("point", `${endCoords[1]},${endCoords[0]}`);
-        url.searchParams.append("vehicle", routingProfile);
+        url.searchParams.append("profile", routingProfile);
         url.searchParams.append("elevation", "false");
         url.searchParams.append("locale", "lt");
         // Get encoded polyline for smaller payload

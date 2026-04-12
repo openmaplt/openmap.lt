@@ -7,10 +7,11 @@ import { RouteLayer } from "./RouteLayer";
 
 export function RouteManager() {
   const { routeStart, routeEnd } = useMapSelection();
-  const { activeMapProfile, selectedVehicle } = useMapConfig();
+  const { activeMapProfile, selectedRouteProfile } = useMapConfig();
   const vehicle =
-    selectedVehicle || activeMapProfile.routingProfiles?.[0] || "car";
-  const routingUrl = activeMapProfile.routingUrl || "https://openmap.lt/route";
+    selectedRouteProfile || activeMapProfile.routingProfiles?.[0] || "car";
+  const routingUrl =
+    activeMapProfile.routingUrl || "https://nextgen.openmap.lt/route";
   const routeResult = useRoute(
     routeStart,
     routeEnd,
