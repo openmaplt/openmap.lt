@@ -161,4 +161,15 @@ export const MAP_PROFILES: MapProfile[] = [
     featureComponent: "protected",
     interactiveLayers: PROTECTED_ACTIVE_LAYERS,
   },
+  {
+    id: "baseinai",
+    mapType: "baseinai",
+    mapStyles: [
+      {
+        name: "Baseinai",
+        style: "/styles/baseinai.json",
+        image: "/maps/map_general.png",
+      },
+    ],
+  },
 ];
