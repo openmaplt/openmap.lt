@@ -168,7 +168,7 @@ export const MAP_PROFILES: MapProfile[] = [
       {
         name: "Baseinai",
         style: "/styles/baseinai.json",
-        image: "/maps/map_general.png",
+        image: "/maps/map_baseinai.png",
       },
     ],
   },
