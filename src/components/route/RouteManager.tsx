@@ -10,13 +10,11 @@ export function RouteManager() {
   const { activeMapProfile, selectedRouteProfile } = useMapConfig();
   const vehicle =
     selectedRouteProfile || activeMapProfile.routingProfiles?.[0] || "car";
-  const routingUrl =
-    activeMapProfile.routingUrl || "https://nextgen.openmap.lt/route";
   const routeResult = useRoute(
     routeStart,
     routeEnd,
     vehicle as any,
-    routingUrl,
+    activeMapProfile.routingUrl,
   );
 
   return (

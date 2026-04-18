@@ -92,7 +92,6 @@ export const MAP_PROFILES: MapProfile[] = [
     interactiveLayers: GENERAL_ACTIVE_LAYERS,
     featureComponent: "river",
     routingProfiles: ["kayak"],
-    routingUrl: "https://nextgen.openmap.lt/route",
   },
   {
     id: "topo",

@@ -28,7 +28,7 @@ export function useRoute(
   startFeature: Feature | null,
   endFeature: Feature | null,
   routingProfile: string = "car",
-  routingUrl: string = "https://nextgen.openmap.lt/route",
+  routingUrl: string = "https://api.openmap.lt/route/route",
 ): RouteResult {
   const [routeLine, setRouteLine] = useState<Feature<LineString> | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
