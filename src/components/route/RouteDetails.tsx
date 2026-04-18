@@ -357,8 +357,7 @@ export function RouteDetails({
                               </div>
                             )}
                           </div>
-
-                          {formatTime(step.time) && (
+                          {!isObstacle && (
                             <p className="text-xs text-gray-400 mt-2.5 flex items-center gap-3">
                               <span className="flex items-center gap-1.5">
                                 <span className="px-1.5 py-0.5 rounded bg-gray-100 text-[10px] font-bold text-gray-500 uppercase">
@@ -368,12 +367,15 @@ export function RouteDetails({
                                   {formatDistance(step.distance)}
                                 </span>
                               </span>
-                              <span className="flex items-center gap-1 text-gray-500">
-                                <span className="opacity-60">⏱️</span>
-                                <span className="font-medium">
-                                  {formatTime(step.time)}
-                                </span>
-                              </span>
+                              {selectedRouteProfile === "kayak" &&
+                                formatTime(step.time) && (
+                                  <span className="flex items-center gap-1 text-gray-500">
+                                    <span className="opacity-60">⏱️</span>
+                                    <span className="font-medium">
+                                      {formatTime(step.time)}
+                                    </span>
+                                  </span>
+                                )}
                             </p>
                           )}
                         </div>
