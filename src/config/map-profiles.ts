@@ -40,7 +40,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "speed",
-    mapType: "e",
+    mapType: "speed",
     mapStyles: [
       {
         name: "Greičiai",
@@ -57,7 +57,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "bicycle",
-    mapType: "b",
+    mapType: "bicycle",
     mapStyles: [
       {
         name: "Dviračiai",
@@ -76,7 +76,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "river",
-    mapType: "r",
+    mapType: "river",
     mapStyles: [
       {
         name: "Upės",
@@ -95,7 +95,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "topo",
-    mapType: "t",
+    mapType: "topo",
     mapStyles: [
       {
         name: "Topografinis",
@@ -112,7 +112,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "craftbeer",
-    mapType: "c",
+    mapType: "craftbeer",
     mapStyles: [
       {
         name: "Alus",
@@ -125,7 +125,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "places",
-    mapType: "p",
+    mapType: "places",
     mapStyles: [
       {
         name: "Lankytinos",
@@ -144,7 +144,7 @@ export const MAP_PROFILES: MapProfile[] = [
   },
   {
     id: "protected",
-    mapType: "s",
+    mapType: "saugomos",
     mapStyles: [
       {
         name: "Saugomos",
