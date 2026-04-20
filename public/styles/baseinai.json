@@ -58,6 +58,63 @@
       "source-layer": "water"
     },
     {
+      "id": "connections",
+      "type": "line",
+      "source": "basins",
+      "source-layer": "basins",
+      "filter": ["all", ["==", "junction", "basins"]],
+      "paint": {
+        "line-color": "rgba(255, 0, 247, 0.7)",
+        "line-width": { "stops": [[6, 1], [15, 25]] }
+      }
+    },
+    {
+      "id": "poly",
+      "type": "fill",
+      "source": "basins",
+      "source-layer": "basins_poly",
+      "minzoom": 6,
+      "maxzoom": 18,
+      "filter": [
+        "all",
+        [
+          "in",
+          "basin",
+          -100,
+          -101,
+          -102,
+          -103,
+          -104,
+          -105,
+          -106,
+          -107,
+          -108,
+          -109,
+          -110
+        ]
+      ],
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "fill-color": {
+          "property": "basin",
+          "stops": [
+            [-110, "#888888"],
+            [-109, "#6666ff"],
+            [-108, "#ff66ff"],
+            [-107, "#ff6666"],
+            [-106, "#ffff66"],
+            [-105, "#70ff70"],
+            [-104, "#66ffff"],
+            [-103, "#ffff66"],
+            [-102, "#6666ff"],
+            [-101, "#ff7070"],
+            [-100, "#70ff70"]
+          ],
+          "type": "categorical"
+        }
+      }
+    },
+    {
       "id": "river-halo",
       "type": "line",
       "source": "basins",
@@ -66,7 +123,7 @@
       "maxzoom": 18,
       "filter": [
         "all",
-        ["==", "waterway", "river"],
+        ["in", "waterway", "river", "canal"],
         [
           "in",
           "basin",
@@ -119,7 +176,7 @@
       "maxzoom": 18,
       "filter": [
         "all",
-        ["==", "waterway", "river"],
+        ["in", "waterway", "river", "canal"],
         [
           "in",
           "basin",
@@ -298,51 +355,6 @@
         },
         "text-halo-width": 1,
         "text-halo-color": "rgba(0, 0, 0, 0.5)"
-      }
-    },
-    {
-      "id": "poly",
-      "type": "fill",
-      "source": "basins",
-      "source-layer": "basins_poly",
-      "minzoom": 6,
-      "maxzoom": 18,
-      "filter": [
-        "all",
-        [
-          "in",
-          "basin",
-          -100,
-          -101,
-          -102,
-          -103,
-          -104,
-          -105,
-          -106,
-          -107,
-          -108,
-          -109,
-          -110
-        ]
-      ],
-      "paint": {
-        "fill-color": {
-          "property": "basin",
-          "stops": [
-            [-110, "#888888"],
-            [-109, "#6666ff"],
-            [-108, "#ff66ff"],
-            [-107, "#ff6666"],
-            [-106, "#ffff66"],
-            [-105, "#70ff70"],
-            [-104, "#66ffff"],
-            [-103, "#ffff66"],
-            [-102, "#6666ff"],
-            [-101, "#ff7070"],
-            [-100, "#70ff70"]
-          ],
-          "type": "categorical"
-        }
       }
     }
   ],
