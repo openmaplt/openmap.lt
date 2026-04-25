@@ -18,7 +18,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.8.0",
     "maplibre-gl": "^5.22.0",
-    "next": "16.2.3",
+    "next": "16.2.4",
     "pg": "^8.20.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",
@@ -42,7 +42,8 @@
   },
   "overrides": {
     "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3"
+    "@types/react-dom": "19.2.3",
+    "postcss": "^8.5.10"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "^1.30.1"
