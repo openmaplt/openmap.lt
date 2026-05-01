@@ -41,6 +41,15 @@
       }
     },
     {
+      "id": "landuse-quary",
+      "type": "fill",
+      "source": "tilezen",
+      "source-layer": "landuse",
+      "minzoom": 7,
+      "filter": ["all", ["in", "kind", "quarry"]],
+      "paint": { "fill-color": "#cccccc", "fill-opacity": 1 }
+    },
+    {
       "id": "landuse-forest",
       "type": "fill",
       "source": "tilezen",
