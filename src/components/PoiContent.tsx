@@ -9,6 +9,7 @@ import {
   MapPin,
   Phone,
   Ruler,
+  Gauge,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import {
@@ -35,6 +36,7 @@ const iconComponents: Record<
   Ruler,
   MapPin,
   Beer,
+  Gauge,
 };
 
 function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
@@ -133,6 +135,10 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
 
     case "description": {
       return <ReactMarkdown>{value}</ReactMarkdown>;
+    }
+
+    case "maxspeed": {
+      return <span className="text-foreground">{value} km/h</span>;
     }
 
     default:

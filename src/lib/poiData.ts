@@ -21,6 +21,7 @@ export interface PoiProperties {
   height?: string;
   fee?: string;
   image?: string;
+  maxspeed?: string;
   [key: string]: string | number | undefined;
 }
 
@@ -41,6 +42,7 @@ export interface PoiAttribute {
     | "height"
     | "fee"
     | "beer_styles"
+    | "maxspeed"
     | "description";
   icon?: string;
   label?: string;
@@ -70,6 +72,7 @@ const SHOW_ATTRIBUTES = [
   "fee",
   "beer_styles",
   "image",
+  "maxspeed",
   "description",
 ];
 
@@ -82,6 +85,7 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   phone: "Telefono nr.",
   fee: "Mokestis",
   beer_styles: "Alaus stiliai",
+  maxspeed: "Maksimalus greitis",
   description: "Aprašymas",
 };
 
@@ -96,6 +100,7 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
   height: "Ruler",
   address: "MapPin",
   beer_styles: "Beer",
+  maxspeed: "Gauge",
   description: "BookOpen",
 };
 
@@ -220,6 +225,8 @@ function getAttributeType(key: string): PoiAttribute["type"] {
       return "fee";
     case "beer_styles":
       return "beer_styles";
+    case "maxspeed":
+      return "maxspeed";
     case "description":
       return "description";
     default:
