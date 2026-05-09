@@ -22,7 +22,7 @@ export function DownloadMenu({
   onOpenChange,
 }: DownloadMenuProps) {
   return (
-    <div className="relative ml-auto">
+    <div className="relative shrink-0">
       <Button
         variant="outline"
         size="sm"

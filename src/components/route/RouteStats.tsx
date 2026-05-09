@@ -31,12 +31,12 @@ export function RouteStats({
     (selectedRouteProfile && PROFILE_EMOJI[selectedRouteProfile]) ?? "🧭";
 
   return (
-    <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
-      <span className="text-sm font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg flex gap-2 items-center shadow-sm border border-blue-100/50">
+    <div className="flex items-center flex-wrap gap-2 pt-2 border-t border-gray-50">
+      <span className="text-sm font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg flex gap-2 items-center shadow-sm border border-blue-100/50 whitespace-nowrap">
         <span className="text-base">{emoji}</span>
         {formatDistance(distance)}
       </span>
-      <span className="text-sm font-bold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg flex gap-2 items-center shadow-sm border border-gray-100">
+      <span className="text-sm font-bold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg flex gap-2 items-center shadow-sm border border-gray-100 whitespace-nowrap">
         <span>⏱️</span> {formatTime(time) || "1 min"}
       </span>
       {routeLine && (
