@@ -3,10 +3,30 @@ import type { Feature, LineString } from "geojson";
 import { useEffect, useState } from "react";
 import { decodePolyline } from "@/lib/polyline";
 
+export const RouteSign = {
+  UTurn: -98,
+  UTurnLeft: -8,
+  KeepLeft: -7,
+  TurnSharpLeft: -3,
+  TurnLeft: -2,
+  TurnSlightLeft: -1,
+  ContinueStraight: 0,
+  TurnSlightRight: 1,
+  TurnRight: 2,
+  TurnSharpRight: 3,
+  Finish: 4,
+  ViaPoint: 5,
+  EnterRoundabout: 6,
+  KeepRight: 7,
+  UTurnRight: 8,
+} as const;
+
+export type RouteSign = (typeof RouteSign)[keyof typeof RouteSign];
+
 export interface RouteInstruction {
   distance: number;
   heading?: number;
-  sign: number;
+  sign: RouteSign;
   interval: [number, number];
   text: string;
   time: number;
