@@ -1,5 +1,5 @@
 import type { Feature } from "geojson";
-import type { MapSourceDataEvent } from "maplibre-gl";
+import type { MapGeoJSONFeature, MapSourceDataEvent } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import {
   Sheet,
@@ -149,8 +149,8 @@ export function PoiInteraction() {
                   "Be pavadinimo"}
               </span>
               <span className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
-                {getLayerLabel?.((feature as any).layer?.id) ||
-                  (feature as any).layer?.id}
+                {getLayerLabel?.((feature as MapGeoJSONFeature).layer?.id) ||
+                  (feature as MapGeoJSONFeature).layer?.id}
               </span>
             </button>
           ))}

@@ -13,19 +13,14 @@ import {
 import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
 import { useSearch } from "@/hooks/use-search";
 import { cn } from "@/lib/utils";
-import {
-  useMapActions,
-  useMapConfig,
-  useMapSelection,
-  useMapTransform,
-} from "@/providers/MapProvider";
+import { useMapConfig, useMapTransform } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 import { VehicleSelector } from "./VehicleSelector";
 
 export function RoutingInputs({ className }: { className?: string }) {
   const { viewState } = useMapTransform();
   const { activeMapProfile } = useMapConfig();
-  const { setRouteStart, setRouteEnd } = useMapActions();
-  const { routeStart, routeEnd } = useMapSelection();
+  const { routeStart, routeEnd, setRouteStart, setRouteEnd } = useRoute();
 
   const mapCenter = {
     lat: viewState?.latitude || 0,
@@ -127,39 +122,41 @@ export function RoutingInputs({ className }: { className?: string }) {
               const dist = props.DIST ? (props.DIST / 1000).toFixed(2) : null;
 
               return (
-                <li
-                  key={feature.id}
-                  className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-start gap-3 border-b last:border-b-0 border-gray-50 transition-colors"
-                  onClick={() => handleSelect(feature, type)}
-                >
-                  <div
-                    className="p-2 rounded-full shrink-0 shadow-sm"
-                    style={{
-                      backgroundColor: iconConfig.color,
-                      color: "white",
-                    }}
+                <li key={feature.id}>
+                  <button
+                    type="button"
+                    className="w-full px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-start gap-3 border-b last:border-b-0 border-gray-50 transition-colors text-left"
+                    onClick={() => handleSelect(feature, type)}
                   >
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 truncate">
-                      {props.name || "Be pavadinimo"}
+                    <div
+                      className="p-2 rounded-full shrink-0 shadow-sm"
+                      style={{
+                        backgroundColor: iconConfig.color,
+                        color: "white",
+                      }}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
                     </div>
-                    <div className="text-[11px] text-gray-500 truncate mt-0.5">
-                      {[
-                        props["addr:street"],
-                        props["addr:housenumber"],
-                        props["addr:city"],
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-900 truncate">
+                        {props.name || "Be pavadinimo"}
+                      </div>
+                      <div className="text-[11px] text-gray-500 truncate mt-0.5">
+                        {[
+                          props["addr:street"],
+                          props["addr:housenumber"],
+                          props["addr:city"],
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </div>
                     </div>
-                  </div>
-                  {dist && (
-                    <div className="text-xs font-medium text-blue-600 whitespace-nowrap bg-blue-50 px-1.5 py-0.5 rounded">
-                      {dist} km
-                    </div>
-                  )}
+                    {dist && (
+                      <div className="text-xs font-medium text-blue-600 whitespace-nowrap bg-blue-50 px-1.5 py-0.5 rounded">
+                        {dist} km
+                      </div>
+                    )}
+                  </button>
                 </li>
               );
             })

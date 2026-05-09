@@ -1,6 +1,7 @@
 "use client";
 
 import type { Feature } from "geojson";
+import type { MapGeoJSONFeature } from "maplibre-gl";
 import { useCallback } from "react";
 import { getPoiInfo } from "@/data/poiInfo";
 
@@ -9,9 +10,8 @@ export function usePoiEnrichment(mapType?: string | null) {
     async (feature: Feature | null): Promise<Feature | null> => {
       if (!feature) return null;
 
-      const featureWithSource = feature as any;
       const id = feature.properties?.id;
-      const source = featureWithSource.source;
+      const source = (feature as MapGeoJSONFeature).source;
 
       if (source === "stvk" && id) {
         try {

@@ -1,15 +1,17 @@
 "use client";
 
-import type { Feature, Point } from "geojson";
+import { point } from "@turf/helpers";
+import type { MapMouseEvent, MapTouchEvent } from "maplibre-gl";
 import { useEffect, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
-import { useMapActions, useMapConfig } from "@/providers/MapProvider";
+import { useMapActions } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 
 export function RouteInteraction() {
   const { current: map } = useMap();
-  const { routingMode } = useMapConfig();
-  const { setRouteStart, setRouteEnd, setRoutingMode, setMobileActiveMode } =
-    useMapActions();
+  const { routingMode, setRouteStart, setRouteEnd, setRoutingMode } =
+    useRoute();
+  const { setMobileActiveMode } = useMapActions();
 
   const [menuData, setMenuData] = useState<{
     x: number;
@@ -22,10 +24,10 @@ export function RouteInteraction() {
   useEffect(() => {
     if (!map) return;
 
-    let touchTimeout: any;
+    let touchTimeout: ReturnType<typeof setTimeout>;
     let touchStartDetail: { x: number; y: number } | null = null;
 
-    const handleContextMenu = (e: any) => {
+    const handleContextMenu = (e: MapMouseEvent | MapTouchEvent) => {
       if (e.originalEvent) e.originalEvent.preventDefault();
 
       const features = map.queryRenderedFeatures(e.point);
@@ -43,7 +45,7 @@ export function RouteInteraction() {
       });
     };
 
-    const handleTouchStart = (e: any) => {
+    const handleTouchStart = (e: MapTouchEvent) => {
       if (e.originalEvent.touches.length > 1) {
         clearTimeout(touchTimeout);
         return;
@@ -59,7 +61,7 @@ export function RouteInteraction() {
       touchStartDetail = null;
     };
 
-    const handleTouchMove = (e: any) => {
+    const handleTouchMove = (e: MapTouchEvent) => {
       if (!touchStartDetail) return;
       const dist = Math.sqrt(
         (e.point.x - touchStartDetail.x) ** 2 +
@@ -95,11 +97,9 @@ export function RouteInteraction() {
   const handleSetPoint = (type: "start" | "end") => {
     if (!menuData) return;
 
-    const feature: Feature<Point> = {
-      type: "Feature",
-      geometry: { type: "Point", coordinates: [menuData.lng, menuData.lat] },
-      properties: { name: menuData.name },
-    };
+    const feature = point([menuData.lng, menuData.lat], {
+      name: menuData.name,
+    });
 
     if (type === "start") setRouteStart(feature);
     else setRouteEnd(feature);

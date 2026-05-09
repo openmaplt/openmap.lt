@@ -1,5 +1,6 @@
 "use client";
 
+import type { Feature, LineString } from "geojson";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -22,14 +23,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import type { RouteInstruction } from "@/hooks/use-route";
+import type { RouteInstruction } from "@/hooks/use-routing";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
-import {
-  useMapActions,
-  useMapConfig,
-  useMapSelection,
-} from "@/providers/MapProvider";
+import { useMapActions } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 import { RoutingInputs } from "./RoutingInputs";
 
 interface RouteDetailsProps {
@@ -38,7 +36,7 @@ interface RouteDetailsProps {
   instructions: RouteInstruction[];
   loading: boolean;
   error: string | null;
-  routeLine: any | null;
+  routeLine: Feature<LineString> | null;
 }
 
 export function RouteDetails({
@@ -50,15 +48,17 @@ export function RouteDetails({
   routeLine,
 }: RouteDetailsProps) {
   const isMobile = useIsMobile();
-  const { routingMode, selectedRouteProfile } = useMapConfig();
-  const { routeStart, routeEnd } = useMapSelection();
   const {
+    routingMode,
+    selectedRouteProfile,
+    routeStart,
+    routeEnd,
     setRouteStart,
     setRouteEnd,
     setRoutingMode,
-    mapRef,
     setHighlightedRoutePoint,
-  } = useMapActions();
+  } = useRoute();
+  const { mapRef } = useMapActions();
 
   const open = routingMode;
 
@@ -250,8 +250,9 @@ export function RouteDetails({
 
           {!loading && !error && distance !== null && (
             <div className="flex flex-col gap-0 pb-10">
-              <div
-                className="flex gap-4 py-4 px-4 border-b border-gray-50 items-start bg-blue-50/10 hover:bg-blue-50/30 cursor-pointer transition-colors"
+              <button
+                type="button"
+                className="w-full flex gap-4 py-4 px-4 border-b border-gray-50 items-start bg-blue-50/10 hover:bg-blue-50/30 cursor-pointer transition-colors text-left"
                 onClick={() => handleStartEndClick("start")}
               >
                 <div className="mt-1 bg-green-100 p-2 rounded-full border border-green-200">
@@ -265,7 +266,7 @@ export function RouteDetails({
                     {routeStart?.properties?.name || "Pasirinkta vieta"}
                   </p>
                 </div>
-              </div>
+              </button>
 
               <div className="relative">
                 <div className="absolute left-[35px] top-6 bottom-6 w-0.5 bg-gray-100" />
@@ -280,10 +281,11 @@ export function RouteDetails({
                       step.distance === 0;
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={`${idx}-${step.text.substring(0, 10)}`}
                         className={cn(
-                          "group relative flex gap-6 py-4 px-4 border-b border-gray-50 last:border-b-0 items-start hover:bg-gray-50/80 cursor-pointer transition-all active:scale-[0.99]",
+                          "w-full group relative flex gap-6 py-4 px-4 border-b border-gray-50 last:border-b-0 items-start hover:bg-gray-50/80 cursor-pointer transition-all active:scale-[0.99] text-left",
                           isObstacle && "bg-amber-50/20 hover:bg-amber-50/40",
                         )}
                         onClick={() => handleInstructionClick(step)}
@@ -379,13 +381,14 @@ export function RouteDetails({
                             </p>
                           )}
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
               </div>
 
-              <div
-                className="flex gap-4 py-4 px-4 border-t border-gray-100 items-start bg-red-50/10 hover:bg-red-50/30 cursor-pointer transition-colors"
+              <button
+                type="button"
+                className="w-full flex gap-4 py-4 px-4 border-t border-gray-100 items-start bg-red-50/10 hover:bg-red-50/30 cursor-pointer transition-colors text-left"
                 onClick={() => handleStartEndClick("end")}
               >
                 <div className="mt-1 bg-red-100 p-2 rounded-full border border-red-200">
@@ -399,7 +402,7 @@ export function RouteDetails({
                     {routeEnd?.properties?.name || "Pasirinkta vieta"}
                   </p>
                 </div>
-              </div>
+              </button>
             </div>
           )}
 

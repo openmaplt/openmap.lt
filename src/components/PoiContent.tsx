@@ -3,13 +3,13 @@ import {
   BookOpen,
   Clock,
   ExternalLink,
+  Gauge,
   Globe,
   Landmark,
   Mail,
   MapPin,
   Phone,
   Ruler,
-  Gauge,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import {

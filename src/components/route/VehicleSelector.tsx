@@ -3,15 +3,16 @@
 import { Bike, Car, Footprints, Navigation, Sailboat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useMapActions, useMapConfig } from "@/providers/MapProvider";
+import { useMapConfig } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 
 interface VehicleSelectorProps {
   className?: string;
 }
 
 export function VehicleSelector({ className }: VehicleSelectorProps) {
-  const { activeMapProfile, selectedRouteProfile } = useMapConfig();
-  const { setSelectedRouteProfile } = useMapActions();
+  const { activeMapProfile } = useMapConfig();
+  const { selectedRouteProfile, setSelectedRouteProfile } = useRoute();
 
   if (
     !activeMapProfile.routingProfiles ||

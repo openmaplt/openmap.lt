@@ -4,6 +4,16 @@
  */
 import { MapConfig } from "@/config/config";
 
+export interface RouteState {
+  startLat: number;
+  startLng: number;
+  startName?: string;
+  endLat: number;
+  endLng: number;
+  endName?: string;
+  profile?: string;
+}
+
 export interface MapState {
   mapType: string;
   zoom: number;
@@ -106,7 +116,45 @@ export function parseUrl(query: string, pathname: string): MapState | null {
   };
 }
 
-export function formatSearchParams(state: MapState): string {
+export function parseRouteFromUrl(query: string): RouteState | null {
+  const searchParams = new URLSearchParams(query);
+
+  const startLatStr = searchParams.get("startLat");
+  const startLngStr = searchParams.get("startLng");
+  const endLatStr = searchParams.get("endLat");
+  const endLngStr = searchParams.get("endLng");
+
+  if (!startLatStr || !startLngStr || !endLatStr || !endLngStr) return null;
+
+  const startLat = Number(startLatStr);
+  const startLng = Number(startLngStr);
+  const endLat = Number(endLatStr);
+  const endLng = Number(endLngStr);
+
+  if (
+    Number.isNaN(startLat) ||
+    Number.isNaN(startLng) ||
+    Number.isNaN(endLat) ||
+    Number.isNaN(endLng)
+  ) {
+    return null;
+  }
+
+  return {
+    startLat,
+    startLng,
+    startName: searchParams.get("startName") ?? undefined,
+    endLat,
+    endLng,
+    endName: searchParams.get("endName") ?? undefined,
+    profile: searchParams.get("profile") ?? undefined,
+  };
+}
+
+export function formatSearchParams(
+  state: MapState,
+  route?: RouteState | null,
+): string {
   const params = new URLSearchParams({
     z: state.zoom.toFixed(2),
     lat: state.latitude.toFixed(5),
@@ -114,6 +162,16 @@ export function formatSearchParams(state: MapState): string {
     bearing: state.bearing.toFixed(0),
     pitch: state.pitch.toFixed(0),
   });
+
+  if (route) {
+    params.set("startLat", route.startLat.toFixed(5));
+    params.set("startLng", route.startLng.toFixed(5));
+    if (route.startName) params.set("startName", route.startName);
+    params.set("endLat", route.endLat.toFixed(5));
+    params.set("endLng", route.endLng.toFixed(5));
+    if (route.endName) params.set("endName", route.endName);
+    if (route.profile) params.set("profile", route.profile);
+  }
 
   return params.toString();
 }
@@ -144,6 +202,11 @@ export function loadStateFromStorage(): MapState | null {
     console.warn("Failed to load state from localStorage:", error);
     return null;
   }
+}
+
+export function getInitialRoute(): RouteState | null {
+  if (typeof window === "undefined") return null;
+  return parseRouteFromUrl(window.location.search);
 }
 
 /**

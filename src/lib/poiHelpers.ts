@@ -1,3 +1,4 @@
+import type { FilterSpecification } from "@maplibre/maplibre-gl-style-spec";
 import type { Feature } from "geojson";
 import type { Map as MapLibreMap } from "maplibre-gl";
 
@@ -19,7 +20,7 @@ export function getPoiFromObjectId(
     Number.isNaN(parsedId)
       ? ["==", "id", objectId]
       : ["any", ["==", "id", objectId], ["==", "id", parsedId]]
-  ) as any;
+  ) as FilterSpecification;
 
   const features = map.queryRenderedFeatures({
     layers: [layerId],

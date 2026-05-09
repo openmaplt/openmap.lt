@@ -212,13 +212,14 @@ export function CraftbeerFilter({
       </form>
 
       {/* Hide/Show Control */}
-      <div
+      <button
+        type="button"
         id="menu-control"
-        className={`menu-control mt-2 bg-white px-4 py-2 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow text-center text-sm font-medium text-gray-700 ${!isVisible ? "menu-control-top" : ""}`}
+        className={`menu-control mt-2 bg-white px-4 py-2 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow text-center text-sm font-medium text-gray-700 w-full ${!isVisible ? "menu-control-top" : ""}`}
         onClick={() => setIsVisible((v) => !v)}
       >
         {!isVisible ? "Rodyti meniu" : "Slėpti meniu"}
-      </div>
+      </button>
     </div>
   );
 }

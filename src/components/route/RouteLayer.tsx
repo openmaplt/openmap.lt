@@ -1,10 +1,17 @@
 "use client";
 
-import type { Feature, LineString } from "geojson";
+import { point } from "@turf/helpers";
+import type { Feature, LineString, Point } from "geojson";
 import { LngLatBounds } from "maplibre-gl";
 import { useEffect } from "react";
-import { Layer, Marker, Source } from "react-map-gl/maplibre";
-import { useMapActions, useMapSelection } from "@/providers/MapProvider";
+import {
+  Layer,
+  Marker,
+  type MarkerDragEvent,
+  Source,
+} from "react-map-gl/maplibre";
+import { useMapActions } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 
 interface RouteLayerProps {
   routeLine: Feature<LineString> | null;
@@ -15,8 +22,14 @@ interface RouteLayerProps {
 }
 
 export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
-  const { routeStart, routeEnd, highlightedRoutePoint } = useMapSelection();
-  const { mapRef, setRouteStart, setRouteEnd } = useMapActions();
+  const {
+    routeStart,
+    routeEnd,
+    highlightedRoutePoint,
+    setRouteStart,
+    setRouteEnd,
+  } = useRoute();
+  const { mapRef } = useMapActions();
 
   useEffect(() => {
     if (routeLine && routeLine.geometry.type === "LineString") {
@@ -45,32 +58,14 @@ export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
     console.error("RouteLayer error:", error);
   }
 
-  const handleStartDragEnd = (e: any) => {
+  const handleStartDragEnd = (e: MarkerDragEvent) => {
     const { lng, lat } = e.lngLat;
-    setRouteStart({
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [lng, lat],
-      },
-      properties: {
-        name: "Pasirinktas taškas",
-      },
-    });
+    setRouteStart(point([lng, lat], { name: "Pasirinktas taškas" }));
   };
 
-  const handleEndDragEnd = (e: any) => {
+  const handleEndDragEnd = (e: MarkerDragEvent) => {
     const { lng, lat } = e.lngLat;
-    setRouteEnd({
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [lng, lat],
-      },
-      properties: {
-        name: "Pasirinktas taškas",
-      },
-    });
+    setRouteEnd(point([lng, lat], { name: "Pasirinktas taškas" }));
   };
 
   return (
@@ -95,8 +90,8 @@ export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
 
       {routeStart && (
         <Marker
-          longitude={(routeStart.geometry as any).coordinates[0]}
-          latitude={(routeStart.geometry as any).coordinates[1]}
+          longitude={(routeStart.geometry as Point).coordinates[0]}
+          latitude={(routeStart.geometry as Point).coordinates[1]}
           anchor="center"
           draggable
           onDragEnd={handleStartDragEnd}
@@ -107,8 +102,8 @@ export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
 
       {routeEnd && (
         <Marker
-          longitude={(routeEnd.geometry as any).coordinates[0]}
-          latitude={(routeEnd.geometry as any).coordinates[1]}
+          longitude={(routeEnd.geometry as Point).coordinates[0]}
+          latitude={(routeEnd.geometry as Point).coordinates[1]}
           anchor="center"
           draggable
           onDragEnd={handleEndDragEnd}

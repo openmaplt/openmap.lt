@@ -1,5 +1,6 @@
 "use client";
 
+import type { ExpressionSpecification } from "@maplibre/maplibre-gl-style-spec";
 import { useEffect, useState } from "react";
 import { CraftbeerFilter } from "@/components/CraftbeerFilter";
 import { beerStyles, type CraftbeerFilters } from "@/config/craftbeer-filters";
@@ -29,7 +30,7 @@ export function CraftbeerFeature() {
               `style_${style}`,
               "y",
             ]),
-          ] as any,
+          ] as ExpressionSpecification,
         ]);
       }
     };

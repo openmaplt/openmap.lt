@@ -28,34 +28,24 @@ import {
 } from "react-map-gl/maplibre";
 import { MapConfig } from "@/config/config";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
-import { useMapSync } from "@/hooks/use-map-sync";
 import { getMapState } from "@/lib/urlHash";
 import { findMapsByType } from "@/lib/utils";
 
-// Transform Context - For high-frequency updates (panning, zooming)
 interface MapTransformContextType {
   viewState: MapProps["initialViewState"];
   bbox: LngLatBounds | null;
 }
 
-// Selection Context - For features and POIs
 interface MapSelectionContextType {
   selectedFeature: Feature | null;
   selectedPoiId: string | null;
-  routeStart: Feature | null;
-  routeEnd: Feature | null;
-  highlightedRoutePoint: [number, number] | null;
 }
 
-// Config Context - For map profile and UI modes
 interface MapConfigContextType {
   activeMapProfile: MapProfile;
   mobileActiveMode: "search" | "filter" | "routing" | null;
-  routingMode: boolean;
-  selectedRouteProfile: "car" | "bike" | "foot" | "kayak" | null;
 }
 
-// Actions Context - For stable functions and refs
 interface MapActionsContextType {
   mapRef: RefObject<MapRef | null>;
   setViewState: (viewState: MapProps["initialViewState"]) => void;
@@ -63,14 +53,7 @@ interface MapActionsContextType {
   setBbox: (bbox: LngLatBounds | null) => void;
   setSelectedFeature: (feature: Feature | null) => void;
   setSelectedPoiId: (id: string | null) => void;
-  setRouteStart: (feature: Feature | null) => void;
-  setRouteEnd: (feature: Feature | null) => void;
   setMobileActiveMode: (mode: "search" | "filter" | "routing" | null) => void;
-  setRoutingMode: (mode: boolean) => void;
-  setSelectedRouteProfile: (
-    profile: "car" | "bike" | "foot" | "kayak" | null,
-  ) => void;
-  setHighlightedRoutePoint: (point: [number, number] | null) => void;
   handleOnChangeMapProfile: (profile: MapProfile) => void;
   handleOnPoiDetailsClose: () => void;
 }
@@ -171,22 +154,10 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
     initialPoiData,
   );
+  const [selectedPoiId, setSelectedPoiId] = useState(poiIdFromUrl ?? null);
   const [mobileActiveMode, setMobileActiveMode] = useState<
     "search" | "filter" | "routing" | null
   >(null);
-  const [routingMode, setRoutingMode] = useState(false);
-  const [routeStart, setRouteStart] = useState<Feature | null>(null);
-  const [routeEnd, setRouteEnd] = useState<Feature | null>(null);
-  const [selectedPoiId, setSelectedPoiId] = useState(poiIdFromUrl ?? null);
-  const [selectedRouteProfile, setSelectedRouteProfile] = useState<
-    "car" | "bike" | "foot" | "kayak" | null
-  >(() => (activeMapProfile.routingProfiles?.[0] as any) || null);
-  const [highlightedRoutePoint, setHighlightedRoutePoint] = useState<
-    [number, number] | null
-  >(null);
-
-  // Sync map state to URL and LocalStorage
-  useMapSync(viewState, activeMapProfile, selectedFeature);
 
   useEffect(() => {
     if (selectedFeature) {
@@ -207,12 +178,7 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     setActiveMapProfile(profile);
     setSelectedPoiId(null);
     setSelectedFeature(null);
-    setRouteStart(null);
-    setRouteEnd(null);
-    setRoutingMode(false);
     setMobileActiveMode(null);
-    setSelectedRouteProfile((profile.routingProfiles?.[0] as any) || null);
-    setHighlightedRoutePoint(null);
   }, []);
 
   const handleOnPoiDetailsClose = useCallback(() => {
@@ -220,37 +186,18 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     setSelectedPoiId(null);
   }, []);
 
-  // Memoize values for each context
   const transformValue = useMemo(
     () => ({ viewState, bbox }),
     [viewState, bbox],
   );
   const selectionValue = useMemo(
-    () => ({
-      selectedFeature,
-      selectedPoiId,
-      routeStart,
-      routeEnd,
-      highlightedRoutePoint,
-    }),
-    [
-      selectedFeature,
-      selectedPoiId,
-      routeStart,
-      routeEnd,
-      highlightedRoutePoint,
-    ],
+    () => ({ selectedFeature, selectedPoiId }),
+    [selectedFeature, selectedPoiId],
   );
   const configValue = useMemo(
-    () => ({
-      activeMapProfile,
-      mobileActiveMode,
-      routingMode,
-      selectedRouteProfile,
-    }),
-    [activeMapProfile, mobileActiveMode, routingMode, selectedRouteProfile],
+    () => ({ activeMapProfile, mobileActiveMode }),
+    [activeMapProfile, mobileActiveMode],
   );
-
   const actionsValue = useMemo(
     () => ({
       mapRef,
@@ -259,12 +206,7 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
       setBbox,
       setSelectedFeature,
       setSelectedPoiId,
-      setRouteStart,
-      setRouteEnd,
       setMobileActiveMode,
-      setRoutingMode,
-      setSelectedRouteProfile,
-      setHighlightedRoutePoint,
       handleOnChangeMapProfile,
       handleOnPoiDetailsClose,
     }),

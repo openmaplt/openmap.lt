@@ -1,3 +1,4 @@
+import { lineString } from "@turf/helpers";
 import type { Feature, LineString } from "geojson";
 import { useEffect, useState } from "react";
 import { decodePolyline } from "@/lib/polyline";
@@ -24,7 +25,7 @@ interface RouteResult {
   error: string | null;
 }
 
-export function useRoute(
+export function useRouting(
   startFeature: Feature | null,
   endFeature: Feature | null,
   routingProfile: string = "car",
@@ -95,16 +96,7 @@ export function useRoute(
           // Decode the polyline points
           const coordinates = decodePolyline(path.points);
 
-          const feature: Feature<LineString> = {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates,
-            },
-          };
-
-          setRouteLine(feature);
+          setRouteLine(lineString(coordinates));
           setDistance(path.distance);
           setTime(path.time);
           setInstructions(path.instructions || []);

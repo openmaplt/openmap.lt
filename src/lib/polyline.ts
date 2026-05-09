@@ -11,7 +11,7 @@ export function decodePolyline(
   const decoded: [number, number][] = [];
   let lat = 0;
   let lon = 0;
-  let elev = 0;
+  let _elev = 0;
   let index = 0;
   const len = encoded.length;
 
@@ -49,7 +49,7 @@ export function decodePolyline(
         shift += 5;
       } while (b >= 0x20);
       const deltaElev = result & 1 ? ~(result >> 1) : result >> 1;
-      elev += deltaElev;
+      _elev += deltaElev;
       // We currently don't use elevation in the map, so we just skip it or store it if needed
       // decoded.push([lon / inv, lat / inv, elev / 100]);
     }

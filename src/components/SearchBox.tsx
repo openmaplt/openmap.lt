@@ -19,6 +19,7 @@ import {
   useMapConfig,
   useMapTransform,
 } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 
 interface SearchBoxProps {
   onSelectResult: (feature: Feature) => void;
@@ -26,8 +27,9 @@ interface SearchBoxProps {
 
 export function SearchBox({ onSelectResult }: SearchBoxProps) {
   const { viewState } = useMapTransform();
-  const { activeMapProfile, mobileActiveMode, routingMode } = useMapConfig();
-  const { setMobileActiveMode, setRoutingMode } = useMapActions();
+  const { activeMapProfile, mobileActiveMode } = useMapConfig();
+  const { setMobileActiveMode } = useMapActions();
+  const { routingMode, setRoutingMode } = useRoute();
   const mapCenter = {
     lat: viewState?.latitude || 0,
     lng: viewState?.longitude || 0,

@@ -7,6 +7,7 @@ import type { MapProfile } from "@/config/map-profiles";
 import {
   formatSearchParams,
   getMapState,
+  type RouteState,
   saveStateToStorage,
 } from "@/lib/urlHash";
 import { slugify } from "@/lib/utils";
@@ -15,6 +16,7 @@ export function useMapSync(
   viewState: MapProps["initialViewState"],
   activeMapProfile: MapProfile,
   selectedFeature: Feature | null,
+  route?: RouteState | null,
 ) {
   useEffect(() => {
     const currentState = getMapState();
@@ -47,10 +49,10 @@ export function useMapSync(
 
     const url = new URL(window.location.href);
     url.pathname = `/${activeMapProfile.mapType}/${poiSlugWithName ?? "map"}`;
-    url.search = formatSearchParams(mapStateData);
+    url.search = formatSearchParams(mapStateData, route);
     url.hash = "";
 
     window.history.replaceState(null, "", url);
     saveStateToStorage(mapStateData);
-  }, [viewState, activeMapProfile, selectedFeature]);
+  }, [viewState, activeMapProfile, selectedFeature, route]);
 }

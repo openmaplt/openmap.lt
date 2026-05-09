@@ -1,19 +1,20 @@
 "use client";
 
-import { useRoute } from "@/hooks/use-route";
-import { useMapConfig, useMapSelection } from "@/providers/MapProvider";
+import { useRouting } from "@/hooks/use-routing";
+import { useMapConfig } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 import { RouteDetails } from "./RouteDetails";
 import { RouteLayer } from "./RouteLayer";
 
 export function RouteManager() {
-  const { routeStart, routeEnd } = useMapSelection();
-  const { activeMapProfile, selectedRouteProfile } = useMapConfig();
+  const { routeStart, routeEnd, selectedRouteProfile } = useRoute();
+  const { activeMapProfile } = useMapConfig();
   const vehicle =
     selectedRouteProfile || activeMapProfile.routingProfiles?.[0] || "car";
-  const routeResult = useRoute(
+  const routeResult = useRouting(
     routeStart,
     routeEnd,
-    vehicle as any,
+    vehicle,
     activeMapProfile.routingUrl,
   );
 

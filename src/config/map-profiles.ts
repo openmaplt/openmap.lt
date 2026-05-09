@@ -6,13 +6,15 @@ export type MapStyle = {
   image: string;
 };
 
+export type RouteProfile = "car" | "bike" | "foot" | "kayak";
+
 export type MapProfile = {
   id: string;
   mapType: string;
   mapStyles: MapStyle[];
   featureComponent?: "places" | "craftbeer" | "protected" | "bicycle" | "river";
   interactiveLayers?: string[];
-  routingProfiles?: ("car" | "bike" | "foot" | "kayak")[];
+  routingProfiles?: RouteProfile[];
   routingUrl?: string;
 };
 
