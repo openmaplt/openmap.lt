@@ -148,7 +148,7 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
 
 export function PoiContent({ data }: PoiContentProps) {
   return (
-    <div className="space-y-3 min-w-[200px] max-w-[400px] px-4">
+    <div className="space-y-3 min-w-[200px] px-4">
       {data.attributes.map((attribute) => {
         const IconComponent = attribute.icon
           ? iconComponents[attribute.icon]

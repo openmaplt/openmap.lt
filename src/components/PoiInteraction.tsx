@@ -40,6 +40,14 @@ export function PoiInteraction() {
   const lastSelectedPoiIdRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
   const [candidateFeatures, setCandidateFeatures] = useState<Feature[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setCandidateFeatures([]);
+      setIsExpanded(false);
+    }
+  };
 
   useMapInteraction({
     layers,
@@ -123,19 +131,29 @@ export function PoiInteraction() {
   };
 
   return (
-    <Sheet
-      open={candidateFeatures.length > 0}
-      onOpenChange={(open) => !open && setCandidateFeatures([])}
-    >
+    <Sheet open={candidateFeatures.length > 0} onOpenChange={handleOpenChange}>
       <SheetContent
         side={isMobile ? "bottom" : "left"}
-        className="p-0 gap-0"
+        className="!p-0 !gap-0 flex flex-col"
+        style={{
+          height: isMobile ? (isExpanded ? "95dvh" : "50dvh") : "100vh",
+          transition: "height 0.3s ease",
+        }}
         aria-describedby={undefined}
       >
-        <SheetHeader className="p-4 border-b">
+        {isMobile && (
+          <button
+            type="button"
+            className="flex items-center justify-center w-full pt-2 pb-1 shrink-0"
+            onClick={() => setIsExpanded((v) => !v)}
+          >
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </button>
+        )}
+        <SheetHeader className="px-4 pt-2 pb-3 border-b shrink-0">
           <SheetTitle>Pasirinkite objektą</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col overflow-y-auto">
+        <div className="flex-1 flex flex-col overflow-y-auto">
           {candidateFeatures.map((feature, index) => (
             <button
               type="button"

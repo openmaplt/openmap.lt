@@ -2,6 +2,7 @@
 
 import type { Feature, LineString } from "geojson";
 import { AlertTriangle, Navigation, X } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -35,6 +36,7 @@ export function RouteDetails({
   routeLine,
 }: RouteDetailsProps) {
   const isMobile = useIsMobile();
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     routingMode,
     selectedRouteProfile,
@@ -49,6 +51,7 @@ export function RouteDetails({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
+      setIsExpanded(false);
       setRouteStart(null);
       setRouteEnd(null);
       setRoutingMode(false);
@@ -93,12 +96,25 @@ export function RouteDetails({
     <Sheet open={routingMode} onOpenChange={handleOpenChange} modal={false}>
       <SheetContent
         side={isMobile ? "bottom" : "left"}
-        className="w-full md:w-96 shadow-xl z-20 !p-0 flex flex-col bg-white"
-        style={{ height: isMobile ? "50vh" : "100vh" }}
+        className="w-full md:w-96 shadow-xl z-20 !p-0 !gap-0 flex flex-col bg-white"
+        style={{
+          height: isMobile ? (isExpanded ? "95dvh" : "50dvh") : "100vh",
+          transition: "height 0.3s ease",
+        }}
         preventOutsideClose={true}
+        hideCloseButton={true}
         aria-describedby={undefined}
       >
-        <SheetHeader className="p-4 border-b border-gray-100 flex flex-col gap-3 bg-white sticky top-0 z-30 shrink-0">
+        {isMobile && (
+          <button
+            type="button"
+            className="flex items-center justify-center w-full pt-2 pb-1 shrink-0"
+            onClick={() => setIsExpanded((v) => !v)}
+          >
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </button>
+        )}
+        <SheetHeader className="px-4 pt-2 pb-4 border-b border-gray-100 flex flex-col gap-3 bg-white sticky top-0 z-30 shrink-0">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-bold text-left flex items-center gap-2">
               <Navigation className="w-5 h-5 text-blue-600" /> Maršrutas

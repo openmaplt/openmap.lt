@@ -17,8 +17,8 @@
     "@types/pg": "^8.20.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.8.0",
-    "maplibre-gl": "^5.22.0",
+    "lucide-react": "^1.14.0",
+    "maplibre-gl": "^5.24.0",
     "next": "16.2.4",
     "pg": "^8.20.0",
     "radix-ui": "^1.4.3",
@@ -26,8 +26,7 @@
     "react-dom": "19.2.5",
     "react-map-gl": "^8.1.1",
     "react-markdown": "^10.1.0",
-    "tailwind-merge": "^3.5.0",
-    "vaul": "^1.1.2"
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
