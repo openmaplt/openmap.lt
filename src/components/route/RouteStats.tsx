@@ -3,6 +3,7 @@
 import type { Feature, LineString } from "geojson";
 import { useState } from "react";
 import type { RouteProfile } from "@/config/map-profiles";
+import type { RouteInstruction } from "@/hooks/use-routing";
 import { formatDistance, formatTime } from "@/lib/routeUtils";
 import { DownloadMenu } from "./DownloadMenu";
 
@@ -17,6 +18,7 @@ interface RouteStatsProps {
   distance: number;
   time: number;
   routeLine: Feature<LineString> | null;
+  instructions: RouteInstruction[];
   selectedRouteProfile: RouteProfile | null;
 }
 
@@ -24,6 +26,7 @@ export function RouteStats({
   distance,
   time,
   routeLine,
+  instructions,
   selectedRouteProfile,
 }: RouteStatsProps) {
   const [downloadOpen, setDownloadOpen] = useState(false);
@@ -42,6 +45,7 @@ export function RouteStats({
       {routeLine && (
         <DownloadMenu
           routeLine={routeLine}
+          instructions={instructions}
           open={downloadOpen}
           onOpenChange={setDownloadOpen}
         />

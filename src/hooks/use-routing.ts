@@ -97,9 +97,8 @@ export function useRouting(
         url.searchParams.append("point", `${startCoords[1]},${startCoords[0]}`);
         url.searchParams.append("point", `${endCoords[1]},${endCoords[0]}`);
         url.searchParams.append("profile", routingProfile);
-        url.searchParams.append("elevation", "false");
+        url.searchParams.append("elevation", "true");
         url.searchParams.append("locale", "lt");
-        // Get encoded polyline for smaller payload
         url.searchParams.append("points_encoded", "true");
 
         const response = await fetch(url.toString());
@@ -113,8 +112,7 @@ export function useRouting(
         if (data.paths && data.paths.length > 0) {
           const path = data.paths[0];
 
-          // Decode the polyline points
-          const coordinates = decodePolyline(path.points);
+          const coordinates = decodePolyline(path.points, true);
 
           setRouteLine(lineString(coordinates));
           setDistance(path.distance);

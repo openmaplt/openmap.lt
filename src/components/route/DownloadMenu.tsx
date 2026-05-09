@@ -3,10 +3,12 @@
 import type { Feature, LineString } from "geojson";
 import { ChevronDown, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { RouteInstruction } from "@/hooks/use-routing";
 import { downloadGeoJSON, downloadGPX } from "@/lib/routeExport";
 
 interface DownloadMenuProps {
   routeLine: Feature<LineString>;
+  instructions: RouteInstruction[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -18,6 +20,7 @@ const items = [
 
 export function DownloadMenu({
   routeLine,
+  instructions,
   open,
   onOpenChange,
 }: DownloadMenuProps) {
@@ -46,7 +49,7 @@ export function DownloadMenu({
                 type="button"
                 className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                 onClick={() => {
-                  action(routeLine);
+                  action(routeLine, instructions);
                   onOpenChange(false);
                 }}
               >

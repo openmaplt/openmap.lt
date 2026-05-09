@@ -136,6 +136,7 @@ export function RouteDetails({
               distance={distance}
               time={time}
               routeLine={routeLine}
+              instructions={instructions}
               selectedRouteProfile={selectedRouteProfile}
             />
           )}

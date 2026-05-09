@@ -6,12 +6,12 @@
 export function decodePolyline(
   encoded: string,
   is3D: boolean = false,
-): [number, number][] {
+): number[][] {
   const inv = 1e5;
-  const decoded: [number, number][] = [];
+  const decoded: number[][] = [];
   let lat = 0;
   let lon = 0;
-  let _elev = 0;
+  let elev = 0;
   let index = 0;
   const len = encoded.length;
 
@@ -49,12 +49,14 @@ export function decodePolyline(
         shift += 5;
       } while (b >= 0x20);
       const deltaElev = result & 1 ? ~(result >> 1) : result >> 1;
-      _elev += deltaElev;
-      // We currently don't use elevation in the map, so we just skip it or store it if needed
-      // decoded.push([lon / inv, lat / inv, elev / 100]);
+      elev += deltaElev;
     }
 
-    decoded.push([lon / inv, lat / inv]);
+    if (is3D) {
+      decoded.push([lon / inv, lat / inv, elev / 100]);
+    } else {
+      decoded.push([lon / inv, lat / inv]);
+    }
   }
 
   return decoded;
