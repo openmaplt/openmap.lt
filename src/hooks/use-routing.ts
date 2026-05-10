@@ -97,7 +97,7 @@ export function useRouting(
         url.searchParams.append("point", `${startCoords[1]},${startCoords[0]}`);
         url.searchParams.append("point", `${endCoords[1]},${endCoords[0]}`);
         url.searchParams.append("profile", routingProfile);
-        url.searchParams.append("elevation", "true");
+        url.searchParams.append("elevation", "false");
         url.searchParams.append("locale", "lt");
         url.searchParams.append("points_encoded", "true");
 
