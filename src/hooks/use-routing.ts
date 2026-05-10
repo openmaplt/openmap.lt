@@ -112,7 +112,7 @@ export function useRouting(
         if (data.paths && data.paths.length > 0) {
           const path = data.paths[0];
 
-          const coordinates = decodePolyline(path.points, true);
+          const coordinates = decodePolyline(path.points, false);
 
           setRouteLine(lineString(coordinates));
           setDistance(path.distance);
