@@ -23,7 +23,7 @@ const GENERAL_ACTIVE_LAYERS = ["label-amenity"];
 export const MAP_PROFILES: MapProfile[] = [
   {
     id: "general",
-    mapType: "m",
+    mapType: "maps",
     mapStyles: [
       {
         name: "Bendras",
