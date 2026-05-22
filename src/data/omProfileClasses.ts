@@ -18,7 +18,7 @@ export async function getProfileClasses(
     ]);
     return (res.rows[0]?.result as ProfileClass[]) || [];
   } catch (err) {
-    console.error(`Error fetching classes for profile ${profile}:`, err);
+    console.error("Error fetching classes for profile:", profile, err);
     return [];
   }
 }

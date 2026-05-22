@@ -19,7 +19,7 @@ export async function getProfileClassObjects(
     );
     return (res.rows[0]?.result as SightObject[]) || [];
   } catch (err) {
-    console.error(`Error fetching objects for ${profile}/${className}:`, err);
+    console.error("Error fetching objects for profile/class:", profile, className, err);
     return [];
   }
 }
