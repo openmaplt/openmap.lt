@@ -1,3 +1,4 @@
+import { HelpButton } from "@/components/HelpButton";
 import { getPoiInfo } from "@/data/poiInfo";
 import MapPage from "./_components/MapPage";
 
@@ -16,10 +17,13 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
   }
 
   return (
-    <MapPage
-      initialPoiData={
-        poiData && Object.entries(poiData).length > 0 ? poiData : null
-      }
-    />
+    <>
+      <MapPage
+        initialPoiData={
+          poiData && Object.entries(poiData).length > 0 ? poiData : null
+        }
+      />
+      <HelpButton />
+    </>
   );
 }
