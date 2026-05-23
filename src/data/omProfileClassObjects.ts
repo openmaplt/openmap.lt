@@ -5,6 +5,7 @@ import { query } from "@/lib/db";
 export interface ClassObject {
   url: string;
   name: string;
+  description?: string;
 }
 
 export async function getProfileClassObjects(

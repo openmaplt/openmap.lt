@@ -56,9 +56,16 @@ export function ObjectsList({ objects }: ObjectsListProps) {
                     href={obj.url}
                     className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-accent/50 transition-colors group"
                   >
-                    <span className="text-sm font-medium text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex-1">
-                      {obj.name}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        {obj.name}
+                      </span>
+                      {obj.description && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {obj.description}
+                        </p>
+                      )}
+                    </div>
                     <MapPin className="size-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </a>
                 </li>
