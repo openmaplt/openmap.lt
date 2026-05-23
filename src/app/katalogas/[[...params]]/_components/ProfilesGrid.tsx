@@ -29,7 +29,7 @@ export function ProfilesGrid({ profiles }: ProfilesGridProps) {
             </div>
 
             <a
-              href={`/lankytinos-vietos/${profile.name}`}
+              href={`/katalogas/${profile.name}`}
               className="inline-flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-600/90 px-4 py-3 rounded-lg shadow-sm hover:shadow transition-all w-full md:w-fit"
             >
               <span>Atverti kategorijas</span>

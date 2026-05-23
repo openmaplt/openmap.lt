@@ -30,7 +30,7 @@ export function ClassesGrid({ profileName, classes }: ClassesGridProps) {
               </div>
 
               <a
-                href={`/lankytinos-vietos/${profileName}/${cls.name}`}
+                href={`/katalogas/${profileName}/${cls.name}`}
                 className="inline-flex items-center justify-center gap-1 text-xs font-bold uppercase tracking-wider text-foreground bg-muted hover:bg-accent border border-border/80 px-4 py-2.5 rounded-lg transition-all w-full"
               >
                 <span>Žiūrėti sąrašą</span>

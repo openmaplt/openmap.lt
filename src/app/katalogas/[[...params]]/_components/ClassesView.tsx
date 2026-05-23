@@ -23,7 +23,7 @@ export async function ClassesView({ profileName }: ClassesViewProps) {
     <div className="space-y-8">
       <Breadcrumb
         items={[
-          { label: "Profiliai", href: "/lankytinos-vietos" },
+          { label: "Katalogas", href: "/katalogas" },
           { label: profileTitle },
         ]}
       />

@@ -1,8 +1,8 @@
 import { HelpCircle, MapPin } from "lucide-react";
-import type { SightObject } from "@/data/omProfileClassObjects";
+import type { ClassObject } from "@/data/omProfileClassObjects";
 
 interface ObjectsListProps {
-  objects: SightObject[];
+  objects: ClassObject[];
 }
 
 export function ObjectsList({ objects }: ObjectsListProps) {
@@ -15,8 +15,8 @@ export function ObjectsList({ objects }: ObjectsListProps) {
     );
   }
 
-  const grouped = objects.reduce<Record<string, SightObject[]>>((acc, obj) => {
-    const letter = obj.description.charAt(0).toUpperCase();
+  const grouped = objects.reduce<Record<string, ClassObject[]>>((acc, obj) => {
+    const letter = obj.name.charAt(0).toUpperCase();
     if (!acc[letter]) acc[letter] = [];
     acc[letter].push(obj);
     return acc;
@@ -57,7 +57,7 @@ export function ObjectsList({ objects }: ObjectsListProps) {
                     className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-accent/50 transition-colors group"
                   >
                     <span className="text-sm font-medium text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex-1">
-                      {obj.description}
+                      {obj.name}
                     </span>
                     <MapPin className="size-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </a>

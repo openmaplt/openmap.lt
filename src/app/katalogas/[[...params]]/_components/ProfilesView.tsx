@@ -7,7 +7,7 @@ export async function ProfilesView() {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h1 className="text-3xl font-extrabold tracking-tight">Profiliai</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Katalogas</h1>
         <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
           Sveiki atvykę į atvirą žemėlapio registrų katalogą. Čia galite naršyti
           visas žemėlapyje sužymėtas vietas, suskirstytas pagal specializuotus

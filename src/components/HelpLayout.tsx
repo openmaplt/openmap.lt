@@ -23,7 +23,7 @@ interface HelpLayoutProps {
 
 const MENU_ITEMS = [
   { href: "/bendra-informacija", label: "Bendra informacija", icon: Info },
-  { href: "/lankytinos-vietos", label: "Lankytinos vietos", icon: Compass },
+  { href: "/katalogas", label: "Katalogas", icon: Compass },
   { href: "/zemelapio-duomenys", label: "Žemėlapio duomenys", icon: Layers },
   { href: "/technine-informacija", label: "Techninė informacija", icon: Cpu },
   { href: "/kontaktai", label: "Kontaktai", icon: Mail },

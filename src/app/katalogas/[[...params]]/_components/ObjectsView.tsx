@@ -32,8 +32,8 @@ export async function ObjectsView({
     <div className="space-y-8">
       <Breadcrumb
         items={[
-          { label: "Profiliai", href: "/lankytinos-vietos" },
-          { label: profileTitle, href: `/lankytinos-vietos/${profileName}` },
+          { label: "Katalogas", href: "/katalogas" },
+          { label: profileTitle, href: `/katalogas/${profileName}` },
           { label: classTitle },
         ]}
       />
