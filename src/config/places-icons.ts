@@ -1,8 +1,10 @@
 import {
+  Baby,
   Banknote,
   Beer,
   Binoculars,
   Bubbles,
+  Building,
   Camera,
   CarFront,
   Castle,
@@ -15,6 +17,7 @@ import {
   Flame,
   Footprints,
   Fuel,
+  GraduationCap,
   Hammer,
   Home,
   Hotel,
@@ -26,12 +29,14 @@ import {
   Palette,
   Pill,
   Sandwich,
+  School,
   ShoppingCart,
   Sofa,
   Tent,
   Theater,
   TowerControl,
   Trees,
+  University,
   Utensils,
   Wrench,
 } from "lucide-react";
@@ -106,8 +111,14 @@ export const PLACE_ICONS: Record<string, PlaceIcon> = {
   POS: { icon: Mail, color: "#334155" },
   BAN: { icon: Banknote, color: "#047857" },
   ATM: { icon: CreditCard, color: "#047857" },
+  GOV: { icon: Building, color: "#888888" },
 
   // Finansasi
+  // Švietimas
+  KIN: { icon: Baby, color: "#888888" },
+  SCH: { icon: School, color: "#888888" },
+  COL: { icon: University, color: "#888888" },
+  UNI: { icon: GraduationCap, color: "#888888" },
 };
 
 // Default fallback icon
