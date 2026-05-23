@@ -1,5 +1,5 @@
 import { Database, HelpCircle } from "lucide-react";
-import SafeImage from "@/components/SafeImage";
+import { PlaceIcon } from "@/components/PlaceIcon";
 import type { MappingRule } from "../_data/mapping-rules";
 
 interface MappingRulesTableProps {
@@ -29,13 +29,11 @@ export function MappingRulesTable({ rules }: MappingRulesTableProps) {
                 className="hover:bg-accent/15 transition-colors group"
               >
                 <td className="px-6 py-4 font-semibold text-foreground flex items-center gap-3">
-                  <div className="size-8 rounded-lg bg-muted flex items-center justify-center border shadow-inner overflow-hidden shrink-0 group-hover:border-blue-500/40 transition-colors">
-                    <SafeImage
-                      src={`https://places.openmap.lt/img/${rule.iconName}.png`}
-                      alt={rule.type}
-                      className="size-5 object-contain"
-                    />
-                  </div>
+                  <PlaceIcon
+                    icon={rule.icon}
+                    size="sm"
+                    className="shrink-0 group-hover:border-blue-500/40 transition-colors"
+                  />
                   <span>{rule.type}</span>
                 </td>
                 <td className="px-6 py-4 font-mono text-xs text-blue-600 dark:text-blue-400 bg-muted/10">

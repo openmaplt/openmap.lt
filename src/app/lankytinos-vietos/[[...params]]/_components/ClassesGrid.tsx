@@ -1,5 +1,5 @@
 import { ChevronRight, HelpCircle } from "lucide-react";
-import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
+import { PlaceIcon } from "@/components/PlaceIcon";
 import type { ProfileClass } from "@/data/omProfileClasses";
 
 interface ClassesGridProps {
@@ -12,7 +12,6 @@ export function ClassesGrid({ profileName, classes }: ClassesGridProps) {
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {classes.length > 0 ? (
         classes.map((cls) => {
-          const { icon: Icon, color } = PLACE_ICONS[cls.icon] ?? DEFAULT_ICON;
           return (
             <div
               key={cls.name}
@@ -20,9 +19,7 @@ export function ClassesGrid({ profileName, classes }: ClassesGridProps) {
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="size-10 rounded-xl bg-muted border flex items-center justify-center shadow-inner">
-                    <Icon style={{ color }} className="size-5" />
-                  </div>
+                  <PlaceIcon icon={cls.icon} />
                   <span className="text-xs font-semibold text-muted-foreground bg-muted px-2.5 py-0.5 rounded-full border">
                     {cls.count}
                   </span>

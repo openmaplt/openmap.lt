@@ -14,7 +14,7 @@ export const CATEGORIES = Object.values(CATEGORY);
 
 export interface MappingRule {
   type: string;
-  iconName: string;
+  icon: string;
   condition: string;
   category: Category;
 }
@@ -23,39 +23,39 @@ export const MAPPING_RULES: MappingRule[] = [
   // Istorija ir paveldas
   {
     type: "Piliakalniai",
-    iconName: "hillfort_",
+    icon: "HIL",
     condition:
       "historic = 'archaeological_site' and site_type = 'fortification'",
     category: CATEGORY.HISTORY,
   },
   {
     type: "Paveldas",
-    iconName: "paveldas_",
+    icon: "HER",
     condition: `"ref:lt:kpd" is not null and (coalesce(historic, '@') != 'archaeological_site' or coalesce(site_type, '@') != 'fortification')`,
     category: CATEGORY.HISTORY,
   },
   {
     type: "Pilkapiai",
-    iconName: "tumulus_",
+    icon: "TUM",
     condition: "historic = 'archaeological_site' and site_type = 'tumulus'",
     category: CATEGORY.HISTORY,
   },
   {
     type: "Dvarai",
-    iconName: "dvarai_",
+    icon: "MAN",
     condition: "historic = 'manor'",
     category: CATEGORY.HISTORY,
   },
   {
     type: "Kiti istoriniai",
-    iconName: "ruins_",
+    icon: "HIS",
     condition:
       "historic is not null and historic not in ('monument', 'memorial', 'wayside_cross', 'wayside_shrine', 'manor') and (historic != 'archaeological_site' or site_type not in ('fortification', 'tumulus'))",
     category: CATEGORY.HISTORY,
   },
   {
     type: "Vienuolynai",
-    iconName: "convent_",
+    icon: "MNS",
     condition: "historic = 'monastery'",
     category: CATEGORY.HISTORY,
   },
@@ -63,72 +63,72 @@ export const MAPPING_RULES: MappingRule[] = [
   // Turizmas ir poilsis
   {
     type: "Turizmo informacija",
-    iconName: "information_",
+    icon: "INF",
     condition: "tourism = 'information'",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Lankytinos vietos",
-    iconName: "footprint_",
+    icon: "ATT",
     condition:
       "tourism = 'attraction' and historic is null and \"attraction:type\" is null",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Vaizdingos vietos",
-    iconName: "viewpoint_",
+    icon: "VIE",
     condition: "tourism = 'viewpoint' and historic is null",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Pažintiniai takai",
-    iconName: "hiking_",
+    icon: "HIK",
     condition:
       "tourism = 'attraction' and \"attraction:type\" = 'hiking_route'",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Bokštai",
-    iconName: "tower_",
+    icon: "TOW",
     condition:
       "man_made in ('tower', 'communications_tower') and \"tower:type\" is not null and tourism in ('attraction', 'viewpoint', 'museum') and coalesce(access, 'yes') != 'no'",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Poilsiavietės su laužaviete",
-    iconName: "fire_",
+    icon: "PIF",
     condition:
       "(tourism = 'picnic_site' or amenity = 'shelter') and fireplace = 'yes'",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Poilsiavietės be laužavietės",
-    iconName: "picnic_",
+    icon: "PIC",
     condition:
       "(tourism = 'picnic_site' or amenity = 'shelter') and (fireplace is null or fireplace = 'no')",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Stovyklavietės",
-    iconName: "camping_",
+    icon: "CAM",
     condition: "tourism in ('camp_site', 'caravan_site')",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Muziejai",
-    iconName: "museum_",
+    icon: "MUS",
     condition: "tourism = 'museum'",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Hosteliai",
-    iconName: "hostel_",
+    icon: "GUE",
     condition: "tourism in ('chalet', 'hostel', 'motel', 'guest_house')",
     category: CATEGORY.TOURISM,
   },
   {
     type: "Viešbučiai",
-    iconName: "hotel_",
+    icon: "HOT",
     condition: "tourism = 'hotel'",
     category: CATEGORY.TOURISM,
   },
@@ -136,43 +136,43 @@ export const MAPPING_RULES: MappingRule[] = [
   // Maitinimas ir pramogos
   {
     type: "Kavinės",
-    iconName: "coffee_",
+    icon: "CAF",
     condition: "amenity = 'cafe'",
     category: CATEGORY.FOOD,
   },
   {
     type: "Greitas maistas",
-    iconName: "burger_",
+    icon: "FAS",
     condition: "amenity = 'fast_food'",
     category: CATEGORY.FOOD,
   },
   {
     type: "Restoranai",
-    iconName: "restaurant_",
+    icon: "RES",
     condition: "amenity = 'restaurant'",
     category: CATEGORY.FOOD,
   },
   {
     type: "Aludės, barai",
-    iconName: "bar_",
+    icon: "PUB",
     condition: "amenity in ('pub', 'bar')",
     category: CATEGORY.FOOD,
   },
   {
     type: "Teatrai",
-    iconName: "theater_",
+    icon: "THE",
     condition: "amenity = 'theatre'",
     category: CATEGORY.FOOD,
   },
   {
     type: "Kino teatrai",
-    iconName: "cinema_",
+    icon: "CIN",
     condition: "amenity = 'cinema'",
     category: CATEGORY.FOOD,
   },
   {
     type: "Meno centrai",
-    iconName: "art-museum_",
+    icon: "ART",
     condition: "amenity = 'arts_centre'",
     category: CATEGORY.FOOD,
   },
@@ -180,116 +180,116 @@ export const MAPPING_RULES: MappingRule[] = [
   // Paslaugos ir įstaigos
   {
     type: "Degalinės",
-    iconName: "fillingstation_",
+    icon: "FUE",
     condition: "amenity = 'fuel'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Greičio kameros",
-    iconName: "speed_",
+    icon: "SPE",
     condition: "highway = 'speed_camera'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Plovyklos",
-    iconName: "carwash_",
+    icon: "WAS",
     condition: "amenity = 'car_wash'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Servisai",
-    iconName: "repair_",
+    icon: "CAR",
     condition: "shop = 'car_repair'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Valstybinės įstaigos",
-    iconName: "congress_",
+    icon: "",
     condition: "office = 'government' or amenity = 'townhall'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Teismai",
-    iconName: "court_",
+    icon: "",
     condition: "amenity = 'courthouse'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Paštai",
-    iconName: "postal_",
+    icon: "POS",
     condition: "amenity = 'post_office'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Notarai, antstoliai",
-    iconName: "administration_",
+    icon: "",
     condition: "office in ('notary', 'lawyer')",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Policija",
-    iconName: "police_",
+    icon: "",
     condition: "amenity = 'police'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Kitos įmonės",
-    iconName: "office-building_",
+    icon: "",
     condition:
       "office is not null and office not in ('government', 'notary', 'lawyer', 'insurance')",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Bankai",
-    iconName: "bigcity_",
+    icon: "BAN",
     condition: "amenity = 'bank'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Draudimas",
-    iconName: "umbrella_",
+    icon: "",
     condition: "office = 'insurance'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Bankomatai",
-    iconName: "euro_",
+    icon: "ATM",
     condition: "amenity = 'atm'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Ligoninės",
-    iconName: "hospital_",
+    icon: "",
     condition: "amenity = 'hospital'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Klinikos",
-    iconName: "firstaid_",
+    icon: "",
     condition: "amenity = 'clinic'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Odontologija",
-    iconName: "dentist_",
+    icon: "",
     condition: "amenity = 'dentist'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Daktarai",
-    iconName: "medicine_",
+    icon: "",
     condition: "amenity = 'doctors'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Vaistinės",
-    iconName: "drugstore_",
+    icon: "PHA",
     condition: "amenity = 'pharmacy'",
     category: CATEGORY.SERVICES,
   },
   {
     type: "Bibliotekos",
-    iconName: "library_",
+    icon: "LIB",
     condition: "amenity = 'library'",
     category: CATEGORY.SERVICES,
   },
@@ -297,31 +297,31 @@ export const MAPPING_RULES: MappingRule[] = [
   // Prekyba
   {
     type: "Prekybos centrai",
-    iconName: "supermarket_",
+    icon: "SUP",
     condition: "shop in ('supermarket', 'mall')",
     category: CATEGORY.SHOPPING,
   },
   {
     type: "Parduotuvės",
-    iconName: "convenience_",
+    icon: "",
     condition: "shop = 'convenience'",
     category: CATEGORY.SHOPPING,
   },
   {
     type: "Kioskai",
-    iconName: "market_",
+    icon: "",
     condition: "shop = 'kiosk'",
     category: CATEGORY.SHOPPING,
   },
   {
     type: "Pasidaryk pats",
-    iconName: "workshop_",
+    icon: "DIY",
     condition: "shop = 'doityourself'",
     category: CATEGORY.SHOPPING,
   },
   {
     type: "Kitos parduotuvės",
-    iconName: "departmentstore_",
+    icon: "",
     condition:
       "shop is not null and shop not in ('supermarket', 'mall', 'convenience', 'car_repair', 'kiosk', 'doityourself')",
     category: CATEGORY.SHOPPING,
@@ -330,28 +330,28 @@ export const MAPPING_RULES: MappingRule[] = [
   // Maldos namai
   {
     type: "Katalikų bažnyčios",
-    iconName: "cathedral_",
+    icon: "CHU",
     condition:
       "amenity = 'place_of_worship' and religion = 'christian' and denomination in ('catholic', 'roman_catholic')",
     category: CATEGORY.WORSHIP,
   },
   {
     type: "Evangelikų bažnyčios",
-    iconName: "lutheran_",
+    icon: "LUT",
     condition:
       "amenity = 'place_of_worship' and religion = 'christian' and denomination in ('lutheran', 'evangelical', 'reformed')",
     category: CATEGORY.WORSHIP,
   },
   {
     type: "Cerkvės",
-    iconName: "orthodox_",
+    icon: "ORT",
     condition:
       "amenity = 'place_of_worship' and religion = 'christian' and denomination in ('orthodox', 'old_believers')",
     category: CATEGORY.WORSHIP,
   },
   {
     type: "Kitų religijų maldos namai",
-    iconName: "prayer_",
+    icon: "ORE",
     condition:
       "amenity = 'place_of_worship' and (religion != 'christian' or coalesce(denomination, '@') not in ('catholic', 'roman_catholic', 'lutheran', 'evangelical', 'reformed', 'orthodox', 'old_believers'))",
     category: CATEGORY.WORSHIP,
