@@ -13,7 +13,7 @@ export async function getProfileClassObjects(
 ): Promise<ClassObject[]> {
   try {
     const res = await query(
-      "SELECT public.om_profile_classe_objects($1, $2) as result",
+      "SELECT public.om_profile_class_objects($1, $2) as result",
       [profile, className],
     );
     const result = res.rows[0]?.result;
