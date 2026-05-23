@@ -3,7 +3,7 @@ import { getProfileClasses } from "@/data/omProfileClasses";
 import { getProfileClassObjects } from "@/data/omProfileClassObjects";
 import { getProfiles } from "@/data/omProfiles";
 import { Breadcrumb } from "./Breadcrumb";
-import { ObjectsGrid } from "./ObjectsGrid";
+import { ObjectsList } from "./ObjectsList";
 
 interface ObjectsViewProps {
   profileName: string;
@@ -46,7 +46,7 @@ export async function ObjectsView({
         </p>
       </div>
 
-      <ObjectsGrid objects={objects} />
+      <ObjectsList objects={objects} />
     </div>
   );
 }
