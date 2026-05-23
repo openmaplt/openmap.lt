@@ -1,4 +1,3 @@
-import { Heart } from "lucide-react";
 import type { Metadata } from "next";
 import HelpLayout from "@/components/HelpLayout";
 import { BugReportSection } from "./_components/BugReportSection";
