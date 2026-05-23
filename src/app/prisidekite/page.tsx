@@ -18,10 +18,6 @@ export default function Page() {
         <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-red-500/90 to-orange-600/90 text-white p-8 sm:p-12 shadow-xl border border-red-500/20">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.15),transparent)] pointer-events-none" />
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold tracking-wider uppercase">
-              <Heart className="size-3.5 fill-white/20 animate-pulse" />
-              <span>Tobulinkime kartu</span>
-            </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
               Prisidėkite prie žemėlapio kūrimo!
             </h1>
