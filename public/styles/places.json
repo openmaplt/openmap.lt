@@ -166,7 +166,7 @@
       "source-layer": "landuse",
       "minzoom": 6,
       "filter": ["all", ["in", "kind", "industrial"]],
-      "paint": { "fill-color": "rgba(245,230,255,1)", "fill-opacity": 1 }
+      "paint": { "fill-color": "rgba(229, 216, 237, 1)", "fill-opacity": 1 }
     },
     {
       "id": "landuse-allotments",
@@ -184,7 +184,7 @@
       "source-layer": "landuse",
       "minzoom": 6,
       "filter": ["all", ["in", "kind", "commercial"]],
-      "paint": { "fill-color": "rgba(255, 232, 232, 1)", "fill-opacity": 1 }
+      "paint": { "fill-color": "rgba(224, 221, 221, 1)", "fill-opacity": 1 }
     },
     {
       "id": "landuse-park",
@@ -220,7 +220,7 @@
       "layout": { "visibility": "visible" },
       "paint": {
         "line-color": "#7acad0",
-        "line-width": { "base": 1.2, "stops": [[8, 0.5], [20, 14]] }
+        "line-width": { "base": 1.2, "stops": [[10, 0.5], [20, 10]] }
       }
     },
     {
@@ -338,7 +338,7 @@
       },
       "paint": {
         "line-color": "#c5e0f0",
-        "line-width": { "base": 1.4, "stops": [[10, 0.5], [20, 15]] }
+        "line-width": { "base": 1.4, "stops": [[10, 0.5], [20, 9]] }
       }
     },
     {
