@@ -1,58 +1,58 @@
 {
   "alcohol-shop": {
-    "height": 21,
-    "pixelRatio": 1,
-    "width": 21,
+    "height": 42,
+    "pixelRatio": 2,
+    "width": 42,
     "x": 0,
     "y": 0
   },
   "bar": {
-    "height": 21,
-    "pixelRatio": 1,
-    "width": 21,
-    "x": 21,
+    "height": 42,
+    "pixelRatio": 2,
+    "width": 42,
+    "x": 42,
     "y": 0
   },
   "beer": {
-    "height": 21,
-    "pixelRatio": 1,
-    "width": 21,
+    "height": 42,
+    "pixelRatio": 2,
+    "width": 42,
     "x": 0,
-    "y": 21
+    "y": 42
   },
   "cafe": {
-    "height": 21,
-    "pixelRatio": 1,
-    "width": 21,
-    "x": 21,
-    "y": 21
+    "height": 42,
+    "pixelRatio": 2,
+    "width": 42,
+    "x": 42,
+    "y": 42
   },
   "fast-food": {
-    "height": 21,
-    "pixelRatio": 1,
-    "width": 21,
-    "x": 42,
+    "height": 42,
+    "pixelRatio": 2,
+    "width": 42,
+    "x": 84,
     "y": 0
   },
   "forest": {
-    "height": 16,
-    "pixelRatio": 1,
-    "width": 16,
-    "x": 42,
-    "y": 21
+    "height": 32,
+    "pixelRatio": 2,
+    "width": 32,
+    "x": 84,
+    "y": 42
   },
   "restaurant": {
-    "height": 21,
-    "pixelRatio": 1,
-    "width": 21,
-    "x": 63,
+    "height": 42,
+    "pixelRatio": 2,
+    "width": 42,
+    "x": 126,
     "y": 0
   },
   "water": {
-    "height": 16,
-    "pixelRatio": 1,
-    "width": 16,
-    "x": 58,
-    "y": 21
+    "height": 32,
+    "pixelRatio": 2,
+    "width": 32,
+    "x": 116,
+    "y": 42
   }
 }
