@@ -20,7 +20,7 @@ export function ProfilesGrid({ profiles }: ProfilesGridProps) {
                   <FolderOpen className="size-6" />
                 </span>
                 <span className="text-xs font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-full border">
-                  {profile.count} vietovės
+                  {profile.count} objektai
                 </span>
               </div>
               <h2 className="text-xl font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
