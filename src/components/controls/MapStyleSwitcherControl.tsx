@@ -6,7 +6,7 @@ import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
 import { cn } from "@/lib/utils";
 import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
-export function MapStyleSwitcher() {
+export function MapStyleSwitcherControl() {
   const { mapRef, handleOnChangeMapProfile: onChangeMapProfile } =
     useMapActions();
   const { activeMapProfile } = useMapConfig();

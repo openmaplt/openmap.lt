@@ -2,7 +2,9 @@
 
 import { BicycleProfileComponents } from "@/components/BicycleProfileComponents";
 import { CraftbeerFeature } from "@/components/CraftbeerFeature";
-import { MapStyleSwitcher } from "@/components/MapStyleSwitcher";
+import { GeolocateControl } from "@/components/controls/GeolocateControl";
+import { MapStyleSwitcherControl } from "@/components/controls/MapStyleSwitcherControl";
+import { NavigationControl } from "@/components/controls/NavigationControl";
 import { PlacesProfileComponents } from "@/components/PlacesProfileComponents";
 import { PoiDetails } from "@/components/PoiDetails";
 import { PoiInteraction } from "@/components/PoiInteraction";
@@ -34,9 +36,16 @@ export function MapContent({ initialFilterType }: MapContentProps) {
       {FeatureComponent && (
         <FeatureComponent initialFilterType={initialFilterType} />
       )}
+
+      <div className="absolute left-3 top-3 [body:has(.search-container)_&]:top-14 z-[9] flex flex-col gap-2">
+        <NavigationControl />
+        <GeolocateControl />
+      </div>
+      <MapStyleSwitcherControl />
+
       <PoiInteraction />
-      <MapStyleSwitcher />
       <PoiDetails />
+
       <RouteInteraction />
       <RouteManager />
     </>

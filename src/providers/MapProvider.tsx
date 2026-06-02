@@ -174,6 +174,10 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     [],
   );
 
+  const handleRotate = useCallback(({ viewState }: ViewStateChangeEvent) => {
+    setViewState((prev) => ({ ...prev, bearing: viewState.bearing }));
+  }, []);
+
   const handleOnChangeMapProfile = useCallback((profile: MapProfile) => {
     setActiveMapProfile(profile);
     setSelectedPoiId(null);
@@ -225,6 +229,7 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
               minZoom={MapConfig.MIN_ZOOM}
               maxZoom={MapConfig.MAX_ZOOM}
               maxBounds={MapConfig.BOUNDS}
+              onRotate={handleRotate}
               onMoveEnd={handleMoveEnd}
               onLoad={(e) => setBbox(e.target.getBounds())}
               attributionControl={false}
