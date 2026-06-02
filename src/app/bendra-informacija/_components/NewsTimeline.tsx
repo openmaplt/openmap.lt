@@ -6,7 +6,7 @@ const NEWS_TIMELINE = [
     date: "2025-11-29",
     title: "Paleista nauja openmap.lt versija",
     description:
-      'Paleista pirma naujos karto openmap.lt versija. Joje bus vienoje vietoje sukaupti kelių skirtingų žemėlapių aplikacijų funkcionalumai, kad naudotojams būtų paprasčiau juos rasti.',
+      "Paleista pirma naujos karto openmap.lt versija. Joje bus vienoje vietoje sukaupti kelių skirtingų žemėlapių aplikacijų funkcionalumai, kad naudotojams būtų paprasčiau juos rasti.",
     imageUrl: "/img/new_openmap.png",
     icon: Sparkles,
   },
