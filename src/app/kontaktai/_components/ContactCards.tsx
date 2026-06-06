@@ -14,12 +14,12 @@ const CONTACT_CARDS = [
       "from-blue-500/10 to-indigo-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400",
   },
   {
-    title: "Twitter / X kanalas",
+    title: "Mastodon kanalas",
     subtitle: "Sekite naujienas trumpai",
     description:
-      "Oficialus Lietuvos atvirojo žemėlapio Twitter / X profilis. Čia skelbiame apie svarbiausius paslaugų atnaujinimus bei žemėlapio pasiekimus.",
+      "Oficialus Lietuvos atvirojo žemėlapio Mastodon profilis. Čia skelbiame apie svarbiausius paslaugų atnaujinimus bei žemėlapio pasiekimus.",
     linkText: "Sekti @Atvirasis",
-    href: "https://twitter.com/Atvirasis",
+    href: "https://mapstodon.space/@atvirasis",
     icon: MessageSquare,
     color:
       "from-sky-500/10 to-blue-500/10 border-sky-500/20 text-sky-500 dark:text-sky-400",
