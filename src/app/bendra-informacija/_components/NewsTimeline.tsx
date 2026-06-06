@@ -3,6 +3,29 @@ import { NewsTimelineItem } from "./NewsTimelineItem";
 
 const NEWS_TIMELINE = [
   {
+    date: "2026-05-09",
+    title: "Atnaujintas baidarių žemėlapis!",
+    description:
+      "Prasideda baidarių sezonas! Baidarių maršrutizavimo funkcionalumas perkeltas į naują portalą. " +
+      "Jūs galite bendrinti savo sukurtus baidarių maršrutus su savo draugais, tiesiog perduodami jiems url. " +
+      "Url automatiškai pasikeičia, kai jūs paskaičiuojate maršrutą, taigi tiesiog spauskite naršyklės mygtuką „Bendrinti“ ar „Share“.",
+    imageUrl: "/img/cayaking_route.png",
+    icon: Sparkles,
+  },
+  {
+    date: "2026-01-25",
+    title: "Pridėti žemėlapių profiliai",
+    description:
+      "Per ilgus openmap.lt egzistavimo metus mes sukūrėme daug skirtingų mažų web-aplikacijų, skirtų įvairiems tikslams: " +
+      "bendras žemėlapis, turizmas, baidarės, craft-alus ir t.t. Naujos kartos žemėlapyje mes nusprendėme visus juos " +
+      "sudėti į vieną web-aplikaciją. Todėl mums prireikė „profilių“, kurie reiškia ne tik savo skirtingą žemėlapio stilių " +
+      "(ir todėl skirtingus rodomus/išryškinamus objektus), bet taipogi ir skirtingus sutartinius ženklus, filtrus bei " +
+      "paieškos galimybes. Ši pirminė lego kaladėlė mums vėliau leis sukurti daug papildomo įdomaus ir naudingo funkcionalumo. " +
+      "Profilius rasite visų žemėlapių apatiniame dešiniame kampe.",
+    imageUrl: "/img/topo_with_profiles.png",
+    icon: Sparkles,
+  },
+  {
     date: "2025-11-29",
     title: "Paleista nauja openmap.lt versija",
     description:

@@ -47,11 +47,11 @@ export function NewsTimelineItem({
         )}
 
         {imageUrl && (
-          <div className="relative rounded-lg overflow-hidden border bg-muted shadow-sm max-w-md">
+          <div className="relative rounded-lg overflow-hidden border bg-muted shadow-sm w-fit max-w-screen-md">
             <SafeImage
               src={imageUrl}
               alt={title}
-              className="w-full h-auto object-cover max-h-64 opacity-90 hover:opacity-100 transition-opacity"
+              className="max-w-full h-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
             />
           </div>
         )}
