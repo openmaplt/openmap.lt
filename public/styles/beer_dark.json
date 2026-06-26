@@ -728,7 +728,7 @@
       "id": "label-water",
       "type": "symbol",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 8,
       "maxzoom": 18,
       "filter": ["all", ["==", "$type", "LineString"]],

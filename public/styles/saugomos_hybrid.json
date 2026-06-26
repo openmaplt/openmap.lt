@@ -477,7 +477,7 @@
       "id": "label-water",
       "type": "symbol",
       "source": "osm",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 8,
       "maxzoom": 20,
       "filter": ["all", ["==", "$type", "LineString"]],

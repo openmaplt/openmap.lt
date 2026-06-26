@@ -1343,7 +1343,7 @@
       "id": "label-water",
       "type": "symbol",
       "source": "tilezen",
-      "source-layer": "water",
+      "source-layer": "water_l",
       "minzoom": 8,
       "maxzoom": 18,
       "filter": ["all", ["==", "$type", "LineString"], ["==", "virtual", "N"]],
@@ -1482,6 +1482,6 @@
       "layout": { "icon-image": "{kind}", "icon-allow-overlap": true }
     }
   ],
-  "id": "asgr00hhi",
-  "owner": ""
+  "id": "openmap_upes",
+  "owner": "Atvirasis žemėlapis"
 }
