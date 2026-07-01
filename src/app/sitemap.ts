@@ -3,6 +3,8 @@ import { BASE_URL } from "@/config/config";
 import { getProfileClasses } from "@/data/omProfileClasses";
 import { getProfiles } from "@/data/omProfiles";
 
+export const dynamic = "force-dynamic";
+
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   {
     url: BASE_URL,
