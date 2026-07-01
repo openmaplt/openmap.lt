@@ -2,6 +2,21 @@ import type { FilterSpecification } from "@maplibre/maplibre-gl-style-spec";
 import type { Feature } from "geojson";
 import type { Map as MapLibreMap } from "maplibre-gl";
 
+export function parsePoiSlug(slug: string[] | undefined) {
+  const mapType = slug?.[0] ?? undefined;
+  const poiSlug = slug?.[1] ?? undefined;
+  const poiId =
+    poiSlug && poiSlug !== "map" ? poiSlug.split("-")[0] : undefined;
+  const nameFromSlug =
+    poiSlug && poiId
+      ? poiSlug
+          .slice(poiId.length + 1)
+          .replace(/-/g, " ")
+          .replace(/^\w/, (c) => c.toUpperCase()) || undefined
+      : undefined;
+  return { mapType, poiSlug, poiId, nameFromSlug };
+}
+
 /**
  * Query and extract POI feature by object ID
  */

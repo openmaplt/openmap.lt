@@ -80,6 +80,7 @@ jobs:
             if [ ! -f .env ]; then
               echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
               echo "GITHUB_REPOSITORY=${{ github.repository }}" >> .env
+              echo "BASE_URL=https://openmap.lt" >> .env
             fi
             
             # Pull latest docker-compose.prod.yml

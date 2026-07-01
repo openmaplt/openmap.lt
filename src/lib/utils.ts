@@ -10,31 +10,20 @@ export function findMapsByType(mapType: string): MapProfile | undefined {
   return MAP_PROFILES.find((profile) => profile.mapType === mapType);
 }
 
+// Matches om_slugify() PostgreSQL function logic
 export function slugify(str: string): string {
   if (!str) return "";
-
-  const charMap: Record<string, string> = {
-    ą: "a",
-    č: "c",
-    ę: "e",
-    ė: "e",
-    į: "i",
-    š: "s",
-    ų: "u",
-    ū: "u",
-    ž: "z",
-  };
-
   return str
-    .toString()
     .toLowerCase()
-    .trim()
-    .split("")
-    .map((char) => charMap[char] || char)
-    .join("")
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(/[^\w-]+/g, "") // Remove all non-word chars
-    .replace(/--+/g, "-") // Replace multiple - with single -
-    .replace(/^-+/, "") // Trim - from start of text
-    .replace(/-+$/, ""); // Trim - from end of text
+    .replace(/[ąĄ]/g, "a")
+    .replace(/[čČ]/g, "c")
+    .replace(/[ęĘ]/g, "e")
+    .replace(/[ėĖ]/g, "e")
+    .replace(/[įĮ]/g, "i")
+    .replace(/[šŠ]/g, "s")
+    .replace(/[ųŲ]/g, "u")
+    .replace(/[ūŪ]/g, "u")
+    .replace(/[žŽ]/g, "z")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }

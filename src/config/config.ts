@@ -1,5 +1,7 @@
 import type { LngLatBoundsLike } from "maplibre-gl";
 
+export const BASE_URL = process.env.BASE_URL ?? "https://openmap.lt";
+
 type Config = {
   DEFAULT_MAP_TYPE: string;
   DEFAULT_STYLE_MAP: string;

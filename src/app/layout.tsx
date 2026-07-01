@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { BASE_URL } from "@/config/config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Openmap.lt",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "Openmap.lt – Atviras Lietuvos žemėlapis",
+    template: "%s – Openmap.lt",
+  },
   description: "Atviras Lietuvos žemėlapis",
+  alternates: { canonical: BASE_URL },
 };
 
 export default function RootLayout({
@@ -23,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="lt" className="h-full">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-hidden`}
       >
