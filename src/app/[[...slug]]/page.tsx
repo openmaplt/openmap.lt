@@ -3,7 +3,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { HelpButton } from "@/components/HelpButton";
 import { BASE_URL } from "@/config/config";
 import { getPoiInfo } from "@/data/poiInfo";
-import { parsePoiSlug } from "@/lib/poiHelpers";
+import { buildPoiDescription, parsePoiSlug } from "@/lib/poiHelpers";
 import { slugify } from "@/lib/utils";
 import MapPage from "./_components/MapPage";
 
@@ -35,19 +35,11 @@ export async function generateMetadata({
   // vector-tile profiles (maps, bicycle, river, etc.) return {}, so fall back
   // to the name extracted from the URL slug.
   const name = props?.name ?? nameFromSlug;
-  const description = props?.description;
   const image = props?.image;
-  const city = props?.city;
 
   // layout.tsx template appends " – Openmap.lt", so return just the name here
   const ogTitle = name ? `${name} – Openmap.lt` : undefined;
-  const desc =
-    description ??
-    (name && city
-      ? `${name} – ${city}. Rask žemėlapyje openmap.lt.`
-      : name
-        ? `${name}. Rask žemėlapyje openmap.lt.`
-        : undefined);
+  const desc = buildPoiDescription(name, mapType);
 
   return {
     ...(name && { title: name }),

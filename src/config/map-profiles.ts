@@ -16,6 +16,7 @@ export type MapProfile = {
   interactiveLayers?: string[];
   routingProfiles?: RouteProfile[];
   routingUrl?: string;
+  seoDescription?: string;
 };
 
 const GENERAL_ACTIVE_LAYERS = ["label-amenity"];
@@ -124,6 +125,8 @@ export const MAP_PROFILES: MapProfile[] = [
     ],
     featureComponent: "craftbeer",
     interactiveLayers: GENERAL_ACTIVE_LAYERS,
+    seoDescription:
+      "{name} – aludarystė Lietuvoje. Rask žemėlapyje openmap.lt.",
   },
   {
     id: "places",
@@ -143,6 +146,8 @@ export const MAP_PROFILES: MapProfile[] = [
     featureComponent: "places",
     interactiveLayers: ["places-layer"],
     routingProfiles: ["car", "bike", "foot"],
+    seoDescription:
+      "{name} – lankytina vieta Lietuvoje. Rask ir tyrinėk žemėlapyje openmap.lt.",
   },
   {
     id: "protected",
@@ -161,6 +166,8 @@ export const MAP_PROFILES: MapProfile[] = [
     ],
     featureComponent: "protected",
     interactiveLayers: PROTECTED_ACTIVE_LAYERS,
+    seoDescription:
+      "{name} – saugoma gamtos teritorija Lietuvoje. Tyrinėk žemėlapyje openmap.lt.",
   },
   {
     id: "baseinai",

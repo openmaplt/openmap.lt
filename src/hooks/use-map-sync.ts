@@ -47,6 +47,10 @@ export function useMapSync(
       .filter((v) => v)
       .join("-");
 
+    document.title = poiName
+      ? `${poiName} – Openmap.lt`
+      : "Openmap.lt – Atviras Lietuvos žemėlapis";
+
     const url = new URL(window.location.href);
     url.pathname = `/${activeMapProfile.mapType}/${poiSlugWithName ?? "map"}`;
     url.search = formatSearchParams(mapStateData, route);

@@ -1,6 +1,18 @@
 import type { FilterSpecification } from "@maplibre/maplibre-gl-style-spec";
 import type { Feature } from "geojson";
 import type { Map as MapLibreMap } from "maplibre-gl";
+import { MAP_PROFILES } from "@/config/map-profiles";
+
+export function buildPoiDescription(
+  name: string | undefined,
+  mapType: string | undefined,
+): string | undefined {
+  if (!name) return undefined;
+  const profile = MAP_PROFILES.find((p) => p.mapType === mapType);
+  const template =
+    profile?.seoDescription ?? "{name}. Rask žemėlapyje openmap.lt.";
+  return template.replace("{name}", name);
+}
 
 export function parsePoiSlug(slug: string[] | undefined) {
   const mapType = slug?.[0] ?? undefined;
