@@ -26,7 +26,10 @@ export async function generateMetadata({
   }
 
   const poiData = await getPoiInfo(poiId, mapType);
-  const props = poiData?.properties as Record<string, string | undefined> | null;
+  const props = poiData?.properties as Record<
+    string,
+    string | undefined
+  > | null;
 
   // DB-backed profiles (places, craftbeer, saugomos) return full properties;
   // vector-tile profiles (maps, bicycle, river, etc.) return {}, so fall back

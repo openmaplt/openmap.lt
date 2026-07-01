@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { BASE_URL } from "@/config/config";
-import { getProfiles } from "@/data/omProfiles";
 import { getProfileClasses } from "@/data/omProfileClasses";
+import { getProfiles } from "@/data/omProfiles";
 
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   {
@@ -54,13 +54,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly" as const,
   }));
 
-  const classEntryList: MetadataRoute.Sitemap = profiles.flatMap(
-    (profile, i) =>
-      classEntries[i].map((cls) => ({
-        url: `${BASE_URL}/katalogas/${profile.name}/${cls.name}`,
-        priority: 0.7,
-        changeFrequency: "weekly" as const,
-      })),
+  const classEntryList: MetadataRoute.Sitemap = profiles.flatMap((profile, i) =>
+    classEntries[i].map((cls) => ({
+      url: `${BASE_URL}/katalogas/${profile.name}/${cls.name}`,
+      priority: 0.7,
+      changeFrequency: "weekly" as const,
+    })),
   );
 
   return [...STATIC_PAGES, ...profileEntries, ...classEntryList];

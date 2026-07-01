@@ -1,4 +1,4 @@
-import { Map } from "lucide-react";
+import { Map as MapIcon } from "lucide-react";
 import Link from "next/link";
 import HelpLayout from "@/components/HelpLayout";
 
@@ -15,8 +15,8 @@ export default function NotFound() {
             Puslapis nerastas
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Šio adreso puslapis neegzistuoja — galbūt nuoroda yra pasenusi
-            arba adresas buvo įvestas neteisingai.
+            Šio adreso puslapis neegzistuoja — galbūt nuoroda yra pasenusi arba
+            adresas buvo įvestas neteisingai.
           </p>
         </div>
 
@@ -25,7 +25,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition-colors"
           >
-            <Map className="size-4" />
+            <MapIcon className="size-4" />
             Atidaryti žemėlapį
           </Link>
           <Link
