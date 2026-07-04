@@ -13,23 +13,38 @@ import {
 import { useMapActions } from "@/providers/MapProvider";
 import { useRoute } from "@/providers/RouteProvider";
 
+interface RouteProgressInfo {
+  position: [number, number] | null;
+  remainingLine: Feature<LineString> | null;
+}
+
 interface RouteLayerProps {
   routeLine: Feature<LineString> | null;
   distance: number | null;
   time: number | null;
   loading: boolean;
   error: string | null;
+  progress: RouteProgressInfo;
 }
 
-export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
+export function RouteLayer({
+  routeLine,
+  loading,
+  error,
+  progress,
+}: RouteLayerProps) {
   const {
     routeStart,
     routeEnd,
+    navigationMode,
     highlightedRoutePoint,
     setRouteStart,
     setRouteEnd,
   } = useRoute();
   const { mapRef } = useMapActions();
+  const displayedLine = navigationMode
+    ? (progress.remainingLine ?? routeLine)
+    : routeLine;
 
   useEffect(() => {
     if (routeLine && routeLine.geometry.type === "LineString") {
@@ -70,8 +85,8 @@ export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
 
   return (
     <>
-      {routeLine && (
-        <Source id="route-source" type="geojson" data={routeLine}>
+      {displayedLine && (
+        <Source id="route-source" type="geojson" data={displayedLine}>
           <Layer
             id="route-line"
             type="line"
@@ -88,16 +103,29 @@ export function RouteLayer({ routeLine, loading, error }: RouteLayerProps) {
         </Source>
       )}
 
-      {routeStart && (
+      {navigationMode && progress.position ? (
         <Marker
-          longitude={(routeStart.geometry as Point).coordinates[0]}
-          latitude={(routeStart.geometry as Point).coordinates[1]}
+          longitude={progress.position[0]}
+          latitude={progress.position[1]}
           anchor="center"
-          draggable
-          onDragEnd={handleStartDragEnd}
         >
-          <div className="w-4 h-4 rounded-full bg-white border-4 border-green-600 shadow-md cursor-move" />
+          <div className="relative flex h-6 w-6 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+            <span className="relative inline-flex h-4 w-4 rounded-full bg-blue-600 border-2 border-white shadow-lg" />
+          </div>
         </Marker>
+      ) : (
+        routeStart && (
+          <Marker
+            longitude={(routeStart.geometry as Point).coordinates[0]}
+            latitude={(routeStart.geometry as Point).coordinates[1]}
+            anchor="center"
+            draggable
+            onDragEnd={handleStartDragEnd}
+          >
+            <div className="w-4 h-4 rounded-full bg-white border-4 border-green-600 shadow-md cursor-move" />
+          </Marker>
+        )
       )}
 
       {routeEnd && (

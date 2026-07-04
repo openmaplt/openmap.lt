@@ -31,6 +31,7 @@ export function useGeolocation() {
         setState((s) => ({
           ...s,
           position: [coords.longitude, coords.latitude],
+          error: null,
         })),
       (error) => {
         watchIdRef.current = null;

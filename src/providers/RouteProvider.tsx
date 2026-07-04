@@ -22,11 +22,13 @@ import {
 
 interface RouteContextType {
   routingMode: boolean;
+  navigationMode: boolean;
   routeStart: Feature | null;
   routeEnd: Feature | null;
   selectedRouteProfile: RouteProfile | null;
   highlightedRoutePoint: [number, number] | null;
   setRoutingMode: (mode: boolean) => void;
+  setNavigationMode: (mode: boolean) => void;
   setRouteStart: (feature: Feature | null) => void;
   setRouteEnd: (feature: Feature | null) => void;
   setSelectedRouteProfile: (profile: RouteProfile | null) => void;
@@ -49,6 +51,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
   const { selectedFeature } = useMapSelection();
 
   const [routingMode, setRoutingMode] = useState(() => initialRoute !== null);
+  const [navigationMode, setNavigationMode] = useState(false);
   const [routeStart, setRouteStart] = useState<Feature | null>(() =>
     initialRoute
       ? point([initialRoute.startLng, initialRoute.startLat], {
@@ -81,9 +84,14 @@ export function RouteProvider({ children }: { children: ReactNode }) {
     setRouteStart(null);
     setRouteEnd(null);
     setRoutingMode(false);
+    setNavigationMode(false);
     setHighlightedRoutePoint(null);
     setSelectedRouteProfile(activeMapProfile.routingProfiles?.[0] ?? null);
   }, [activeMapProfile]);
+
+  useEffect(() => {
+    if (!routeStart || !routeEnd) setNavigationMode(false);
+  }, [routeStart, routeEnd]);
 
   const routeStateForUrl = useMemo<RouteState | null>(() => {
     if (!routeStart || !routeEnd) return null;
@@ -105,11 +113,13 @@ export function RouteProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       routingMode,
+      navigationMode,
       routeStart,
       routeEnd,
       selectedRouteProfile,
       highlightedRoutePoint,
       setRoutingMode,
+      setNavigationMode,
       setRouteStart,
       setRouteEnd,
       setSelectedRouteProfile,
@@ -117,6 +127,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
     }),
     [
       routingMode,
+      navigationMode,
       routeStart,
       routeEnd,
       selectedRouteProfile,
