@@ -5,7 +5,7 @@ import length from "@turf/length";
 import lineSlice from "@turf/line-slice";
 import type { Feature, LineString } from "geojson";
 import { AlertTriangle, Navigation, PartyPopper, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -19,6 +19,7 @@ import { getActiveInstructionIndex } from "@/lib/routeUtils";
 import { useMapActions } from "@/providers/MapProvider";
 import { useRoute } from "@/providers/RouteProvider";
 import { NavigationBanner } from "./NavigationBanner";
+import { NavigationStepsSheet } from "./NavigationStepsSheet";
 import { RouteStats } from "./RouteStats";
 import { RouteStepsList } from "./RouteStepsList";
 import { RoutingInputs } from "./RoutingInputs";
@@ -53,6 +54,7 @@ export function RouteDetails({
 }: RouteDetailsProps) {
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showFullList, setShowFullList] = useState(false);
   const {
     routingMode,
     navigationMode,
@@ -109,6 +111,10 @@ export function RouteDetails({
     return total;
   }, [activeIdx, steps, liveDistanceToNext, progress.remainingTime]);
 
+  useEffect(() => {
+    if (!navigationMode) setShowFullList(false);
+  }, [navigationMode]);
+
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setIsExpanded(false);
@@ -154,6 +160,25 @@ export function RouteDetails({
   };
 
   if (navigationMode && isMobile && routingMode) {
+    if (showFullList) {
+      return (
+        <NavigationStepsSheet
+          instructions={instructions}
+          routeStartName={routeStart?.properties?.name}
+          routeEndName={routeEnd?.properties?.name}
+          selectedRouteProfile={selectedRouteProfile}
+          currentIndex={progress.currentIndex}
+          liveDistanceToNext={liveDistanceToNext}
+          onInstructionClick={(step) => {
+            handleInstructionClick(step);
+            setShowFullList(false);
+          }}
+          onStartEndClick={handleStartEndClick}
+          onClose={() => setShowFullList(false)}
+        />
+      );
+    }
+
     return (
       <NavigationBanner
         activeInstruction={activeInstruction}
@@ -166,6 +191,7 @@ export function RouteDetails({
         arrived={progress.arrived}
         locationError={!!progress.error}
         onStop={() => setNavigationMode(false)}
+        onOpenList={() => setShowFullList(true)}
       />
     );
   }
