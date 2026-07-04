@@ -1,4 +1,5 @@
 import type { RouteProfile } from "@/config/map-profiles";
+import { type RouteInstruction, RouteSign } from "@/hooks/use-routing";
 
 export function formatDistance(dist: number): string {
   if (dist < 1000) {
@@ -18,6 +19,22 @@ export function formatTime(ms: number): string | null {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${h} val. ${m > 0 ? `${m} min` : ""}`;
+}
+
+/**
+ * Finds the instruction the traveler is currently on, based on the vertex
+ * index of their snapped position along the route line.
+ */
+export function getActiveInstructionIndex(
+  instructions: RouteInstruction[],
+  currentIndex: number | null,
+): number | null {
+  if (currentIndex == null) return null;
+  const idx = instructions.findIndex(
+    (step) =>
+      step.sign !== RouteSign.Finish && step.interval[1] >= currentIndex,
+  );
+  return idx === -1 ? null : idx;
 }
 
 export function getActionWord(profile: RouteProfile | null): string {
