@@ -19,6 +19,36 @@ import { type RouteInstruction, RouteSign } from "@/hooks/use-routing";
 import { formatDistance, formatTime } from "@/lib/routeUtils";
 import { cn } from "@/lib/utils";
 
+export function getIconComponentForSign(sign: RouteSign) {
+  switch (sign) {
+    case RouteSign.TurnSharpLeft:
+      return ArrowLeftSquare;
+    case RouteSign.TurnLeft:
+      return ArrowLeft;
+    case RouteSign.TurnSlightLeft:
+      return ArrowUpLeft;
+    case RouteSign.ContinueStraight:
+      return ArrowUp;
+    case RouteSign.TurnSlightRight:
+      return ArrowUpRight;
+    case RouteSign.TurnRight:
+      return ArrowRight;
+    case RouteSign.TurnSharpRight:
+      return ArrowRightSquare;
+    case RouteSign.Finish:
+    case RouteSign.ViaPoint:
+      return MapPin;
+    case RouteSign.EnterRoundabout:
+      return RefreshCw;
+    case RouteSign.KeepRight:
+      return ArrowUpRight;
+    case RouteSign.UTurnRight:
+      return ArrowUpLeft;
+    default:
+      return Navigation;
+  }
+}
+
 function getIconForSign(sign: RouteSign) {
   switch (sign) {
     case RouteSign.TurnSharpLeft:

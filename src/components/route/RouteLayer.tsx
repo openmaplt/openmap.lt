@@ -2,20 +2,23 @@
 
 import { point } from "@turf/helpers";
 import type { Feature, LineString, Point } from "geojson";
+import { Navigation } from "lucide-react";
 import { LngLatBounds } from "maplibre-gl";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   Layer,
   Marker,
   type MarkerDragEvent,
   Source,
 } from "react-map-gl/maplibre";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useMapActions } from "@/providers/MapProvider";
 import { useRoute } from "@/providers/RouteProvider";
 
 interface RouteProgressInfo {
   position: [number, number] | null;
   remainingLine: Feature<LineString> | null;
+  bearing: number | null;
 }
 
 interface RouteLayerProps {
@@ -42,11 +45,53 @@ export function RouteLayer({
     setRouteEnd,
   } = useRoute();
   const { mapRef } = useMapActions();
+  const isMobile = useIsMobile();
   const displayedLine = navigationMode
     ? (progress.remainingLine ?? routeLine)
     : routeLine;
+  const navigationStartedRef = useRef(false);
 
   useEffect(() => {
+    if (!navigationMode || !progress.position) {
+      navigationStartedRef.current = false;
+      return;
+    }
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    // Defer to the next frame and let the cleanup below cancel it if this
+    // effect fires twice back-to-back (React StrictMode double-invokes
+    // effects in dev), otherwise two competing easeTo calls fight over zoom.
+    let cancelled = false;
+    const raf = requestAnimationFrame(() => {
+      if (cancelled) return;
+      const justStarted = !navigationStartedRef.current;
+      navigationStartedRef.current = true;
+
+      map.easeTo({
+        center: progress.position as [number, number],
+        bearing: progress.bearing ?? map.getBearing(),
+        ...(justStarted ? { zoom: 17 } : {}),
+        padding: isMobile ? { bottom: 300 } : { left: 400 },
+        duration: justStarted ? 1500 : 1000,
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, [navigationMode, progress.position, progress.bearing, mapRef, isMobile]);
+
+  useEffect(() => {
+    if (navigationMode) return;
+    const map = mapRef.current?.getMap();
+    if (!map || map.getBearing() === 0) return;
+    map.easeTo({ bearing: 0, duration: 800 });
+  }, [navigationMode, mapRef]);
+
+  useEffect(() => {
+    if (navigationMode) return;
     if (routeLine && routeLine.geometry.type === "LineString") {
       const coords = routeLine.geometry.coordinates;
       if (coords.length > 0) {
@@ -67,7 +112,7 @@ export function RouteLayer({
         });
       }
     }
-  }, [routeLine, mapRef]);
+  }, [routeLine, mapRef, navigationMode]);
 
   if (error) {
     console.error("RouteLayer error:", error);
@@ -108,10 +153,13 @@ export function RouteLayer({
           longitude={progress.position[0]}
           latitude={progress.position[1]}
           anchor="center"
+          rotationAlignment="viewport"
         >
-          <div className="relative flex h-6 w-6 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
-            <span className="relative inline-flex h-4 w-4 rounded-full bg-blue-600 border-2 border-white shadow-lg" />
+          <div className="relative flex h-9 w-9 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-40" />
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 border-2 border-white shadow-lg">
+              <Navigation className="h-4 w-4 text-white" fill="white" />
+            </div>
           </div>
         </Marker>
       ) : (

@@ -1,8 +1,11 @@
 "use client";
 
+import { point } from "@turf/helpers";
+import length from "@turf/length";
+import lineSlice from "@turf/line-slice";
 import type { Feature, LineString } from "geojson";
-import { AlertTriangle, Navigation, X } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, Navigation, PartyPopper, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -10,17 +13,22 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import type { RouteInstruction } from "@/hooks/use-routing";
+import { type RouteInstruction, RouteSign } from "@/hooks/use-routing";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { getActiveInstructionIndex } from "@/lib/routeUtils";
 import { useMapActions } from "@/providers/MapProvider";
 import { useRoute } from "@/providers/RouteProvider";
+import { NavigationBanner } from "./NavigationBanner";
 import { RouteStats } from "./RouteStats";
 import { RouteStepsList } from "./RouteStepsList";
 import { RoutingInputs } from "./RoutingInputs";
 
 interface RouteProgressInfo {
+  position: [number, number] | null;
   remainingDistance: number | null;
   remainingTime: number | null;
+  currentIndex: number | null;
+  arrived: boolean;
   error: GeolocationPositionError | null;
 }
 
@@ -58,6 +66,48 @@ export function RouteDetails({
     setHighlightedRoutePoint,
   } = useRoute();
   const { mapRef } = useMapActions();
+
+  const steps = useMemo(
+    () => instructions.filter((step) => step.sign !== RouteSign.Finish),
+    [instructions],
+  );
+  const activeIdx = getActiveInstructionIndex(steps, progress.currentIndex);
+  const activeInstruction = activeIdx != null ? steps[activeIdx] : null;
+  const nextInstruction =
+    activeIdx != null ? (steps[activeIdx + 1] ?? null) : null;
+
+  const liveDistanceToNext = useMemo(() => {
+    if (!routeLine || !progress.position || !activeInstruction) return null;
+    const maneuverCoord =
+      routeLine.geometry.coordinates[activeInstruction.interval[1]];
+    if (!maneuverCoord) return null;
+    const slice = lineSlice(
+      point(progress.position),
+      point(maneuverCoord),
+      routeLine,
+    );
+    return length(slice, { units: "meters" });
+  }, [routeLine, progress.position, activeInstruction]);
+
+  // Sum GraphHopper's own per-segment time estimates for what's left instead
+  // of splitting the total time proportionally by distance — a proportional
+  // split ignores that an uphill or unpaved stretch takes disproportionately
+  // longer than its share of the remaining distance. This keeps working off
+  // the last known position while navigation is paused, not just while active.
+  const remainingTime = useMemo(() => {
+    if (activeIdx == null) return progress.remainingTime;
+
+    let total = 0;
+    for (let i = activeIdx + 1; i < steps.length; i++) total += steps[i].time;
+
+    const active = steps[activeIdx];
+    if (active.distance > 0 && liveDistanceToNext != null) {
+      total += active.time * Math.min(liveDistanceToNext / active.distance, 1);
+    } else {
+      total += active.time;
+    }
+    return total;
+  }, [activeIdx, steps, liveDistanceToNext, progress.remainingTime]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
@@ -103,6 +153,23 @@ export function RouteDetails({
     }
   };
 
+  if (navigationMode && isMobile && routingMode) {
+    return (
+      <NavigationBanner
+        activeInstruction={activeInstruction}
+        activeDistance={
+          liveDistanceToNext ?? activeInstruction?.distance ?? null
+        }
+        nextInstruction={nextInstruction}
+        remainingDistance={progress.remainingDistance}
+        remainingTime={remainingTime}
+        arrived={progress.arrived}
+        locationError={!!progress.error}
+        onStop={() => setNavigationMode(false)}
+      />
+    );
+  }
+
   return (
     <Sheet open={routingMode} onOpenChange={handleOpenChange} modal={false}>
       <SheetContent
@@ -142,6 +209,13 @@ export function RouteDetails({
 
           <RoutingInputs />
 
+          {navigationMode && progress.arrived && (
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-lg px-3 py-2">
+              <PartyPopper className="w-4 h-4 shrink-0" />
+              <p className="text-sm font-bold">Atvykote į kelionės tikslą!</p>
+            </div>
+          )}
+
           {distance !== null && time !== null && (
             <>
               <RouteStats
@@ -150,9 +224,8 @@ export function RouteDetails({
                 routeLine={routeLine}
                 instructions={instructions}
                 selectedRouteProfile={selectedRouteProfile}
-                navigationMode={navigationMode}
                 remainingDistance={progress.remainingDistance}
-                remainingTime={progress.remainingTime}
+                remainingTime={remainingTime}
               />
               <Button
                 variant={navigationMode ? "outline" : "default"}
@@ -206,6 +279,8 @@ export function RouteDetails({
               selectedRouteProfile={selectedRouteProfile}
               onInstructionClick={handleInstructionClick}
               onStartEndClick={handleStartEndClick}
+              currentIndex={navigationMode ? progress.currentIndex : null}
+              liveDistanceToNext={navigationMode ? liveDistanceToNext : null}
             />
           )}
 

@@ -20,7 +20,6 @@ interface RouteStatsProps {
   routeLine: Feature<LineString> | null;
   instructions: RouteInstruction[];
   selectedRouteProfile: RouteProfile | null;
-  navigationMode?: boolean;
   remainingDistance?: number | null;
   remainingTime?: number | null;
 }
@@ -31,17 +30,18 @@ export function RouteStats({
   routeLine,
   instructions,
   selectedRouteProfile,
-  navigationMode,
   remainingDistance,
   remainingTime,
 }: RouteStatsProps) {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const emoji =
     (selectedRouteProfile && PROFILE_EMOJI[selectedRouteProfile]) ?? "🧭";
-  const displayedDistance =
-    navigationMode && remainingDistance != null ? remainingDistance : distance;
-  const displayedTime =
-    navigationMode && remainingTime != null ? remainingTime : time;
+  // Once navigation has been started at least once, keep showing "remaining
+  // from last known position" (even while paused) instead of snapping back
+  // to the full trip totals — remainingDistance/Time stay populated until a
+  // genuinely new route is computed.
+  const displayedDistance = remainingDistance ?? distance;
+  const displayedTime = remainingTime ?? time;
 
   return (
     <div className="flex items-center flex-wrap gap-2 pt-2 border-t border-gray-50">

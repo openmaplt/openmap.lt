@@ -3,7 +3,7 @@
 import { MapPin } from "lucide-react";
 import type { RouteProfile } from "@/config/map-profiles";
 import { type RouteInstruction, RouteSign } from "@/hooks/use-routing";
-import { getActionWord } from "@/lib/routeUtils";
+import { getActionWord, getActiveInstructionIndex } from "@/lib/routeUtils";
 import { RouteStepItem } from "./RouteStepItem";
 
 interface RouteStepsListProps {
@@ -13,6 +13,8 @@ interface RouteStepsListProps {
   selectedRouteProfile: RouteProfile | null;
   onInstructionClick: (step: RouteInstruction) => void;
   onStartEndClick: (type: "start" | "end") => void;
+  currentIndex?: number | null;
+  liveDistanceToNext?: number | null;
 }
 
 export function RouteStepsList({
@@ -22,8 +24,14 @@ export function RouteStepsList({
   selectedRouteProfile,
   onInstructionClick,
   onStartEndClick,
+  currentIndex,
+  liveDistanceToNext,
 }: RouteStepsListProps) {
   const actionWord = getActionWord(selectedRouteProfile);
+
+  const steps = instructions.filter((step) => step.sign !== RouteSign.Finish);
+  const activeIdx = getActiveInstructionIndex(steps, currentIndex ?? null);
+  const visibleSteps = activeIdx == null ? steps : steps.slice(activeIdx);
 
   return (
     <div className="flex flex-col gap-0 pb-10">
@@ -47,18 +55,22 @@ export function RouteStepsList({
 
       <div className="relative">
         <div className="absolute left-[35px] top-6 bottom-6 w-0.5 bg-gray-100" />
-        {instructions
-          .filter((step) => step.sign !== RouteSign.Finish)
-          .map((step, idx) => (
+        {visibleSteps.map((step, idx) => {
+          const displayStep =
+            idx === 0 && liveDistanceToNext != null
+              ? { ...step, distance: liveDistanceToNext }
+              : step;
+          return (
             <RouteStepItem
               key={`${idx}-${step.text.substring(0, 10)}`}
-              step={step}
+              step={displayStep}
               idx={idx}
               actionWord={actionWord}
               selectedRouteProfile={selectedRouteProfile}
               onClick={() => onInstructionClick(step)}
             />
-          ))}
+          );
+        })}
       </div>
 
       <button

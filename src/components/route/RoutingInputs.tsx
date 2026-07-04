@@ -93,6 +93,7 @@ export function RoutingInputs({ className }: { className?: string }) {
     if (!pendingLocationFor || !currentPosition) return;
     const feature = point(currentPosition, {
       name: "Mano dabartinė vietovė",
+      isLiveLocation: true,
     });
     if (pendingLocationFor === "start") setRouteStart(feature);
     else setRouteEnd(feature);
@@ -111,6 +112,25 @@ export function RoutingInputs({ className }: { className?: string }) {
     setActiveInput(null);
     startLocating();
   };
+
+  // If the start point is pinned to the live location, keep it fresh whenever
+  // a new destination is picked instead of reusing a stale coordinate. Only
+  // react to a genuinely new selection (routeEnd becoming non-null) — the
+  // field is cleared to null while the user is still typing/searching.
+  const prevRouteEndRef = useRef(routeEnd);
+  useEffect(() => {
+    const prevRouteEnd = prevRouteEndRef.current;
+    prevRouteEndRef.current = routeEnd;
+    if (
+      routeEnd &&
+      routeEnd !== prevRouteEnd &&
+      routeStart?.properties?.isLiveLocation &&
+      !pendingLocationFor
+    ) {
+      setPendingLocationFor("start");
+      startLocating();
+    }
+  }, [routeEnd, routeStart, pendingLocationFor, startLocating]);
 
   const handleSelect = (feature: Feature, type: "start" | "end") => {
     if (type === "start") {
