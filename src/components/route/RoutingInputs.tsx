@@ -1,7 +1,8 @@
 "use client";
 
+import { point } from "@turf/helpers";
 import type { Feature } from "geojson";
-import { ArrowLeftRight, X } from "lucide-react";
+import { ArrowLeftRight, Loader2, LocateFixed, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import { useSearch } from "@/hooks/use-search";
 import { cn } from "@/lib/utils";
 import { useMapConfig, useMapTransform } from "@/providers/MapProvider";
@@ -42,6 +44,17 @@ export function RoutingInputs({ className }: { className?: string }) {
     mapCenter,
     mapType,
   );
+
+  const {
+    isLocating: locating,
+    position: currentPosition,
+    error: locationError,
+    start: startLocating,
+    stop: stopLocating,
+  } = useGeolocation();
+  const [pendingLocationFor, setPendingLocationFor] = useState<
+    "start" | "end" | null
+  >(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +89,29 @@ export function RoutingInputs({ className }: { className?: string }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!pendingLocationFor || !currentPosition) return;
+    const feature = point(currentPosition, {
+      name: "Mano dabartinė vietovė",
+    });
+    if (pendingLocationFor === "start") setRouteStart(feature);
+    else setRouteEnd(feature);
+    setPendingLocationFor(null);
+    stopLocating();
+  }, [
+    currentPosition,
+    pendingLocationFor,
+    setRouteStart,
+    setRouteEnd,
+    stopLocating,
+  ]);
+
+  const setCurrentLocationFor = (type: "start" | "end") => {
+    setPendingLocationFor(type);
+    setActiveInput(null);
+    startLocating();
+  };
+
   const handleSelect = (feature: Feature, type: "start" | "end") => {
     if (type === "start") {
       setRouteStart(feature);
@@ -109,62 +145,92 @@ export function RoutingInputs({ className }: { className?: string }) {
         (type === "start" && startQuery !== routeStart?.properties?.name) ||
         (type === "end" && endQuery !== routeEnd?.properties?.name));
 
-    if (!isEditing || query.length < 3) return null;
+    if (!isEditing) return null;
+
+    const showSearchResults = query.length >= 3;
+    const isPendingThis = pendingLocationFor === type;
 
     return (
       <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-lg shadow-2xl max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-2 z-[100] border border-gray-100">
         <ul className="py-1 text-sm text-gray-700">
-          {results.length > 0 ? (
-            results.map((feature) => {
-              const props = feature.properties || {};
-              const iconConfig = getIcon(props.TYPE);
-              const Icon = iconConfig.icon;
-              const dist = props.DIST ? (props.DIST / 1000).toFixed(2) : null;
+          <li>
+            <button
+              type="button"
+              className="w-full px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3 border-b border-gray-50 transition-colors text-left disabled:opacity-60 disabled:cursor-wait"
+              onClick={() => setCurrentLocationFor(type)}
+              disabled={locating}
+            >
+              <div className="p-2 rounded-full shrink-0 shadow-sm bg-blue-500 text-white">
+                {isPendingThis && locating ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <LocateFixed className="w-3.5 h-3.5" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-gray-900">
+                  Naudoti dabartinę vietą
+                </div>
+                {isPendingThis && locationError && (
+                  <div className="text-[11px] text-red-500 truncate mt-0.5">
+                    Nepavyko nustatyti vietos
+                  </div>
+                )}
+              </div>
+            </button>
+          </li>
+          {showSearchResults &&
+            (results.length > 0 ? (
+              results.map((feature) => {
+                const props = feature.properties || {};
+                const iconConfig = getIcon(props.TYPE);
+                const Icon = iconConfig.icon;
+                const dist = props.DIST ? (props.DIST / 1000).toFixed(2) : null;
 
-              return (
-                <li key={feature.id}>
-                  <button
-                    type="button"
-                    className="w-full px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-start gap-3 border-b last:border-b-0 border-gray-50 transition-colors text-left"
-                    onClick={() => handleSelect(feature, type)}
-                  >
-                    <div
-                      className="p-2 rounded-full shrink-0 shadow-sm"
-                      style={{
-                        backgroundColor: iconConfig.color,
-                        color: "white",
-                      }}
+                return (
+                  <li key={feature.id}>
+                    <button
+                      type="button"
+                      className="w-full px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-start gap-3 border-b last:border-b-0 border-gray-50 transition-colors text-left"
+                      onClick={() => handleSelect(feature, type)}
                     >
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-gray-900 truncate">
-                        {props.name || "Be pavadinimo"}
+                      <div
+                        className="p-2 rounded-full shrink-0 shadow-sm"
+                        style={{
+                          backgroundColor: iconConfig.color,
+                          color: "white",
+                        }}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
                       </div>
-                      <div className="text-[11px] text-gray-500 truncate mt-0.5">
-                        {[
-                          props["addr:street"],
-                          props["addr:housenumber"],
-                          props["addr:city"],
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 truncate">
+                          {props.name || "Be pavadinimo"}
+                        </div>
+                        <div className="text-[11px] text-gray-500 truncate mt-0.5">
+                          {[
+                            props["addr:street"],
+                            props["addr:housenumber"],
+                            props["addr:city"],
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </div>
                       </div>
-                    </div>
-                    {dist && (
-                      <div className="text-xs font-medium text-blue-600 whitespace-nowrap bg-blue-50 px-1.5 py-0.5 rounded">
-                        {dist} km
-                      </div>
-                    )}
-                  </button>
-                </li>
-              );
-            })
-          ) : (
-            <li className="py-4 text-center text-gray-400 text-xs italic">
-              {loading ? "Ieškoma..." : "Nieko nerasta"}
-            </li>
-          )}
+                      {dist && (
+                        <div className="text-xs font-medium text-blue-600 whitespace-nowrap bg-blue-50 px-1.5 py-0.5 rounded">
+                          {dist} km
+                        </div>
+                      )}
+                    </button>
+                  </li>
+                );
+              })
+            ) : (
+              <li className="py-4 text-center text-gray-400 text-xs italic">
+                {loading ? "Ieškoma..." : "Nieko nerasta"}
+              </li>
+            ))}
         </ul>
       </div>
     );

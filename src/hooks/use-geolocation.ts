@@ -53,5 +53,5 @@ export function useGeolocation() {
     else start();
   }, [start, stop]);
 
-  return { ...state, toggle };
+  return { ...state, start, stop, toggle };
 }
