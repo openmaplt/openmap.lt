@@ -18,6 +18,12 @@ import { RouteStats } from "./RouteStats";
 import { RouteStepsList } from "./RouteStepsList";
 import { RoutingInputs } from "./RoutingInputs";
 
+interface RouteProgressInfo {
+  remainingDistance: number | null;
+  remainingTime: number | null;
+  error: GeolocationPositionError | null;
+}
+
 interface RouteDetailsProps {
   distance: number | null;
   time: number | null;
@@ -25,6 +31,7 @@ interface RouteDetailsProps {
   loading: boolean;
   error: string | null;
   routeLine: Feature<LineString> | null;
+  progress: RouteProgressInfo;
 }
 
 export function RouteDetails({
@@ -34,17 +41,20 @@ export function RouteDetails({
   loading,
   error,
   routeLine,
+  progress,
 }: RouteDetailsProps) {
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
   const {
     routingMode,
+    navigationMode,
     selectedRouteProfile,
     routeStart,
     routeEnd,
     setRouteStart,
     setRouteEnd,
     setRoutingMode,
+    setNavigationMode,
     setHighlightedRoutePoint,
   } = useRoute();
   const { mapRef } = useMapActions();
@@ -55,6 +65,7 @@ export function RouteDetails({
       setRouteStart(null);
       setRouteEnd(null);
       setRoutingMode(false);
+      setNavigationMode(false);
       setHighlightedRoutePoint(null);
     }
   };
@@ -132,13 +143,32 @@ export function RouteDetails({
           <RoutingInputs />
 
           {distance !== null && time !== null && (
-            <RouteStats
-              distance={distance}
-              time={time}
-              routeLine={routeLine}
-              instructions={instructions}
-              selectedRouteProfile={selectedRouteProfile}
-            />
+            <>
+              <RouteStats
+                distance={distance}
+                time={time}
+                routeLine={routeLine}
+                instructions={instructions}
+                selectedRouteProfile={selectedRouteProfile}
+                navigationMode={navigationMode}
+                remainingDistance={progress.remainingDistance}
+                remainingTime={progress.remainingTime}
+              />
+              <Button
+                variant={navigationMode ? "outline" : "default"}
+                className="w-full"
+                onClick={() => setNavigationMode(!navigationMode)}
+              >
+                <Navigation className="w-4 h-4" />
+                {navigationMode ? "Baigti navigaciją" : "Pradėti navigaciją"}
+              </Button>
+              {navigationMode && progress.error && (
+                <p className="text-xs text-red-600 font-sans">
+                  Nepavyko nustatyti jūsų pozicijos. Patikrinkite vietos
+                  nustatymo leidimus.
+                </p>
+              )}
+            </>
           )}
         </SheetHeader>
 
