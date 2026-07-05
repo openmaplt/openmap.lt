@@ -18,8 +18,10 @@ export function NavigationInstructionBanner({
 }: NavigationInstructionBannerProps) {
   const { arrived } = useNavigationProgress();
   const { routeLine, instructions } = useRouteResult();
-  const { activeInstruction, nextInstruction, liveDistanceToNext } =
-    useActiveInstruction(instructions, routeLine);
+  const { activeInstruction, liveDistanceToNext } = useActiveInstruction(
+    instructions,
+    routeLine,
+  );
   const activeDistance =
     liveDistanceToNext ?? activeInstruction?.distance ?? null;
 
@@ -29,7 +31,7 @@ export function NavigationInstructionBanner({
 
   return (
     <div
-      className={`absolute top-3 left-3 right-3 z-30 text-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3 ${arrived ? "bg-green-600" : "bg-blue-600"}`}
+      className={`w-full text-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3 ${arrived ? "bg-green-600" : "bg-blue-600"}`}
     >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/15 shrink-0">
         {arrived ? (
@@ -51,11 +53,6 @@ export function NavigationInstructionBanner({
             <p className="text-sm font-medium truncate opacity-90 mt-1.5">
               {activeInstruction?.text ?? "Sekite maršrutą"}
             </p>
-            {nextInstruction && (
-              <p className="text-xs opacity-70 truncate mt-0.5">
-                Tada: {nextInstruction.text}
-              </p>
-            )}
           </>
         )}
       </div>
