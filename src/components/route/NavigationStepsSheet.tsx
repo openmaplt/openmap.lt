@@ -1,33 +1,18 @@
 "use client";
 
 import { X } from "lucide-react";
-import type { RouteProfile } from "@/config/map-profiles";
-import type { RouteInstruction } from "@/hooks/use-routing";
+import { useRouteMapFocus } from "@/hooks/use-route-map-focus";
+import { useRouteResult } from "@/providers/RouteProvider";
 import { RouteStepsList } from "./RouteStepsList";
 
 interface NavigationStepsSheetProps {
-  instructions: RouteInstruction[];
-  routeStartName: string | undefined;
-  routeEndName: string | undefined;
-  selectedRouteProfile: RouteProfile | null;
-  currentIndex: number | null;
-  liveDistanceToNext: number | null;
-  onInstructionClick: (step: RouteInstruction) => void;
-  onStartEndClick: (type: "start" | "end") => void;
   onClose: () => void;
 }
 
-export function NavigationStepsSheet({
-  instructions,
-  routeStartName,
-  routeEndName,
-  selectedRouteProfile,
-  currentIndex,
-  liveDistanceToNext,
-  onInstructionClick,
-  onStartEndClick,
-  onClose,
-}: NavigationStepsSheetProps) {
+export function NavigationStepsSheet({ onClose }: NavigationStepsSheetProps) {
+  const { routeLine } = useRouteResult();
+  const { flyToInstruction, flyToEndpoint } = useRouteMapFocus(routeLine);
+
   return (
     <div className="absolute inset-0 z-40 bg-white flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
@@ -43,14 +28,11 @@ export function NavigationStepsSheet({
       </div>
       <div className="flex-1 overflow-y-auto">
         <RouteStepsList
-          instructions={instructions}
-          routeStartName={routeStartName}
-          routeEndName={routeEndName}
-          selectedRouteProfile={selectedRouteProfile}
-          onInstructionClick={onInstructionClick}
-          onStartEndClick={onStartEndClick}
-          currentIndex={currentIndex}
-          liveDistanceToNext={liveDistanceToNext}
+          onInstructionClick={(step) => {
+            flyToInstruction(step);
+            onClose();
+          }}
+          onStartEndClick={flyToEndpoint}
         />
       </div>
     </div>
