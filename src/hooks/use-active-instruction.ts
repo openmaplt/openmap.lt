@@ -8,11 +8,14 @@ import { useNavigationProgress } from "@/providers/RouteProvider";
 import { type RouteInstruction, RouteSign } from "./use-routing";
 
 /**
- * Derives which instruction the traveler is currently on, the live distance
- * to that maneuver, and a remaining-time estimate that accounts for it -
- * summing GraphHopper's own per-segment times instead of splitting the total
- * time proportionally by distance (which ignores that an uphill or unpaved
- * stretch takes disproportionately longer than its share of the distance).
+ * Derives which maneuver to announce to the traveler, the live distance to
+ * it, and a remaining-time estimate that accounts for it.
+ *
+ * GraphHopper's instruction.text describes the maneuver at the *start* of
+ * that instruction's interval - by the time the traveler is inside a given
+ * segment, its own maneuver already happened. The one to announce (with a
+ * shrinking countdown) is therefore the *next* instruction, not the one
+ * whose interval currently contains the traveler's position.
  */
 export function useActiveInstruction(
   instructions: RouteInstruction[],
@@ -25,14 +28,22 @@ export function useActiveInstruction(
     [instructions],
   );
   const activeIdx = getActiveInstructionIndex(steps, progress.currentIndex);
-  const activeInstruction = activeIdx != null ? steps[activeIdx] : null;
-  const nextInstruction =
+  // The segment currently underway; its maneuver already happened.
+  const currentSegment = activeIdx != null ? steps[activeIdx] : null;
+  // The upcoming maneuver - this is what gets announced/counted down to.
+  const activeInstruction =
     activeIdx != null ? (steps[activeIdx + 1] ?? null) : null;
+  const nextInstruction =
+    activeIdx != null ? (steps[activeIdx + 2] ?? null) : null;
+  // No more turns left - just walking/driving the final stretch to the
+  // destination on the current street.
+  const isLastLeg =
+    activeIdx != null && activeIdx === steps.length - 1 && !activeInstruction;
 
   const liveDistanceToNext = useMemo(() => {
-    if (!routeLine || !progress.position || !activeInstruction) return null;
+    if (!routeLine || !progress.position || !currentSegment) return null;
     const maneuverCoord =
-      routeLine.geometry.coordinates[activeInstruction.interval[1]];
+      routeLine.geometry.coordinates[currentSegment.interval[1]];
     if (!maneuverCoord) return null;
     const slice = lineSlice(
       point(progress.position),
@@ -40,7 +51,7 @@ export function useActiveInstruction(
       routeLine,
     );
     return length(slice, { units: "meters" });
-  }, [routeLine, progress.position, activeInstruction]);
+  }, [routeLine, progress.position, currentSegment]);
 
   const remainingTime = useMemo(() => {
     if (activeIdx == null) return progress.remainingTime;
@@ -48,20 +59,32 @@ export function useActiveInstruction(
     let total = 0;
     for (let i = activeIdx + 1; i < steps.length; i++) total += steps[i].time;
 
-    const active = steps[activeIdx];
-    if (active.distance > 0 && liveDistanceToNext != null) {
-      total += active.time * Math.min(liveDistanceToNext / active.distance, 1);
-    } else {
-      total += active.time;
+    if (currentSegment) {
+      if (currentSegment.distance > 0 && liveDistanceToNext != null) {
+        total +=
+          currentSegment.time *
+          Math.min(liveDistanceToNext / currentSegment.distance, 1);
+      } else {
+        total += currentSegment.time;
+      }
     }
     return total;
-  }, [activeIdx, steps, liveDistanceToNext, progress.remainingTime]);
+  }, [
+    activeIdx,
+    steps,
+    liveDistanceToNext,
+    progress.remainingTime,
+    currentSegment,
+  ]);
 
   return {
     currentIndex: progress.currentIndex,
+    activeIdx,
     activeInstruction,
     nextInstruction,
+    isLastLeg,
     liveDistanceToNext,
+    activeDistance: liveDistanceToNext ?? currentSegment?.distance ?? null,
     remainingTime,
   };
 }

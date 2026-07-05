@@ -18,12 +18,10 @@ export function NavigationInstructionBanner({
 }: NavigationInstructionBannerProps) {
   const { arrived } = useNavigationProgress();
   const { routeLine, instructions } = useRouteResult();
-  const { activeInstruction, liveDistanceToNext } = useActiveInstruction(
+  const { activeInstruction, isLastLeg, activeDistance } = useActiveInstruction(
     instructions,
     routeLine,
   );
-  const activeDistance =
-    liveDistanceToNext ?? activeInstruction?.distance ?? null;
 
   const Icon = activeInstruction
     ? getIconComponentForSign(activeInstruction.sign)
@@ -51,7 +49,8 @@ export function NavigationInstructionBanner({
               {activeDistance != null ? formatDistance(activeDistance) : "--"}
             </p>
             <p className="text-sm font-medium truncate opacity-90 mt-1.5">
-              {activeInstruction?.text ?? "Sekite maršrutą"}
+              {activeInstruction?.text ??
+                (isLastLeg ? "Tęskite iki tikslo" : "Sekite maršrutą")}
             </p>
           </>
         )}

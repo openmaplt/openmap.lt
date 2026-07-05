@@ -30,9 +30,12 @@ export function getActiveInstructionIndex(
   currentIndex: number | null,
 ): number | null {
   if (currentIndex == null) return null;
+  // Strictly greater-than: nearestPointOnLine's index is the vertex just
+  // *before* the snapped point, so currentIndex sitting exactly on a segment
+  // boundary means the traveler is inside the segment that *starts* there,
+  // not the one that just ended there.
   const idx = instructions.findIndex(
-    (step) =>
-      step.sign !== RouteSign.Finish && step.interval[1] >= currentIndex,
+    (step) => step.sign !== RouteSign.Finish && step.interval[1] > currentIndex,
   );
   return idx === -1 ? null : idx;
 }
