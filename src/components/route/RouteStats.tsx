@@ -1,10 +1,13 @@
 "use client";
 
-import type { Feature, LineString } from "geojson";
 import { useState } from "react";
-import type { RouteProfile } from "@/config/map-profiles";
-import type { RouteInstruction } from "@/hooks/use-routing";
+import { useActiveInstruction } from "@/hooks/use-active-instruction";
 import { formatDistance, formatTime } from "@/lib/routeUtils";
+import {
+  useNavigationProgress,
+  useRoute,
+  useRouteResult,
+} from "@/providers/RouteProvider";
 import { DownloadMenu } from "./DownloadMenu";
 
 const PROFILE_EMOJI: Record<string, string> = {
@@ -14,26 +17,15 @@ const PROFILE_EMOJI: Record<string, string> = {
   kayak: "🛶",
 };
 
-interface RouteStatsProps {
-  distance: number;
-  time: number;
-  routeLine: Feature<LineString> | null;
-  instructions: RouteInstruction[];
-  selectedRouteProfile: RouteProfile | null;
-  remainingDistance?: number | null;
-  remainingTime?: number | null;
-}
-
-export function RouteStats({
-  distance,
-  time,
-  routeLine,
-  instructions,
-  selectedRouteProfile,
-  remainingDistance,
-  remainingTime,
-}: RouteStatsProps) {
+export function RouteStats() {
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const { selectedRouteProfile } = useRoute();
+  const { routeLine, distance, time, instructions } = useRouteResult();
+  const { remainingDistance } = useNavigationProgress();
+  const { remainingTime } = useActiveInstruction(instructions, routeLine);
+
+  if (distance === null || time === null) return null;
+
   const emoji =
     (selectedRouteProfile && PROFILE_EMOJI[selectedRouteProfile]) ?? "🧭";
   // Once navigation has been started at least once, keep showing "remaining

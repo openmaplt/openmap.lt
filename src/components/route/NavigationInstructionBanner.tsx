@@ -1,25 +1,28 @@
 "use client";
 
 import { Menu, Navigation, PartyPopper } from "lucide-react";
-import type { RouteInstruction } from "@/hooks/use-routing";
+import { useActiveInstruction } from "@/hooks/use-active-instruction";
 import { formatDistance } from "@/lib/routeUtils";
+import {
+  useNavigationProgress,
+  useRouteResult,
+} from "@/providers/RouteProvider";
 import { getIconComponentForSign } from "./RouteStepItem";
 
 interface NavigationInstructionBannerProps {
-  activeInstruction: RouteInstruction | null;
-  activeDistance: number | null;
-  nextInstruction: RouteInstruction | null;
-  arrived: boolean;
   onOpenList: () => void;
 }
 
 export function NavigationInstructionBanner({
-  activeInstruction,
-  activeDistance,
-  nextInstruction,
-  arrived,
   onOpenList,
 }: NavigationInstructionBannerProps) {
+  const { arrived } = useNavigationProgress();
+  const { routeLine, instructions } = useRouteResult();
+  const { activeInstruction, nextInstruction, liveDistanceToNext } =
+    useActiveInstruction(instructions, routeLine);
+  const activeDistance =
+    liveDistanceToNext ?? activeInstruction?.distance ?? null;
+
   const Icon = activeInstruction
     ? getIconComponentForSign(activeInstruction.sign)
     : Navigation;

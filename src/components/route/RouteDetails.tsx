@@ -9,7 +9,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useActiveInstruction } from "@/hooks/use-active-instruction";
 import { useRouteMapFocus } from "@/hooks/use-route-map-focus";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import {
@@ -27,23 +26,15 @@ export function RouteDetails() {
   const {
     routingMode,
     navigationMode,
-    selectedRouteProfile,
-    routeStart,
-    routeEnd,
     setRouteStart,
     setRouteEnd,
     setRoutingMode,
     setNavigationMode,
     setHighlightedRoutePoint,
   } = useRoute();
-  const { routeLine, distance, time, instructions, loading, error } =
-    useRouteResult();
+  const { routeLine, distance, time, loading, error } = useRouteResult();
   const progress = useNavigationProgress();
   const { flyToInstruction, flyToEndpoint } = useRouteMapFocus(routeLine);
-  const { liveDistanceToNext, remainingTime } = useActiveInstruction(
-    instructions,
-    routeLine,
-  );
 
   // The compact mobile navigation banner (MobileNavigationView) takes over
   // this whole panel while actively navigating on a phone.
@@ -108,15 +99,7 @@ export function RouteDetails() {
 
           {distance !== null && time !== null && (
             <>
-              <RouteStats
-                distance={distance}
-                time={time}
-                routeLine={routeLine}
-                instructions={instructions}
-                selectedRouteProfile={selectedRouteProfile}
-                remainingDistance={progress.remainingDistance}
-                remainingTime={remainingTime}
-              />
+              <RouteStats />
               <Button
                 variant={navigationMode ? "outline" : "default"}
                 className="w-full"
@@ -163,14 +146,8 @@ export function RouteDetails() {
 
           {!loading && !error && distance !== null && routeLine && (
             <RouteStepsList
-              instructions={instructions}
-              routeStartName={routeStart?.properties?.name}
-              routeEndName={routeEnd?.properties?.name}
-              selectedRouteProfile={selectedRouteProfile}
               onInstructionClick={flyToInstruction}
               onStartEndClick={flyToEndpoint}
-              currentIndex={navigationMode ? progress.currentIndex : null}
-              liveDistanceToNext={navigationMode ? liveDistanceToNext : null}
             />
           )}
 

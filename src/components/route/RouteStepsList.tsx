@@ -1,36 +1,35 @@
 "use client";
 
 import { MapPin } from "lucide-react";
-import type { RouteProfile } from "@/config/map-profiles";
+import { useActiveInstruction } from "@/hooks/use-active-instruction";
 import { type RouteInstruction, RouteSign } from "@/hooks/use-routing";
 import { getActionWord, getActiveInstructionIndex } from "@/lib/routeUtils";
+import { useRoute, useRouteResult } from "@/providers/RouteProvider";
 import { RouteStepItem } from "./RouteStepItem";
 
 interface RouteStepsListProps {
-  instructions: RouteInstruction[];
-  routeStartName: string | undefined;
-  routeEndName: string | undefined;
-  selectedRouteProfile: RouteProfile | null;
   onInstructionClick: (step: RouteInstruction) => void;
   onStartEndClick: (type: "start" | "end") => void;
-  currentIndex?: number | null;
-  liveDistanceToNext?: number | null;
 }
 
 export function RouteStepsList({
-  instructions,
-  routeStartName,
-  routeEndName,
-  selectedRouteProfile,
   onInstructionClick,
   onStartEndClick,
-  currentIndex,
-  liveDistanceToNext,
 }: RouteStepsListProps) {
+  const { navigationMode, selectedRouteProfile, routeStart, routeEnd } =
+    useRoute();
+  const { routeLine, instructions } = useRouteResult();
+  const { currentIndex, liveDistanceToNext } = useActiveInstruction(
+    instructions,
+    routeLine,
+  );
   const actionWord = getActionWord(selectedRouteProfile);
 
   const steps = instructions.filter((step) => step.sign !== RouteSign.Finish);
-  const activeIdx = getActiveInstructionIndex(steps, currentIndex ?? null);
+  const activeIdx = getActiveInstructionIndex(
+    steps,
+    navigationMode ? currentIndex : null,
+  );
   const visibleSteps = activeIdx == null ? steps : steps.slice(activeIdx);
 
   return (
@@ -48,7 +47,7 @@ export function RouteStepsList({
             PRADŽIA
           </p>
           <p className="text-[15px] font-bold text-gray-900 leading-tight">
-            {routeStartName || "Pasirinkta vieta"}
+            {routeStart?.properties?.name || "Pasirinkta vieta"}
           </p>
         </div>
       </button>
@@ -86,7 +85,7 @@ export function RouteStepsList({
             PABAIGA
           </p>
           <p className="text-[15px] font-bold text-gray-900 leading-tight">
-            {routeEndName || "Pasirinkta vieta"}
+            {routeEnd?.properties?.name || "Pasirinkta vieta"}
           </p>
         </div>
       </button>
