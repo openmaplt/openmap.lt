@@ -6,6 +6,7 @@ import { Marker } from "react-map-gl/maplibre";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { cn } from "@/lib/utils";
 import { useMapActions } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 
 const btnStyle =
   "p-2 bg-white rounded-lg shadow-lg border border-gray-300 transition-transform hover:scale-105 active:scale-95 flex items-center justify-center";
@@ -16,11 +17,20 @@ interface GeolocateControlProps {
 
 export function GeolocateControl({ minZoom = 17 }: GeolocateControlProps) {
   const { mapRef } = useMapActions();
-  const { isLocating, position, toggle } = useGeolocation();
+  const { navigationMode } = useRoute();
+  const { isLocating, position, toggle, stop } = useGeolocation();
   const hasFlownRef = useRef(false);
 
+  // Active turn-by-turn navigation already owns the camera (it follows and
+  // rotates the map on its own). Letting this control's own un-padded
+  // recenter also run at the same time makes the two fight over where the
+  // position marker should sit on screen.
   useEffect(() => {
-    if (!position) {
+    if (navigationMode && isLocating) stop();
+  }, [navigationMode, isLocating, stop]);
+
+  useEffect(() => {
+    if (navigationMode || !position) {
       hasFlownRef.current = false;
       return;
     }
@@ -38,7 +48,9 @@ export function GeolocateControl({ minZoom = 17 }: GeolocateControlProps) {
     } else if (!map.getBounds().contains(position)) {
       map.easeTo({ center: position, duration: 1000 });
     }
-  }, [position, mapRef, minZoom]);
+  }, [position, mapRef, minZoom, navigationMode]);
+
+  if (navigationMode) return null;
 
   return (
     <>

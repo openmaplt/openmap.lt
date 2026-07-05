@@ -30,7 +30,9 @@ export function RouteStepsList({
     steps,
     navigationMode ? currentIndex : null,
   );
-  const visibleSteps = activeIdx == null ? steps : steps.slice(activeIdx);
+  // The segment at activeIdx is already underway (its maneuver already
+  // happened) - only show what's still upcoming.
+  const visibleSteps = activeIdx == null ? steps : steps.slice(activeIdx + 1);
 
   return (
     <div className="flex flex-col gap-0 pb-10">

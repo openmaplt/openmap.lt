@@ -7,7 +7,7 @@ import { point } from "@turf/helpers";
 import length from "@turf/length";
 import lineSlice from "@turf/line-slice";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
-import type { Feature, LineString } from "geojson";
+import type { Feature, LineString, Point } from "geojson";
 import { useEffect, useRef, useState } from "react";
 import { useGeolocation } from "./use-geolocation";
 
@@ -62,6 +62,15 @@ export function useRouteProgress(
   const lastRouteLineRef = useRef<Feature<LineString> | null>(null);
   const offRouteSinceRef = useRef<number | null>(null);
   const lastRecalculateRef = useRef<number>(0);
+  // Route-progress ("how far along am I") must never regress: the route
+  // geometry can pass close to itself (a bend in the road, a nearby parallel
+  // street, an intersection), so the raw nearest-point match can occasionally
+  // snap to an earlier point on the line even though the traveler has
+  // genuinely moved forward. Without this, the active instruction briefly
+  // "rewinds" and its distance grows instead of shrinking.
+  const lastTraveledRef = useRef(0);
+  const lastIndexRef = useRef(0);
+  const lastSnappedRef = useRef<Feature<Point> | null>(null);
   const [progress, setProgress] = useState<RouteProgressState>(EMPTY_PROGRESS);
 
   useEffect(() => {
@@ -86,6 +95,9 @@ export function useRouteProgress(
     if (routeLine === resetRouteLineRef.current) return;
     resetRouteLineRef.current = routeLine;
     lastProcessedRef.current = null;
+    lastTraveledRef.current = 0;
+    lastIndexRef.current = 0;
+    lastSnappedRef.current = null;
     setProgress(EMPTY_PROGRESS);
   }, [routeLine]);
 
@@ -106,8 +118,8 @@ export function useRouteProgress(
 
     const coords = routeLine.geometry.coordinates as [number, number][];
     const here = point(position);
-    const snapped = nearestPointOnLine(routeLine, here, { units: "meters" });
-    const deviationMeters = snapped.properties.dist ?? 0;
+    const rawSnapped = nearestPointOnLine(routeLine, here, { units: "meters" });
+    const deviationMeters = rawSnapped.properties.dist ?? 0;
 
     // Off-route confirmation runs on every tick (even a stationary one, e.g.
     // stopped at a light) so it isn't starved by the movement throttle below.
@@ -140,7 +152,19 @@ export function useRouteProgress(
     lastProcessedRef.current = position;
     lastRouteLineRef.current = routeLine;
 
-    const traveledMeters = snapped.properties.location ?? 0;
+    const rawTraveledMeters = rawSnapped.properties.location ?? 0;
+    const rawIndex = rawSnapped.properties.index ?? 0;
+    const regressed = rawTraveledMeters < lastTraveledRef.current;
+    const snapped =
+      regressed && lastSnappedRef.current ? lastSnappedRef.current : rawSnapped;
+    const traveledMeters = regressed
+      ? lastTraveledRef.current
+      : rawTraveledMeters;
+    const currentIndexValue = regressed ? lastIndexRef.current : rawIndex;
+    lastSnappedRef.current = snapped;
+    lastTraveledRef.current = traveledMeters;
+    lastIndexRef.current = currentIndexValue;
+
     const totalMeters = length(routeLine, { units: "meters" });
     const remainingMeters = Math.max(totalMeters - traveledMeters, 0);
     const ratio = totalMeters > 0 ? remainingMeters / totalMeters : 0;
@@ -184,7 +208,7 @@ export function useRouteProgress(
       remainingTime: totalTime * ratio,
       traveledLine,
       remainingLine,
-      currentIndex: snapped.properties.index ?? null,
+      currentIndex: currentIndexValue,
       bearing,
       arrived: remainingMeters <= ARRIVAL_METERS,
     });
