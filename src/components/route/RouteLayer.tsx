@@ -1,7 +1,7 @@
 "use client";
 
 import { point } from "@turf/helpers";
-import type { Feature, LineString, Point } from "geojson";
+import type { Point } from "geojson";
 import { Navigation } from "lucide-react";
 import { LngLatBounds } from "maplibre-gl";
 import { useEffect, useRef } from "react";
@@ -13,29 +13,13 @@ import {
 } from "react-map-gl/maplibre";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useMapActions } from "@/providers/MapProvider";
-import { useRoute } from "@/providers/RouteProvider";
+import {
+  useNavigationProgress,
+  useRoute,
+  useRouteResult,
+} from "@/providers/RouteProvider";
 
-interface RouteProgressInfo {
-  position: [number, number] | null;
-  remainingLine: Feature<LineString> | null;
-  bearing: number | null;
-}
-
-interface RouteLayerProps {
-  routeLine: Feature<LineString> | null;
-  distance: number | null;
-  time: number | null;
-  loading: boolean;
-  error: string | null;
-  progress: RouteProgressInfo;
-}
-
-export function RouteLayer({
-  routeLine,
-  loading,
-  error,
-  progress,
-}: RouteLayerProps) {
+export function RouteLayer() {
   const {
     routeStart,
     routeEnd,
@@ -44,6 +28,8 @@ export function RouteLayer({
     setRouteStart,
     setRouteEnd,
   } = useRoute();
+  const { routeLine, loading, error } = useRouteResult();
+  const progress = useNavigationProgress();
   const { mapRef } = useMapActions();
   const isMobile = useIsMobile();
   const displayedLine = navigationMode
