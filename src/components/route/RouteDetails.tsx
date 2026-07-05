@@ -1,11 +1,7 @@
 "use client";
 
-import { point } from "@turf/helpers";
-import length from "@turf/length";
-import lineSlice from "@turf/line-slice";
-import type { Feature, LineString } from "geojson";
 import { AlertTriangle, Navigation, PartyPopper, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -13,48 +9,21 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { type RouteInstruction, RouteSign } from "@/hooks/use-routing";
+import { useActiveInstruction } from "@/hooks/use-active-instruction";
+import { useRouteMapFocus } from "@/hooks/use-route-map-focus";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { getActiveInstructionIndex } from "@/lib/routeUtils";
-import { useMapActions } from "@/providers/MapProvider";
-import { useRoute } from "@/providers/RouteProvider";
-import { NavigationBanner } from "./NavigationBanner";
-import { NavigationStepsSheet } from "./NavigationStepsSheet";
+import {
+  useNavigationProgress,
+  useRoute,
+  useRouteResult,
+} from "@/providers/RouteProvider";
 import { RouteStats } from "./RouteStats";
 import { RouteStepsList } from "./RouteStepsList";
 import { RoutingInputs } from "./RoutingInputs";
 
-interface RouteProgressInfo {
-  position: [number, number] | null;
-  remainingDistance: number | null;
-  remainingTime: number | null;
-  currentIndex: number | null;
-  arrived: boolean;
-  error: GeolocationPositionError | null;
-}
-
-interface RouteDetailsProps {
-  distance: number | null;
-  time: number | null;
-  instructions: RouteInstruction[];
-  loading: boolean;
-  error: string | null;
-  routeLine: Feature<LineString> | null;
-  progress: RouteProgressInfo;
-}
-
-export function RouteDetails({
-  distance,
-  time,
-  instructions,
-  loading,
-  error,
-  routeLine,
-  progress,
-}: RouteDetailsProps) {
+export function RouteDetails() {
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showFullList, setShowFullList] = useState(false);
   const {
     routingMode,
     navigationMode,
@@ -67,53 +36,18 @@ export function RouteDetails({
     setNavigationMode,
     setHighlightedRoutePoint,
   } = useRoute();
-  const { mapRef } = useMapActions();
-
-  const steps = useMemo(
-    () => instructions.filter((step) => step.sign !== RouteSign.Finish),
-    [instructions],
+  const { routeLine, distance, time, instructions, loading, error } =
+    useRouteResult();
+  const progress = useNavigationProgress();
+  const { flyToInstruction, flyToEndpoint } = useRouteMapFocus(routeLine);
+  const { liveDistanceToNext, remainingTime } = useActiveInstruction(
+    instructions,
+    routeLine,
   );
-  const activeIdx = getActiveInstructionIndex(steps, progress.currentIndex);
-  const activeInstruction = activeIdx != null ? steps[activeIdx] : null;
-  const nextInstruction =
-    activeIdx != null ? (steps[activeIdx + 1] ?? null) : null;
 
-  const liveDistanceToNext = useMemo(() => {
-    if (!routeLine || !progress.position || !activeInstruction) return null;
-    const maneuverCoord =
-      routeLine.geometry.coordinates[activeInstruction.interval[1]];
-    if (!maneuverCoord) return null;
-    const slice = lineSlice(
-      point(progress.position),
-      point(maneuverCoord),
-      routeLine,
-    );
-    return length(slice, { units: "meters" });
-  }, [routeLine, progress.position, activeInstruction]);
-
-  // Sum GraphHopper's own per-segment time estimates for what's left instead
-  // of splitting the total time proportionally by distance — a proportional
-  // split ignores that an uphill or unpaved stretch takes disproportionately
-  // longer than its share of the remaining distance. This keeps working off
-  // the last known position while navigation is paused, not just while active.
-  const remainingTime = useMemo(() => {
-    if (activeIdx == null) return progress.remainingTime;
-
-    let total = 0;
-    for (let i = activeIdx + 1; i < steps.length; i++) total += steps[i].time;
-
-    const active = steps[activeIdx];
-    if (active.distance > 0 && liveDistanceToNext != null) {
-      total += active.time * Math.min(liveDistanceToNext / active.distance, 1);
-    } else {
-      total += active.time;
-    }
-    return total;
-  }, [activeIdx, steps, liveDistanceToNext, progress.remainingTime]);
-
-  useEffect(() => {
-    if (!navigationMode) setShowFullList(false);
-  }, [navigationMode]);
+  // The compact mobile navigation banner (MobileNavigationView) takes over
+  // this whole panel while actively navigating on a phone.
+  if (navigationMode && isMobile && routingMode) return null;
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
@@ -125,76 +59,6 @@ export function RouteDetails({
       setHighlightedRoutePoint(null);
     }
   };
-
-  const handleInstructionClick = (step: RouteInstruction) => {
-    if (!routeLine || !mapRef.current) return;
-    const coords = routeLine.geometry.coordinates[step.interval[0]];
-    if (coords) {
-      setHighlightedRoutePoint([coords[0], coords[1]]);
-      mapRef.current.flyTo({
-        center: [coords[0], coords[1]],
-        zoom: 17,
-        padding: isMobile ? { bottom: 300 } : { left: 400 },
-        duration: 1500,
-      });
-    }
-  };
-
-  const handleStartEndClick = (type: "start" | "end") => {
-    if (!routeLine || !mapRef.current) return;
-    const coords =
-      type === "start"
-        ? routeLine.geometry.coordinates[0]
-        : routeLine.geometry.coordinates[
-            routeLine.geometry.coordinates.length - 1
-          ];
-    if (coords) {
-      setHighlightedRoutePoint([coords[0], coords[1]]);
-      mapRef.current.flyTo({
-        center: [coords[0], coords[1]],
-        zoom: 17,
-        padding: isMobile ? { bottom: 300 } : { left: 400 },
-        duration: 1500,
-      });
-    }
-  };
-
-  if (navigationMode && isMobile && routingMode) {
-    if (showFullList) {
-      return (
-        <NavigationStepsSheet
-          instructions={instructions}
-          routeStartName={routeStart?.properties?.name}
-          routeEndName={routeEnd?.properties?.name}
-          selectedRouteProfile={selectedRouteProfile}
-          currentIndex={progress.currentIndex}
-          liveDistanceToNext={liveDistanceToNext}
-          onInstructionClick={(step) => {
-            handleInstructionClick(step);
-            setShowFullList(false);
-          }}
-          onStartEndClick={handleStartEndClick}
-          onClose={() => setShowFullList(false)}
-        />
-      );
-    }
-
-    return (
-      <NavigationBanner
-        activeInstruction={activeInstruction}
-        activeDistance={
-          liveDistanceToNext ?? activeInstruction?.distance ?? null
-        }
-        nextInstruction={nextInstruction}
-        remainingDistance={progress.remainingDistance}
-        remainingTime={remainingTime}
-        arrived={progress.arrived}
-        locationError={!!progress.error}
-        onStop={() => setNavigationMode(false)}
-        onOpenList={() => setShowFullList(true)}
-      />
-    );
-  }
 
   return (
     <Sheet open={routingMode} onOpenChange={handleOpenChange} modal={false}>
@@ -303,8 +167,8 @@ export function RouteDetails({
               routeStartName={routeStart?.properties?.name}
               routeEndName={routeEnd?.properties?.name}
               selectedRouteProfile={selectedRouteProfile}
-              onInstructionClick={handleInstructionClick}
-              onStartEndClick={handleStartEndClick}
+              onInstructionClick={flyToInstruction}
+              onStartEndClick={flyToEndpoint}
               currentIndex={navigationMode ? progress.currentIndex : null}
               liveDistanceToNext={navigationMode ? liveDistanceToNext : null}
             />

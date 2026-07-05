@@ -1,10 +1,11 @@
 "use client";
 
 import { point } from "@turf/helpers";
-import type { Feature, Point } from "geojson";
+import type { Feature, LineString, Point } from "geojson";
 import type { ReactNode } from "react";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -13,12 +14,16 @@ import {
 } from "react";
 import type { RouteProfile } from "@/config/map-profiles";
 import { useMapSync } from "@/hooks/use-map-sync";
+import { useRouteProgress } from "@/hooks/use-route-progress";
+import { type RouteInstruction, useRouting } from "@/hooks/use-routing";
 import { getInitialRoute, type RouteState } from "@/lib/urlHash";
 import {
   useMapConfig,
   useMapSelection,
   useMapTransform,
 } from "@/providers/MapProvider";
+
+const ARRIVED_AUTO_STOP_MS = 4000;
 
 interface RouteContextType {
   routingMode: boolean;
@@ -35,11 +40,54 @@ interface RouteContextType {
   setHighlightedRoutePoint: (point: [number, number] | null) => void;
 }
 
+interface RouteResultContextType {
+  routeLine: Feature<LineString> | null;
+  distance: number | null;
+  time: number | null;
+  instructions: RouteInstruction[];
+  loading: boolean;
+  error: string | null;
+}
+
+interface NavigationProgressContextType {
+  position: [number, number] | null;
+  remainingDistance: number | null;
+  remainingTime: number | null;
+  remainingLine: Feature<LineString> | null;
+  traveledLine: Feature<LineString> | null;
+  currentIndex: number | null;
+  bearing: number | null;
+  arrived: boolean;
+  error: GeolocationPositionError | null;
+}
+
 const RouteContext = createContext<RouteContextType | undefined>(undefined);
+const RouteResultContext = createContext<RouteResultContextType | undefined>(
+  undefined,
+);
+const NavigationProgressContext = createContext<
+  NavigationProgressContextType | undefined
+>(undefined);
 
 export const useRoute = () => {
   const context = useContext(RouteContext);
   if (!context) throw new Error("useRoute must be used within RouteProvider");
+  return context;
+};
+
+/** The currently computed route: line geometry, distance/time, turn-by-turn instructions. */
+export const useRouteResult = () => {
+  const context = useContext(RouteResultContext);
+  if (!context)
+    throw new Error("useRouteResult must be used within RouteProvider");
+  return context;
+};
+
+/** Live GPS progress along the route while navigation is active (or paused). */
+export const useNavigationProgress = () => {
+  const context = useContext(NavigationProgressContext);
+  if (!context)
+    throw new Error("useNavigationProgress must be used within RouteProvider");
   return context;
 };
 
@@ -110,6 +158,88 @@ export function RouteProvider({ children }: { children: ReactNode }) {
 
   useMapSync(viewState, activeMapProfile, selectedFeature, routeStateForUrl);
 
+  const vehicle =
+    selectedRouteProfile || activeMapProfile.routingProfiles?.[0] || "car";
+  const rawRouteResult = useRouting(
+    routeStart,
+    routeEnd,
+    vehicle,
+    activeMapProfile.routingUrl,
+  );
+  // useRouting() returns a fresh object every render even when nothing
+  // changed; rebuild it through useMemo so context consumers don't
+  // re-render on every unrelated RouteProvider render.
+  const routeResult = useMemo(
+    () => ({
+      routeLine: rawRouteResult.routeLine,
+      distance: rawRouteResult.distance,
+      time: rawRouteResult.time,
+      instructions: rawRouteResult.instructions,
+      loading: rawRouteResult.loading,
+      error: rawRouteResult.error,
+    }),
+    [
+      rawRouteResult.routeLine,
+      rawRouteResult.distance,
+      rawRouteResult.time,
+      rawRouteResult.instructions,
+      rawRouteResult.loading,
+      rawRouteResult.error,
+    ],
+  );
+
+  const handleOffRoute = useCallback((position: [number, number]) => {
+    setRouteStart(
+      point(position, {
+        name: "Mano dabartinė vietovė",
+        isLiveLocation: true,
+      }),
+    );
+  }, []);
+
+  const rawProgress = useRouteProgress(
+    routeResult.routeLine,
+    routeResult.distance,
+    routeResult.time,
+    navigationMode,
+    handleOffRoute,
+  );
+  // Same reasoning as routeResult above: stabilize the reference so it only
+  // changes when a field actually does.
+  const progress = useMemo(
+    () => ({
+      position: rawProgress.position,
+      remainingDistance: rawProgress.remainingDistance,
+      remainingTime: rawProgress.remainingTime,
+      remainingLine: rawProgress.remainingLine,
+      traveledLine: rawProgress.traveledLine,
+      currentIndex: rawProgress.currentIndex,
+      bearing: rawProgress.bearing,
+      arrived: rawProgress.arrived,
+      error: rawProgress.error,
+    }),
+    [
+      rawProgress.position,
+      rawProgress.remainingDistance,
+      rawProgress.remainingTime,
+      rawProgress.remainingLine,
+      rawProgress.traveledLine,
+      rawProgress.currentIndex,
+      rawProgress.bearing,
+      rawProgress.arrived,
+      rawProgress.error,
+    ],
+  );
+
+  useEffect(() => {
+    if (!progress.arrived) return;
+    const timer = setTimeout(
+      () => setNavigationMode(false),
+      ARRIVED_AUTO_STOP_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [progress.arrived]);
+
   const value = useMemo(
     () => ({
       routingMode,
@@ -136,6 +266,12 @@ export function RouteProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <RouteContext.Provider value={value}>{children}</RouteContext.Provider>
+    <RouteContext.Provider value={value}>
+      <RouteResultContext.Provider value={routeResult}>
+        <NavigationProgressContext.Provider value={progress}>
+          {children}
+        </NavigationProgressContext.Provider>
+      </RouteResultContext.Provider>
+    </RouteContext.Provider>
   );
 }
