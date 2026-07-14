@@ -85,6 +85,10 @@ jobs:
             echo "GITHUB_REPOSITORY=${{ github.repository }}" >> .env
             echo "BASE_URL=https://openmap.lt" >> .env
             echo "IMAGE_TAG=$REQUESTED_TAG" >> .env
+            echo "OSM_CLIENT_ID=${{ secrets.OSM_CLIENT_ID }}" >> .env
+            echo "OSM_CLIENT_SECRET=${{ secrets.OSM_CLIENT_SECRET }}" >> .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
 
             # Pull latest docker-compose.prod.yml
             curl -o docker-compose.prod.yml "https://raw.githubusercontent.com/${{ github.repository }}/$REPO_REF/docker-compose.prod.yml"

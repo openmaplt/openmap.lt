@@ -1,9 +1,14 @@
+import { createHash } from "node:crypto";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function hash(text: string): string {
+  return createHash("sha256").update(text).digest("hex");
 }
 
 export function findMapsByType(mapType: string): MapProfile | undefined {

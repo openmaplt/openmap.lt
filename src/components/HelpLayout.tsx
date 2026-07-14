@@ -1,37 +1,22 @@
 "use client";
 
-import {
-  ChevronRight,
-  Compass,
-  Cpu,
-  Heart,
-  Info,
-  Layers,
-  Mail,
-  Menu,
-  X,
-} from "lucide-react";
+import { ChevronRight, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
+import { AccountMenu } from "@/components/account/AccountMenu";
+import { MENU_ITEMS } from "@/config/nav";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface HelpLayoutProps {
   children: React.ReactNode;
 }
 
-const MENU_ITEMS = [
-  { href: "/bendra-informacija", label: "Bendra informacija", icon: Info },
-  { href: "/katalogas", label: "Katalogas", icon: Compass },
-  { href: "/zemelapio-duomenys", label: "Žemėlapio duomenys", icon: Layers },
-  { href: "/technine-informacija", label: "Techninė informacija", icon: Cpu },
-  { href: "/kontaktai", label: "Kontaktai", icon: Mail },
-  { href: "/prisidekite", label: "Prisidėkite!", icon: Heart },
-];
-
 export default function HelpLayout({ children }: HelpLayoutProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -85,6 +70,18 @@ export default function HelpLayout({ children }: HelpLayoutProps) {
               <ChevronRight className="size-3.5" />
             </Link>
 
+            {/* Login / account */}
+            {user ? (
+              <AccountMenu />
+            ) : (
+              <Link
+                href={`/prisijungimas?returnTo=${encodeURIComponent(pathname)}`}
+                className="hidden sm:inline-flex items-center px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
+              >
+                Prisijungti
+              </Link>
+            )}
+
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -126,7 +123,7 @@ export default function HelpLayout({ children }: HelpLayoutProps) {
                 </Link>
               );
             })}
-            <div className="pt-6 border-t border-border mt-6 px-4">
+            <div className="pt-6 border-t border-border mt-6 px-4 flex flex-col gap-3">
               <Link
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
@@ -134,6 +131,15 @@ export default function HelpLayout({ children }: HelpLayoutProps) {
               >
                 <span>Atgal į žemėlapį</span>
               </Link>
+              {!user && (
+                <Link
+                  href={`/prisijungimas?returnTo=${encodeURIComponent(pathname)}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex w-full items-center justify-center gap-2 border border-border font-semibold py-3 rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  <span>Prisijungti</span>
+                </Link>
+              )}
             </div>
           </nav>
         </div>

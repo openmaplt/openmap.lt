@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { OAuthErrorToast } from "@/components/auth/OAuthErrorToast";
+import { Toaster } from "@/components/ui/toast";
 import { JsonLd } from "@/components/JsonLd";
 import { BASE_URL } from "@/config/config";
+import { getCurrentUser } from "@/lib/auth";
+import { AuthProvider } from "@/providers/AuthProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,11 +49,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentUser = await getCurrentUser();
+
   return (
     <html lang="lt" className="h-full">
       <body
@@ -65,7 +71,11 @@ export default function RootLayout({
             inLanguage: "lt",
           }}
         />
-        {children}
+        <Toaster />
+        <AuthProvider initialUser={currentUser}>
+          {children}
+          <OAuthErrorToast />
+        </AuthProvider>
       </body>
     </html>
   );
