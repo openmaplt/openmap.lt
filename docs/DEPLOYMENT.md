@@ -43,6 +43,10 @@ GitHub repository Settings → Secrets and variables → Actions, pridėkite ši
 - `SSH_PORT` - SSH portas (default: `22`)
 - `DEPLOY_PATH` - Kelias serveryje kur bus deployment (default: `/opt/openmap`)
 
+#### OAuth prisijungimo secrets:
+- `OSM_CLIENT_ID` / `OSM_CLIENT_SECRET` - registruojama https://www.openstreetmap.org/oauth2/applications (redirect URI: `https://openmap.lt/api/auth/osm/callback`, scope: `read_prefs`)
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - registruojama https://console.cloud.google.com/apis/credentials (redirect URI: `https://openmap.lt/api/auth/google/callback`, scope: `openid email profile`)
+
 ### 4. SSH Private Key generavimas
 
 Jei neturite SSH key, sugeneruokite:
@@ -117,7 +121,14 @@ Po to GitHub Actions automatiškai:
 ```env
 DATABASE_URL=postgresql://openmap:slaptažodis@host.docker.internal:5432/openmap
 GITHUB_REPOSITORY=openmaplt/openmap.lt
+BASE_URL=https://openmap.lt
+OSM_CLIENT_ID=...
+OSM_CLIENT_SECRET=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
 ```
+
+**Pastaba:** deploy skriptas dabar visada perrašo `.env` iš GitHub Secrets kiekvieno deployment metu (ne tik pirmą kartą), kad naujai pridėti kintamieji (pvz. šie OAuth secrets) automatiškai pasiektų jau veikiantį serverį.
 
 **Pastaba:** `host.docker.internal` yra specialus Docker DNS vardas, kuris leidžia konteineriui pasiekti host mašiną. Alternatyviai galima naudoti serverio IP adresą (pvz., `192.168.1.100`) vietoj `host.docker.internal`.
 
