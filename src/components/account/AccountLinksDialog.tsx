@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,6 +37,10 @@ export function AccountLinksDialog({
   const returnTo = encodeURIComponent(pathname);
   const [pendingProvider, setPendingProvider] = useState<Provider | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) refresh();
+  }, [open, refresh]);
 
   async function handleUnlink(provider: Provider) {
     setPendingProvider(provider);
