@@ -49,12 +49,19 @@ export function useMapInteraction({
 
     const cleanup = () => {
       if (!map) return;
-      map.off("click", handleMapClick);
-      for (const layerId of layers) {
-        if (map.getLayer(layerId)) {
-          map.off("mouseenter", layerId, handleMouseEnter);
-          map.off("mouseleave", layerId, handleMouseLeave);
+      try {
+        map.off("click", handleMapClick);
+        for (const layerId of layers) {
+          if (map.getLayer(layerId)) {
+            map.off("mouseenter", layerId, handleMouseEnter);
+            map.off("mouseleave", layerId, handleMouseLeave);
+          }
         }
+      } catch {
+        // The underlying MapLibre instance may already be torn down (e.g. on
+        // unmount, react-map-gl destroys it in its own layout-effect cleanup,
+        // which can run before this effect's cleanup) — nothing left to
+        // detach listeners from in that case.
       }
     };
 
