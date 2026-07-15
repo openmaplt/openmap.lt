@@ -18,25 +18,30 @@ const validateQueryInput = (text: string, params?: unknown[]) => {
     throw new Error("SQL užklausa negali būti tuščia.");
   }
 
-  const hasPlaceholders = /\$\d+/.test(sql);
-  if (hasPlaceholders && (!params || params.length === 0)) {
+  const placeholderMatches = sql.match(/\$(\d+)/g) ?? [];
+  const hasPlaceholders = placeholderMatches.length > 0;
+
+  if (!hasPlaceholders) {
+    throw new Error(
+      "Leidžiamos tik parametrizuotos SQL užklausos su placeholder'iais ($1, $2, ...).",
+    );
+  }
+
+  if (!params || params.length === 0) {
     throw new Error(
       "Rasti SQL placeholder'iai, bet neperduoti užklausos parametrai.",
     );
   }
 
-  if (!params || params.length === 0) {
-    if (sql.includes(";")) {
-      throw new Error(
-        "Neleidžiama vykdyti kelių SQL sakinių vienoje neparametrizuotoje užklausoje.",
-      );
-    }
+  const placeholderNumbers = placeholderMatches.map((match) =>
+    Number.parseInt(match.slice(1), 10),
+  );
+  const maxPlaceholderIndex = Math.max(...placeholderNumbers);
 
-    if (/--|\/\*|\*\//.test(sql)) {
-      throw new Error(
-        "Aptikti SQL komentarų tokenai neparametrizuotoje užklausoje.",
-      );
-    }
+  if (maxPlaceholderIndex !== params.length) {
+    throw new Error(
+      "SQL placeholder'ių ir perduotų parametrų skaičius nesutampa.",
+    );
   }
 };
 
