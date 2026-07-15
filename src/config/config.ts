@@ -24,11 +24,13 @@ export const MapConfig: Config = {
   BOUNDS: [20.7, 53.7, 27.05, 56.65],
 };
 
-// Only the high-volume, client-driven actions are rate-limited. Catalog and
-// POI-detail data functions back indexable pages and are left unthrottled so
-// crawlers can fetch them freely.
 export const RATE_LIMITS = {
   // getPoiList highest: panning/zooming the map fires it continuously
   getPoiList: { limit: 300, windowMs: 10_000 },
   search: { limit: 150, windowMs: 10_000 },
+  authLogin: { limit: 20, windowMs: 10_000 },
+  authCallback: { limit: 20, windowMs: 10_000 },
+  authMe: { limit: 60, windowMs: 10_000 },
+  authLogout: { limit: 20, windowMs: 10_000 },
+  authUnlink: { limit: 20, windowMs: 10_000 },
 } as const;
