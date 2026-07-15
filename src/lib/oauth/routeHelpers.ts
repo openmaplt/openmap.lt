@@ -10,32 +10,7 @@ import {
   resolveLogin,
 } from "@/lib/auth";
 import type { Provider } from "@/lib/oauth/providers";
-import {
-  createOAuthState,
-  OAUTH_STATE_COOKIE_NAME,
-  type OAuthIntent,
-  verifyOAuthState,
-} from "@/lib/oauth/state";
-
-export function startOAuthFlow(
-  request: NextRequest,
-  buildAuthorizeUrl: (state: string) => string,
-): NextResponse {
-  const returnTo = request.nextUrl.searchParams.get("returnTo") ?? "/";
-  const intent: OAuthIntent =
-    request.nextUrl.searchParams.get("intent") === "link" ? "link" : "login";
-  const { state, cookieValue } = createOAuthState(intent, returnTo);
-
-  const response = NextResponse.redirect(buildAuthorizeUrl(state));
-  response.cookies.set(OAUTH_STATE_COOKIE_NAME, cookieValue, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 600,
-  });
-  return response;
-}
+import { OAUTH_STATE_COOKIE_NAME, verifyOAuthState } from "@/lib/oauth/state";
 
 function withQueryParam(path: string, key: string, value: string): string {
   const [pathname, search] = path.split("?");

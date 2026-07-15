@@ -44,8 +44,8 @@ GitHub repository Settings → Secrets and variables → Actions, pridėkite ši
 - `DEPLOY_PATH` - Kelias serveryje kur bus deployment (default: `/opt/openmap`)
 
 #### OAuth prisijungimo secrets:
-- `OSM_CLIENT_ID` / `OSM_CLIENT_SECRET` - registruojama https://www.openstreetmap.org/oauth2/applications (redirect URI: `https://openmap.lt/api/auth/osm/callback`, scope: `read_prefs`)
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - registruojama https://console.cloud.google.com/apis/credentials (redirect URI: `https://openmap.lt/api/auth/google/callback`, scope: `openid email profile`)
+- `OSM_CLIENT_ID` / `OSM_CLIENT_SECRET` - registruojama https://www.openstreetmap.org/oauth2/applications (redirect URI: `https://openmap.lt/auth/osm/callback`, scope: `read_prefs`)
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - registruojama https://console.cloud.google.com/apis/credentials (redirect URI: `https://openmap.lt/auth/google/callback`, scope: `openid email profile`)
 
 ### 4. SSH Private Key generavimas
 
