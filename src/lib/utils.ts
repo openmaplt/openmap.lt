@@ -10,6 +10,18 @@ export function findMapsByType(mapType: string): MapProfile | undefined {
   return MAP_PROFILES.find((profile) => profile.mapType === mapType);
 }
 
+// Only allow http(s) URLs, rejecting e.g. javascript: URIs from untrusted (OSM) data
+export function toSafeHttpUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 // Matches om_slugify() PostgreSQL function logic
 export function slugify(str: string): string {
   if (!str) return "";

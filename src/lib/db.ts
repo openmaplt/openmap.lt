@@ -1,5 +1,3 @@
-"use server";
-
 import { Pool } from "pg";
 
 if (!process.env.DATABASE_URL) {
@@ -10,6 +8,10 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: 10,
+  connectionTimeoutMillis: 5_000,
+  statement_timeout: 10_000,
+  query_timeout: 10_000,
 });
 
 const validateQueryInput = (text: string, params?: unknown[]) => {
@@ -18,25 +20,24 @@ const validateQueryInput = (text: string, params?: unknown[]) => {
     throw new Error("SQL užklausa negali būti tuščia.");
   }
 
-  const hasPlaceholders = /\$\d+/.test(sql);
-  if (hasPlaceholders && (!params || params.length === 0)) {
+  const placeholderMatches = sql.match(/\$(\d+)/g) ?? [];
+  if (placeholderMatches.length === 0) {
+    return;
+  }
+
+  if (!params || params.length === 0) {
     throw new Error(
       "Rasti SQL placeholder'iai, bet neperduoti užklausos parametrai.",
     );
   }
 
-  if (!params || params.length === 0) {
-    if (sql.includes(";")) {
-      throw new Error(
-        "Neleidžiama vykdyti kelių SQL sakinių vienoje neparametrizuotoje užklausoje.",
-      );
-    }
-
-    if (/--|\/\*|\*\//.test(sql)) {
-      throw new Error(
-        "Aptikti SQL komentarų tokenai neparametrizuotoje užklausoje.",
-      );
-    }
+  const maxPlaceholderIndex = Math.max(
+    ...placeholderMatches.map((match) => Number.parseInt(match.slice(1), 10)),
+  );
+  if (maxPlaceholderIndex !== params.length) {
+    throw new Error(
+      "SQL placeholder'ių ir perduotų parametrų skaičius nesutampa.",
+    );
   }
 };
 

@@ -17,6 +17,7 @@ import {
   type PoiAttribute,
   type PoiData,
 } from "@/lib/poiData";
+import { toSafeHttpUrl } from "@/lib/utils";
 
 interface PoiContentProps {
   data: PoiData;
@@ -46,10 +47,15 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
     case "name":
       return <strong className="text-lg text-foreground">{value}</strong>;
 
-    case "link":
+    case "link": {
+      const safeUrl = toSafeHttpUrl(value);
+      if (!safeUrl) {
+        return <span className="text-foreground">{value}</span>;
+      }
+
       return (
         <a
-          href={value}
+          href={safeUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
@@ -58,6 +64,7 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
           <ExternalLink className="w-3 h-3" />
         </a>
       );
+    }
 
     case "phone":
       return (
@@ -74,8 +81,13 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
       );
 
     case "wikipedia": {
-      const [lang, title] = value.split(":");
-      const url = `https://${lang}.wikipedia.org/wiki/${title.replace(/\s/g, "_")}`;
+      const [lang, ...rest] = value.split(":");
+      const title = rest.join(":");
+      if (!/^[a-z-]{2,}$/.test(lang) || !title) {
+        return <span className="text-foreground">{value}</span>;
+      }
+
+      const url = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s/g, "_"))}`;
       return (
         <a
           href={url}
@@ -102,23 +114,29 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
         </a>
       );
 
-    case "image":
+    case "image": {
+      const safeImageUrl = toSafeHttpUrl(value);
+      if (!safeImageUrl) {
+        return null;
+      }
+
       return (
         <a
-          href={value}
+          href={safeImageUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="block mt-2"
         >
           {/* biome-ignore lint/performance/noImgElement: External POI images don't need Next.js optimization */}
           <img
-            src={value}
+            src={safeImageUrl}
             alt="POI"
             className="max-w-full h-auto rounded-md"
             loading="lazy"
           />
         </a>
       );
+    }
 
     case "opening_hours": {
       const lines = formatOpeningHours(value);

@@ -1,6 +1,7 @@
 "use server";
 
 import { query } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export interface ClassObject {
   url: string;
@@ -12,6 +13,10 @@ export async function getProfileClassObjects(
   profile: string,
   className: string,
 ): Promise<ClassObject[]> {
+  if (await checkRateLimit("getProfileClassObjects")) {
+    return [];
+  }
+
   try {
     const res = await query(
       "SELECT public.om_profile_class_objects($1, $2) as result",

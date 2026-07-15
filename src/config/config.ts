@@ -23,3 +23,13 @@ export const MapConfig: Config = {
   MAX_ZOOM: 18,
   BOUNDS: [20.7, 53.7, 27.05, 56.65],
 };
+
+export const RATE_LIMITS = {
+  // getPoiList highest: panning/zooming the map fires it continuously
+  getPoiList: { limit: 300, windowMs: 10_000 },
+  search: { limit: 150, windowMs: 10_000 },
+  getPoiInfo: { limit: 100, windowMs: 10_000 },
+  getProfiles: { limit: 100, windowMs: 10_000 },
+  getProfileClasses: { limit: 100, windowMs: 10_000 },
+  getProfileClassObjects: { limit: 100, windowMs: 10_000 },
+} as const;
