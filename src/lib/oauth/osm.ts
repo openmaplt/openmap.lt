@@ -9,7 +9,7 @@ const OSM_PROFILE_URL =
   "https://api.openstreetmap.org/api/0.6/user/details.json";
 
 function redirectUri(): string {
-  return `${BASE_URL}/api/auth/osm/callback`;
+  return `${BASE_URL}/auth/osm/callback`;
 }
 
 export function buildAuthorizeUrl(state: string): string {

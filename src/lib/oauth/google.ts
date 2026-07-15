@@ -8,7 +8,7 @@ const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo";
 
 function redirectUri(): string {
-  return `${BASE_URL}/api/auth/google/callback`;
+  return `${BASE_URL}/auth/google/callback`;
 }
 
 export function buildAuthorizeUrl(state: string): string {

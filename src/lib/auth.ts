@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { query } from "@/lib/db";
 import type { Provider } from "@/lib/oauth/providers";
 import { PG_UNIQUE_VIOLATION } from "@/lib/pgErrorCodes";
-import { hash } from "@/lib/utils";
+import { hash } from "@/lib/serverUtils";
 
 const SESSION_COOKIE_NAME = "om_session";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { OAuthResultToast } from "@/components/auth/OAuthResultToast";
-import { Toaster } from "@/components/ui/toast";
 import { JsonLd } from "@/components/JsonLd";
+import { Toaster } from "@/components/ui/toast";
 import { BASE_URL } from "@/config/config";
 import { getCurrentUser } from "@/lib/auth";
 import { AuthProvider } from "@/providers/AuthProvider";

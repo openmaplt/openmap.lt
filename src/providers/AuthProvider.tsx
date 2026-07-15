@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { getMe, logoutAction } from "@/actions/auth";
 import { toast } from "@/components/ui/toast";
 import type { LinkedAccount } from "@/lib/accountLinking";
 import type { PublicUser } from "@/lib/auth";
@@ -38,8 +39,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const [linkedProviders, setLinkedProviders] = useState<LinkedAccount[]>([]);
 
   const refresh = useCallback(async () => {
-    const res = await fetch("/api/auth/me");
-    const data = await res.json();
+    const data = await getMe();
     setUser(data.user);
     setLinkedProviders(data.linkedProviders);
   }, []);
@@ -51,7 +51,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   }, [initialUser, refresh]);
 
   const logout = useCallback(async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await logoutAction();
     setUser(null);
     setLinkedProviders([]);
     toast.dismiss(); // clear any still-visible toast so it doesn't stack with this one

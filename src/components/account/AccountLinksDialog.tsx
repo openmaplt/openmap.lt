@@ -2,6 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { unlinkAction } from "@/actions/accountLinking";
+import { startLoginAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +23,7 @@ const PROVIDER_LABELS: Record<Provider, string> = {
 const UNLINK_ERROR_MESSAGES: Record<string, string> = {
   last_remaining_method:
     "Negalima atjungti — tai paskutinis likęs prisijungimo būdas.",
+  rate_limited: "Per daug bandymų, pabandykite vėliau.",
 };
 
 interface AccountLinksDialogProps {
@@ -34,7 +37,6 @@ export function AccountLinksDialog({
 }: AccountLinksDialogProps) {
   const { linkedProviders, refresh } = useAuth();
   const pathname = usePathname();
-  const returnTo = encodeURIComponent(pathname);
   const [pendingProvider, setPendingProvider] = useState<Provider | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,14 +48,9 @@ export function AccountLinksDialog({
     setPendingProvider(provider);
     setError(null);
     try {
-      const res = await fetch("/api/auth/unlink", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider }),
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        setError(UNLINK_ERROR_MESSAGES[data.error] ?? "Įvyko klaida.");
+      const result = await unlinkAction(provider);
+      if (!result.ok) {
+        setError(UNLINK_ERROR_MESSAGES[result.error] ?? "Įvyko klaida.");
         return;
       }
       await refresh();
@@ -98,12 +95,12 @@ export function AccountLinksDialog({
                     Atjungti
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" asChild>
-                    <a
-                      href={`/api/auth/${provider}/login?intent=link&returnTo=${returnTo}`}
-                    >
-                      Prijungti
-                    </a>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => startLoginAction(provider, "link", pathname)}
+                  >
+                    Prijungti
                   </Button>
                 )}
               </div>

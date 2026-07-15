@@ -1,4 +1,7 @@
+"use client";
+
 import { MapPin } from "lucide-react";
+import { startLoginAction } from "@/actions/auth";
 import { PROVIDERS } from "@/lib/oauth/providers";
 import type { OAuthIntent } from "@/lib/oauth/state";
 
@@ -42,24 +45,24 @@ export function LoginChoiceButtons({
   returnTo,
   intent = "login",
 }: LoginChoiceButtonsProps) {
-  const query = `intent=${intent}&returnTo=${encodeURIComponent(returnTo)}`;
-
   return (
     <div className="flex flex-col gap-3">
-      <a
-        href={`/api/auth/${PROVIDERS.OSM}/login?${query}`}
+      <button
+        type="button"
+        onClick={() => startLoginAction(PROVIDERS.OSM, intent, returnTo)}
         className="flex items-center gap-3 rounded-lg border border-input px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
       >
         <OsmIcon />
         Tęsti su OpenStreetMap
-      </a>
-      <a
-        href={`/api/auth/${PROVIDERS.GOOGLE}/login?${query}`}
+      </button>
+      <button
+        type="button"
+        onClick={() => startLoginAction(PROVIDERS.GOOGLE, intent, returnTo)}
         className="flex items-center gap-3 rounded-lg border border-input px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
       >
         <GoogleIcon />
         Tęsti su Google
-      </a>
+      </button>
     </div>
   );
 }
