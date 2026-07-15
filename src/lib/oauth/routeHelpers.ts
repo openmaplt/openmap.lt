@@ -35,6 +35,13 @@ export function startOAuthFlow(
   return response;
 }
 
+function withQueryParam(path: string, key: string, value: string): string {
+  const [pathname, search] = path.split("?");
+  const params = new URLSearchParams(search);
+  params.set(key, value);
+  return `${pathname}?${params.toString()}`;
+}
+
 function redirectWithClearedState(url: string) {
   const target = new URL(url, BASE_URL);
   const response = NextResponse.redirect(target);
@@ -72,10 +79,14 @@ export async function handleOAuthCallback(
     if (!result.ok) {
       return redirectWithClearedState(`/?link_error=${result.error}`);
     }
-    return redirectWithClearedState(verified.returnTo);
+    return redirectWithClearedState(
+      withQueryParam(verified.returnTo, "link_success", "1"),
+    );
   }
 
   const { userId } = await resolveLogin(provider, profile);
   await createSession(userId);
-  return redirectWithClearedState(verified.returnTo);
+  return redirectWithClearedState(
+    withQueryParam(verified.returnTo, "login_success", "1"),
+  );
 }

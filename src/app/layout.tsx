@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { OAuthErrorToast } from "@/components/auth/OAuthErrorToast";
+import { OAuthResultToast } from "@/components/auth/OAuthResultToast";
 import { Toaster } from "@/components/ui/toast";
 import { JsonLd } from "@/components/JsonLd";
 import { BASE_URL } from "@/config/config";
@@ -74,7 +74,7 @@ export default async function RootLayout({
         <Toaster />
         <AuthProvider initialUser={currentUser}>
           {children}
-          <OAuthErrorToast />
+          <OAuthResultToast />
         </AuthProvider>
       </body>
     </html>
