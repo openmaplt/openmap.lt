@@ -1,3 +1,5 @@
+import "server-only";
+
 import { BASE_URL } from "@/config/config";
 import type { ProviderProfile } from "@/lib/auth";
 
