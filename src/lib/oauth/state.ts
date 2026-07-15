@@ -1,3 +1,5 @@
+import "server-only";
+
 import { randomBytes } from "node:crypto";
 
 export const OAUTH_STATE_COOKIE_NAME = "om_oauth_state";

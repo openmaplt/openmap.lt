@@ -1,3 +1,5 @@
+import "server-only";
+
 import { type NextRequest, NextResponse } from "next/server";
 import { BASE_URL } from "@/config/config";
 import { resolveLink } from "@/lib/accountLinking";
