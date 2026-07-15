@@ -42,6 +42,11 @@ export function isRateLimited(key: string, limit: number, windowMs: number) {
   return bucket.count > limit;
 }
 
+// Only the high-volume, client-driven actions are throttled (map data + search).
+// The catalog and POI-detail pages back server-rendered, indexable content that
+// crawlers must be able to fetch freely, so those data functions are not
+// rate-limited at all — a User-Agent allowlist would be trivially spoofable
+// anyway.
 export async function checkRateLimit(action: keyof typeof RATE_LIMITS) {
   const { limit, windowMs } = RATE_LIMITS[action];
   const ip = await getClientIp();

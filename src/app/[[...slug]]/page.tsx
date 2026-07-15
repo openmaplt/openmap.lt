@@ -6,6 +6,7 @@ import { getPoiInfo } from "@/data/poiInfo";
 import { buildPoiDescription, parsePoiSlug } from "@/lib/poiHelpers";
 import { slugify } from "@/lib/utils";
 import MapPage from "./_components/MapPage";
+import { PoiSeoContent } from "./_components/PoiSeoContent";
 
 export async function generateMetadata({
   params,
@@ -46,6 +47,9 @@ export async function generateMetadata({
     ...(desc && { description: desc }),
     alternates: { canonical },
     openGraph: {
+      type: "website",
+      siteName: "Openmap.lt",
+      locale: "lt_LT",
       ...(ogTitle && { title: ogTitle }),
       ...(desc && { description: desc }),
       url: canonical,
@@ -81,13 +85,17 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
     }
   }
 
+  const hasPoiData = poiData && Object.entries(poiData).length > 0;
+
   return (
     <>
-      <MapPage
-        initialPoiData={
-          poiData && Object.entries(poiData).length > 0 ? poiData : null
-        }
-      />
+      {hasPoiData && mapType && poiSlug && (
+        <PoiSeoContent
+          poiData={poiData}
+          url={`${BASE_URL}/${mapType}/${poiSlug}`}
+        />
+      )}
+      <MapPage initialPoiData={hasPoiData ? poiData : null} />
       <HelpButton />
     </>
   );

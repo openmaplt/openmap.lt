@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import HelpLayout from "@/components/HelpLayout";
+import { BASE_URL } from "@/config/config";
 import { BugReportSection } from "./_components/BugReportSection";
 import { ContributionWays } from "./_components/ContributionWays";
 import { EditSection } from "./_components/EditSection";
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   title: "Prisidėkite - Openmap.lt",
   description:
     "Prisidėkite prie atviro ir nemokamo OpenStreetMap Lietuvos žemėlapio kūrimo. Praneškite apie klaidas arba redaguokite patys.",
+  alternates: { canonical: `${BASE_URL}/prisidekite` },
 };
 
 export default function Page() {

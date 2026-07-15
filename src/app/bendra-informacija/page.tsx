@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import HelpLayout from "@/components/HelpLayout";
+import { BASE_URL } from "@/config/config";
 import { NewsTimeline } from "./_components/NewsTimeline";
 
 export const metadata: Metadata = {
   title: "Bendra informacija - Openmap.lt",
   description:
     "Lietuvos lankytinos vietos atvirame ir nemokamame OpenStreetMap žemėlapyje. Bendra informacija apie projektą.",
+  alternates: { canonical: `${BASE_URL}/bendra-informacija` },
 };
 
 export default function Page() {

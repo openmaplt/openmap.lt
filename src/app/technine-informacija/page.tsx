@@ -1,12 +1,14 @@
 import { Info } from "lucide-react";
 import type { Metadata } from "next";
 import HelpLayout from "@/components/HelpLayout";
+import { BASE_URL } from "@/config/config";
 import { MappingRulesPanel } from "./_components/MappingRulesPanel";
 
 export const metadata: Metadata = {
   title: "Techninė informacija - Openmap.lt",
   description:
     "OSM žymėjimo taisyklės. Techninė informacija apie OpenStreetMap žymes ir sąlygas lankytinų vietų žemėlapyje.",
+  alternates: { canonical: `${BASE_URL}/technine-informacija` },
 };
 
 export default function Page() {

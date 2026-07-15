@@ -2,16 +2,11 @@
 
 import { cache } from "react";
 import { query } from "@/lib/db";
-import { checkRateLimit } from "@/lib/rateLimit";
 
 export const getPoiInfo = cache(async function getPoiInfo(
   id: string,
   mapType?: string | null,
 ) {
-  if (await checkRateLimit("getPoiInfo")) {
-    return null;
-  }
-
   try {
     const result = await query("SELECT places.poi_info($1::jsonb) as result", [
       JSON.stringify({

@@ -2,12 +2,14 @@ import { ArrowUpRight, Info } from "lucide-react";
 import type { Metadata } from "next";
 import HelpLayout from "@/components/HelpLayout";
 import SafeImage from "@/components/SafeImage";
+import { BASE_URL } from "@/config/config";
 import { DataCards } from "./_components/DataCards";
 
 export const metadata: Metadata = {
   title: "Žemėlapio duomenys - Openmap.lt",
   description:
     "Iš kur imami duomenys atviram OpenStreetMap Lietuvos žemėlapiui. Atsisiuntimai, programėlės ir Garmin palaikymas.",
+  alternates: { canonical: `${BASE_URL}/zemelapio-duomenys` },
 };
 
 export default function Page() {

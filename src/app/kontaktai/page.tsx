@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import HelpLayout from "@/components/HelpLayout";
+import { BASE_URL } from "@/config/config";
 import { ContactCards } from "./_components/ContactCards";
 
 export const metadata: Metadata = {
   title: "Kontaktai - Openmap.lt",
   description:
     "Susisiekite su Openmap.lt kūrėjais. Lietuvos OpenStreetMap bendruomenės kontaktai, asociacija Atvirasis žemėlapis.",
+  alternates: { canonical: `${BASE_URL}/kontaktai` },
 };
 
 export default function Page() {

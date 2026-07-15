@@ -3,6 +3,25 @@ import type { Feature } from "geojson";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { MAP_PROFILES } from "@/config/map-profiles";
 
+/**
+ * Turns an OSM `wikipedia` tag ("lt:Aknystėlių piliakalnis") into a link.
+ * The tag is user-editable, so the language is restricted to a plain code —
+ * this prevents injecting an arbitrary host into the URL.
+ */
+export function formatWikipediaUrl(
+  value: string,
+): { url: string; title: string } | null {
+  const [lang, ...rest] = value.split(":");
+  const title = rest.join(":");
+  if (!/^[a-z-]{2,20}$/.test(lang) || !title) {
+    return null;
+  }
+  const url = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(
+    title.replace(/\s/g, "_"),
+  )}`;
+  return { url, title };
+}
+
 export function buildPoiDescription(
   name: string | undefined,
   mapType: string | undefined,

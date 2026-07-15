@@ -17,6 +17,7 @@ import {
   type PoiAttribute,
   type PoiData,
 } from "@/lib/poiData";
+import { formatWikipediaUrl } from "@/lib/poiHelpers";
 import { toSafeHttpUrl } from "@/lib/utils";
 
 interface PoiContentProps {
@@ -81,21 +82,19 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
       );
 
     case "wikipedia": {
-      const [lang, ...rest] = value.split(":");
-      const title = rest.join(":");
-      if (!/^[a-z-]{2,}$/.test(lang) || !title) {
+      const wiki = formatWikipediaUrl(value);
+      if (!wiki) {
         return <span className="text-foreground">{value}</span>;
       }
 
-      const url = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s/g, "_"))}`;
       return (
         <a
-          href={url}
+          href={wiki.url}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
         >
-          {title}
+          {wiki.title}
           <ExternalLink className="w-3 h-3" />
         </a>
       );
