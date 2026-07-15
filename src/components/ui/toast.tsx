@@ -16,6 +16,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="light"
+      // bottom-right (sonner's default) collides with MapStyleSwitcherControl
+      // (also bottom-right on the map). bottom-center is the one spot that's
+      // consistently free across every map profile and the static pages.
+      position="bottom-center"
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

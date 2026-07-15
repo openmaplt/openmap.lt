@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "@/components/ui/toast";
 import type { LinkedAccount } from "@/lib/accountLinking";
 import type { PublicUser } from "@/lib/auth";
 
@@ -53,6 +54,8 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     setLinkedProviders([]);
+    toast.dismiss(); // clear any still-visible toast so it doesn't stack with this one
+    toast.success("Atsijungėte.");
   }, []);
 
   const value = useMemo(
