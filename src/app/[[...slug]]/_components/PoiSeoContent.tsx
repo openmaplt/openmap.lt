@@ -1,19 +1,21 @@
 import type { Geometry, Point } from "geojson";
 import { JsonLd } from "@/components/JsonLd";
+import { PoiContent } from "@/components/PoiContent";
+import { extractPoiData, type PoiProperties } from "@/lib/poiData";
 import { formatWikipediaUrl } from "@/lib/poiHelpers";
 import { toSafeHttpUrl } from "@/lib/utils";
 
 interface PoiData {
   geometry?: Geometry | null;
-  properties?: Record<string, string | undefined> | null;
+  properties?: PoiProperties | null;
 }
 
 /**
  * Server-rendered, crawlable content for a POI page. The page itself is a
  * full-screen client map, so Googlebot would otherwise see almost no text
- * ("thin content"). This renders the POI's name, description and metadata into
- * the DOM (visually hidden but accessible) plus a Place JSON-LD block, so the
- * page has real indexable content and structured data.
+ * ("thin content"). Renders the exact same PoiContent the interactive popup
+ * shows (address, hours, phone, etc.) — visually hidden but in the DOM — so the
+ * crawler gets full content parity, plus a TouristAttraction JSON-LD block.
  */
 export function PoiSeoContent({
   poiData,
@@ -26,11 +28,8 @@ export function PoiSeoContent({
   const name = props.name;
   if (!name) return null;
 
-  // OSM tags are editable by anyone, so URLs are untrusted — only allow real
-  // http(s) URLs (blocks javascript:/data: in href and in the JSON-LD).
-  // OSM tags are editable by anyone, so URLs are untrusted — only allow real
-  // http(s) URLs (blocks javascript:/data: in href and in the JSON-LD).
-  const description = props.description;
+  // OSM tags are user-editable, so URLs are untrusted — only allow real http(s)
+  // URLs before putting them in the JSON-LD.
   const image = props.image ? toSafeHttpUrl(props.image) : null;
   const website = props.website ? toSafeHttpUrl(props.website) : null;
   const wikipediaUrl = props.wikipedia
@@ -40,6 +39,17 @@ export function PoiSeoContent({
   const point: Point | null =
     poiData.geometry?.type === "Point" ? poiData.geometry : null;
 
+  // OSM address tags: structured addr:* keys, with a pre-composed `address`
+  // string as fallback.
+  const asString = (value: unknown): string | undefined =>
+    typeof value === "string" && value ? value : undefined;
+  const streetAddress =
+    [asString(props["addr:street"]), asString(props["addr:housenumber"])]
+      .filter(Boolean)
+      .join(" ") || asString(props.address);
+  const addressLocality = asString(props["addr:city"]);
+  const postalCode = asString(props["addr:postcode"]);
+
   const sameAs = [website, wikipediaUrl].filter(Boolean);
 
   const jsonLd = {
@@ -47,8 +57,10 @@ export function PoiSeoContent({
     "@type": "TouristAttraction",
     name,
     url,
-    ...(description && { description }),
+    ...(props.description && { description: props.description }),
     ...(image && { image }),
+    ...(props.phone && { telephone: props.phone }),
+    ...(props.email && { email: props.email }),
     ...(point && {
       geo: {
         "@type": "GeoCoordinates",
@@ -57,24 +69,24 @@ export function PoiSeoContent({
       },
     }),
     ...(sameAs.length > 0 && { sameAs }),
-    address: { "@type": "PostalAddress", addressCountry: "LT" },
+    address: {
+      "@type": "PostalAddress",
+      ...(streetAddress && { streetAddress }),
+      ...(addressLocality && { addressLocality }),
+      ...(postalCode && { postalCode }),
+      addressCountry: "LT",
+    },
   };
+
+  // Drop osmLink: the "OSM"/"Edit" links are editor tooling, not content a
+  // crawler should index or follow.
+  const { attributes } = extractPoiData(props);
 
   return (
     <>
       <article className="sr-only">
         <h1>{name}</h1>
-        {description && <p>{description}</p>}
-        {website && (
-          <p>
-            Šaltinis: <a href={website}>{website}</a>
-          </p>
-        )}
-        {wikipediaUrl && (
-          <p>
-            Vikipedija: <a href={wikipediaUrl}>{name}</a>
-          </p>
-        )}
+        <PoiContent data={{ attributes }} />
       </article>
       <JsonLd data={jsonLd} />
     </>

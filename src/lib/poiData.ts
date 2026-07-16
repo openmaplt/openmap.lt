@@ -8,10 +8,19 @@ export interface PoiProperties {
   name?: string;
   official_name?: string;
   alt_name?: string;
+  // Two address schemas reach us:
+  //  - Vector-tile POIs (mapType "maps"): Tegola aliases addr:* to plain
+  //    street/housenumber/city/post_code (see vector-map/data/poi/*.pgsql).
+  //  - DB POIs (places.poi.attr): raw OSM addr:* keys + a pre-composed `address`.
   street?: string;
   housenumber?: string;
   city?: string;
   post_code?: string;
+  address?: string;
+  "addr:street"?: string;
+  "addr:housenumber"?: string;
+  "addr:city"?: string;
+  "addr:postcode"?: string;
   opening_hours?: string;
   email?: string;
   phone?: string;
@@ -134,30 +143,6 @@ export function getObjectId(
 }
 
 /**
- * Format address from properties
- */
-export function formatAddress(properties: PoiProperties): string {
-  let address = "";
-  if (properties.street) {
-    address += properties.street;
-  }
-  if (properties.housenumber) {
-    address += ` ${properties.housenumber}`;
-  }
-  if (properties.city) {
-    address += `, ${properties.city}`;
-  }
-  if (properties.post_code) {
-    let code = properties.post_code;
-    if (code.match(/\d+/)) {
-      code = `LT-${code}`;
-    }
-    address += ` ${code}`;
-  }
-  return address;
-}
-
-/**
  * Format opening hours to Lithuanian
  */
 export function formatOpeningHours(value: string): string[] {
@@ -197,13 +182,34 @@ export function formatBeerStyles(properties: PoiProperties) {
 }
 
 /**
+ * Build a display address from the structured parts. Handles both schemas:
+ * DB POIs use OSM addr:* keys, vector-tile POIs use plain street/city/etc.
+ * Falls back to the pre-composed `address` string (DB) when no parts exist.
+ */
+export function formatAddress(properties: PoiProperties): string {
+  const street = properties["addr:street"] ?? properties.street;
+  const houseNumber = properties["addr:housenumber"] ?? properties.housenumber;
+  const city = properties["addr:city"] ?? properties.city;
+  const postcode = properties["addr:postcode"] ?? properties.post_code;
+
+  const streetLine = [street, houseNumber].filter(Boolean).join(" ");
+  const parts = [
+    streetLine,
+    city,
+    postcode && (postcode.startsWith("LT") ? postcode : `LT-${postcode}`),
+  ].filter(Boolean);
+
+  return parts.join(", ") || properties.address || "";
+}
+
+/**
  * Determine attribute type
  */
 function getAttributeType(key: string): PoiAttribute["type"] {
   switch (key) {
     case "name":
       return "name";
-    case "street":
+    case "address":
       return "address";
     case "website":
       return "link";
@@ -243,6 +249,12 @@ function getAttributeValue(
     return formatBeerStyles(properties);
   }
 
+  // Address is composed from several keys, so it can't rely on properties[key]
+  // (the "address" key itself is absent for vector-tile POIs).
+  if (type === "address") {
+    return formatAddress(properties);
+  }
+
   if (!properties[key]) {
     return "";
   }
@@ -250,8 +262,6 @@ function getAttributeValue(
   const value = String(properties[key]);
 
   switch (type) {
-    case "address":
-      return formatAddress(properties);
     case "fee":
       return value === "yes" ? "Yra" : "Nėra";
     case "height":
