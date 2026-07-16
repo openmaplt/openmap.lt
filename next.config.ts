@@ -6,7 +6,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://openmap.lt https://ort10lt.openmap.lt",
+  "connect-src 'self' https://openmap.lt https://*.openmap.lt https://test.stvk.lt",
   "worker-src 'self' blob:",
   "child-src blob:",
   "object-src 'none'",
