@@ -113,35 +113,6 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
   description: "BookOpen",
 };
 
-// Layer code mapping (for object IDs)
-const LAYER_CODE: Record<string, string> = {
-  a: "label-address",
-  p: "label-amenity",
-};
-
-/**
- * Get layer code from layer ID
- */
-export function getLayerCode(layerId: string): string {
-  return (
-    Object.keys(LAYER_CODE).find((key) => LAYER_CODE[key] === layerId) || ""
-  );
-}
-
-/**
- * Get object ID from properties and layer
- */
-export function getObjectId(
-  properties: PoiProperties,
-  layerId: string,
-): string | null {
-  if (typeof properties.id === "undefined") {
-    return null;
-  }
-  const code = getLayerCode(layerId);
-  return code ? `${code}${properties.id}` : null;
-}
-
 /**
  * Format opening hours to Lithuanian
  */
@@ -321,31 +292,4 @@ export function extractPoiData(properties: PoiProperties): PoiData {
   }
 
   return { attributes, osmLink };
-}
-
-/**
- * Parse object ID from URL to get layer and feature ID
- */
-export function parseObjectId(objectId: string): {
-  layerId: string;
-  featureId: number;
-} | null {
-  if (!objectId || objectId.length < 2) {
-    return null;
-  }
-
-  const code = objectId.charAt(0);
-  const layerId = LAYER_CODE[code];
-
-  if (!layerId) {
-    return null;
-  }
-
-  const featureId = Number.parseInt(objectId.substring(1), 10);
-
-  if (Number.isNaN(featureId)) {
-    return null;
-  }
-
-  return { layerId, featureId };
 }
