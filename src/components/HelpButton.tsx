@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleQuestionMark, LogIn } from "lucide-react";
+import { LogIn, Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -41,7 +41,7 @@ export function HelpButton() {
             title="Meniu"
             className="fixed bottom-24 sm:bottom-20 left-3 z-10 flex size-10 items-center justify-center rounded-lg border border-input bg-white shadow-xl transition-colors hover:bg-accent text-muted-foreground hover:text-foreground"
           >
-            <CircleQuestionMark className="size-5" />
+            <Menu className="size-5" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent

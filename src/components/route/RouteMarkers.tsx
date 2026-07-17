@@ -2,7 +2,7 @@
 
 import { point } from "@turf/helpers";
 import type { Point } from "geojson";
-import { Navigation } from "lucide-react";
+import { Navigation2 } from "lucide-react";
 import { Marker, type MarkerDragEvent } from "react-map-gl/maplibre";
 import { useNavigationProgress, useRoute } from "@/providers/RouteProvider";
 
@@ -39,7 +39,7 @@ export function RouteMarkers() {
           <div className="relative flex h-9 w-9 items-center justify-center">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-40" />
             <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 border-2 border-white shadow-lg">
-              <Navigation className="h-4 w-4 text-white" fill="white" />
+              <Navigation2 className="h-4 w-4 text-white" fill="white" />
             </div>
           </div>
         </Marker>
