@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Marker } from "react-map-gl/maplibre";
 import { PoiContent } from "@/components/PoiContent";
+import { ProtectedPhotos } from "@/components/ProtectedPhotos";
 import {
   Sheet,
   SheetContent,
@@ -13,11 +14,16 @@ import {
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
 import { getFeatureCenter } from "@/lib/poiHelpers";
-import { useMapActions, useMapSelection } from "@/providers/MapProvider";
+import {
+  useMapActions,
+  useMapConfig,
+  useMapSelection,
+} from "@/providers/MapProvider";
 
 export function PoiDetails() {
   const { selectedFeature: feature } = useMapSelection();
   const { handleOnPoiDetailsClose: onOpenChange, mapRef } = useMapActions();
+  const { activeMapProfile } = useMapConfig();
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -88,6 +94,10 @@ export function PoiDetails() {
           </SheetHeader>
           <div className="flex-1 overflow-y-auto">
             <PoiContent data={extractPoiData(feature.properties || {})} />
+            {activeMapProfile.mapType === "saugomos" &&
+              feature.properties?.id && (
+                <ProtectedPhotos id={String(feature.properties.id)} />
+              )}
           </div>
         </SheetContent>
       </Sheet>

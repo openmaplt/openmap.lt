@@ -2,11 +2,18 @@
 
 import { cache } from "react";
 import { query } from "@/lib/db";
+import { getProtectedArea } from "@/lib/stvk";
 
 export const getPoiInfo = cache(async function getPoiInfo(
   id: string,
   mapType?: string | null,
 ) {
+  // Protected areas ("saugomos") come straight from the STVK API — we no
+  // longer mirror them in our DB. Everything else stays on places.poi_info.
+  if (mapType === "saugomos") {
+    return getProtectedArea(id);
+  }
+
   try {
     const result = await query("SELECT places.poi_info($1::jsonb) as result", [
       JSON.stringify({

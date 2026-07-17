@@ -28,6 +28,7 @@ export const RATE_LIMITS = {
   // getPoiList highest: panning/zooming the map fires it continuously
   getPoiList: { limit: 300, windowMs: 10_000 },
   search: { limit: 150, windowMs: 10_000 },
+  protectedPhotos: { limit: 120, windowMs: 10_000 },
   authLogin: { limit: 20, windowMs: 10_000 },
   authCallback: { limit: 20, windowMs: 10_000 },
   authMe: { limit: 60, windowMs: 10_000 },
