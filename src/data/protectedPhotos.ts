@@ -1,6 +1,5 @@
-"use server";
+import "server-only";
 
-import { cache } from "react";
 import { getProtectedAreaPhotos } from "@/lib/stvk";
 
 export interface ProtectedPhotoMeta {
@@ -14,7 +13,7 @@ export interface ProtectedPhotoMeta {
  * entry points at the image route that streams the actual JPEG, so the client
  * never receives the heavy base64 payload.
  */
-export const getProtectedPhotoList = cache(async function getProtectedPhotoList(
+export async function getProtectedPhotoList(
   id: string,
 ): Promise<ProtectedPhotoMeta[]> {
   if (!/^\d+$/.test(id)) {
@@ -29,4 +28,4 @@ export const getProtectedPhotoList = cache(async function getProtectedPhotoList(
       name: photo.name,
       url: `/api/saugomos/${id}/photos/${photo.id}`,
     }));
-});
+}

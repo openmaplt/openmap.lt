@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  getProtectedPhotoList,
-  type ProtectedPhotoMeta,
-} from "@/data/protectedPhotos";
+import type { ProtectedPhotoMeta } from "@/data/protectedPhotos";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,8 +16,9 @@ export function ProtectedPhotos({ id }: { id: string }) {
   useEffect(() => {
     let active = true;
     setPhotos(null);
-    getProtectedPhotoList(id)
-      .then((list) => {
+    fetch(`/api/saugomos/${encodeURIComponent(id)}/photos`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list: ProtectedPhotoMeta[]) => {
         if (active) setPhotos(list);
       })
       .catch(() => {
