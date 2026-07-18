@@ -72,14 +72,19 @@ export function useNavigationCamera() {
           bounds.extend(coord as [number, number]);
         }
 
-        // Ensure map is fitting the bounds smoothly after a short delay so the line has time to render
+        // Ensure map is fitting the bounds smoothly after a short delay so the
+        // line has time to render. Pad extra on the side the details panel
+        // covers (left on desktop, bottom on mobile) so the whole route stays
+        // visible.
         requestAnimationFrame(() => {
           mapRef.current?.fitBounds(bounds, {
-            padding: 80,
+            padding: isMobile
+              ? { top: 80, right: 80, bottom: 320, left: 80 }
+              : { top: 80, right: 80, bottom: 80, left: 420 },
             duration: 800,
           });
         });
       }
     }
-  }, [routeLine, mapRef, navigationMode]);
+  }, [routeLine, mapRef, navigationMode, isMobile]);
 }
