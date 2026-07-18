@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin } from "lucide-react";
+import type { LngLatBoundsLike } from "maplibre-gl";
 import { useEffect, useState } from "react";
 import { Marker } from "react-map-gl/maplibre";
 import { PoiContent } from "@/components/PoiContent";
@@ -11,6 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { MapConfig } from "@/config/config";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
 import { getFeatureCenter } from "@/lib/poiHelpers";
@@ -40,16 +42,42 @@ export function PoiDetails() {
   const lng = center?.[0];
   const lat = center?.[1];
 
-  // Pastumiam žemėlapį, kad markeris liktų matomoje srityje ir jo neuždengtų
-  // detalių skydelis (apačioje mobilioje, kairėje – desktop'e).
+  // Paieškos rezultatas prideda kameros intenciją `flyToZoom`: tada
+  // priartinam iki objekto apimties (`extent`), o jei jos nėra (pvz. adreso
+  // taškas) – iki nurodyto zoom. Be šios intencijos (paspaudimas žemėlapyje,
+  // deep-link) tik pastumiam vaizdą išlaikydami esamą zoom, kaip ir anksčiau.
+  const flyToZoom = (feature as { flyToZoom?: number } | null)?.flyToZoom;
+  const extent = (feature as { extent?: LngLatBoundsLike } | null)?.extent;
+
+  // Judinam kamerą taip, kad markeris liktų matomoje srityje ir jo neuždengtų
+  // detalių skydelis (apačioje mobilioje, kairėje – desktop'e). Kamerą valdo
+  // tik ši vieta – kitaip atskiras paieškos `flyTo` konfliktuotų su šiuo ir
+  // zoom dingtų.
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || lng === undefined || lat === undefined) return;
     const offset: [number, number] = isMobile
       ? [0, -Math.round(window.innerHeight * 0.2)]
       : [192, 0];
-    map.panTo([lng, lat], { offset, duration: 500 });
-  }, [lng, lat, isMobile, mapRef]);
+
+    if (flyToZoom !== undefined && extent) {
+      map.fitBounds(extent, {
+        offset,
+        padding: 50,
+        maxZoom: MapConfig.MAX_ZOOM,
+        duration: 1200,
+      });
+    } else if (flyToZoom !== undefined) {
+      map.flyTo({
+        center: [lng, lat],
+        offset,
+        zoom: flyToZoom,
+        duration: 1200,
+      });
+    } else {
+      map.panTo([lng, lat], { offset, duration: 500 });
+    }
+  }, [lng, lat, isMobile, mapRef, flyToZoom, extent]);
 
   if (!feature || lng === undefined || lat === undefined) {
     return null;
