@@ -13,6 +13,8 @@ export type MapProfile = {
   mapType: string;
   mapStyles: MapStyle[];
   featureComponent?: "places" | "craftbeer" | "protected" | "bicycle" | "river";
+  // Extra content rendered in the POI details panel for this profile.
+  poiPanelExtra?: "protectedPhotos";
   interactiveLayers?: string[];
   routingProfiles?: RouteProfile[];
   routingUrl?: string;
@@ -165,6 +167,7 @@ export const MAP_PROFILES: MapProfile[] = [
       },
     ],
     featureComponent: "protected",
+    poiPanelExtra: "protectedPhotos",
     interactiveLayers: PROTECTED_ACTIVE_LAYERS,
     seoDescription:
       "{name} – saugoma gamtos teritorija Lietuvoje. Tyrinėk žemėlapyje openmap.lt.",

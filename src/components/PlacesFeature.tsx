@@ -101,9 +101,6 @@ export function PlacesFeature({ initialFilterType }: PlacesFeatureProps) {
             "icon-size": 1,
             "icon-allow-overlap": true,
           }}
-          {...(poiId && {
-            filter: ["!=", ["id"], Number.parseInt(poiId, 10)],
-          })}
         />
       </Source>
     </>

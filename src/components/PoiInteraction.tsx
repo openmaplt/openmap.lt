@@ -1,6 +1,7 @@
 import type { Feature } from "geojson";
 import type { MapGeoJSONFeature, MapSourceDataEvent } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
+import { SelectedFeatureMarker } from "@/components/SelectedFeatureMarker";
 import {
   Sheet,
   SheetContent,
@@ -8,8 +9,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { PROTECTED_FILTERS } from "@/config/protected-filters";
+import { useFeatureHighlight } from "@/hooks/use-feature-highlight";
 import { useMapInteraction } from "@/hooks/use-map-interaction";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
+import { useSelectionCamera } from "@/hooks/use-selection-camera";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { getPoiFromObjectId } from "@/lib/poiHelpers";
 import {
@@ -19,7 +22,11 @@ import {
 } from "@/providers/MapProvider";
 
 export function PoiInteraction() {
-  const { mapRef, setSelectedFeature: onSelectFeature } = useMapActions();
+  const {
+    mapRef,
+    setSelectedFeature: onSelectFeature,
+    setSelectedPoiId,
+  } = useMapActions();
   const { activeMapProfile } = useMapConfig();
   const { selectedPoiId: poiId } = useMapSelection();
 
@@ -37,6 +44,10 @@ export function PoiInteraction() {
   };
 
   const { enrichFeature } = usePoiEnrichment(mapType);
+  // Map-side reactions to the current selection: outline a non-point feature,
+  // and move the camera to whatever is selected.
+  useFeatureHighlight();
+  useSelectionCamera();
   const lastSelectedPoiIdRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
   const [candidateFeatures, setCandidateFeatures] = useState<Feature[]>([]);
@@ -55,6 +66,7 @@ export function PoiInteraction() {
       if (features.length === 0) {
         lastSelectedPoiIdRef.current = null;
         onSelectFeature(null);
+        setSelectedPoiId(null);
         setCandidateFeatures([]);
         return;
       }
@@ -131,49 +143,55 @@ export function PoiInteraction() {
   };
 
   return (
-    <Sheet open={candidateFeatures.length > 0} onOpenChange={handleOpenChange}>
-      <SheetContent
-        side={isMobile ? "bottom" : "left"}
-        className="!p-0 !gap-0 flex flex-col"
-        style={{
-          height: isMobile ? (isExpanded ? "95dvh" : "50dvh") : "100vh",
-          transition: "height 0.3s ease",
-        }}
-        aria-describedby={undefined}
+    <>
+      <SelectedFeatureMarker />
+      <Sheet
+        open={candidateFeatures.length > 0}
+        onOpenChange={handleOpenChange}
       >
-        {isMobile && (
-          <button
-            type="button"
-            className="flex items-center justify-center w-full pt-2 pb-1 shrink-0"
-            onClick={() => setIsExpanded((v) => !v)}
-          >
-            <div className="w-10 h-1 rounded-full bg-gray-300" />
-          </button>
-        )}
-        <SheetHeader className="px-4 pt-2 pb-3 border-b shrink-0">
-          <SheetTitle>Pasirinkite objektą</SheetTitle>
-        </SheetHeader>
-        <div className="flex-1 flex flex-col overflow-y-auto">
-          {candidateFeatures.map((feature, index) => (
+        <SheetContent
+          side={isMobile ? "bottom" : "left"}
+          className="!p-0 !gap-0 flex flex-col"
+          style={{
+            height: isMobile ? (isExpanded ? "95dvh" : "50dvh") : "100vh",
+            transition: "height 0.3s ease",
+          }}
+          aria-describedby={undefined}
+        >
+          {isMobile && (
             <button
               type="button"
-              key={`${feature.id}-${index}`}
-              className="flex flex-col items-start px-4 py-4 hover:bg-accent transition-colors border-b text-left w-full"
-              onClick={() => handleSelectCandidate(feature)}
+              className="flex items-center justify-center w-full pt-2 pb-1 shrink-0"
+              onClick={() => setIsExpanded((v) => !v)}
             >
-              <span className="font-medium text-foreground">
-                {feature.properties?.pavadinimas ||
-                  feature.properties?.name ||
-                  "Be pavadinimo"}
-              </span>
-              <span className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
-                {getLayerLabel?.((feature as MapGeoJSONFeature).layer?.id) ||
-                  (feature as MapGeoJSONFeature).layer?.id}
-              </span>
+              <div className="w-10 h-1 rounded-full bg-gray-300" />
             </button>
-          ))}
-        </div>
-      </SheetContent>
-    </Sheet>
+          )}
+          <SheetHeader className="px-4 pt-2 pb-3 border-b shrink-0">
+            <SheetTitle>Pasirinkite objektą</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 flex flex-col overflow-y-auto">
+            {candidateFeatures.map((feature, index) => (
+              <button
+                type="button"
+                key={`${feature.id}-${index}`}
+                className="flex flex-col items-start px-4 py-4 hover:bg-accent transition-colors border-b text-left w-full"
+                onClick={() => handleSelectCandidate(feature)}
+              >
+                <span className="font-medium text-foreground">
+                  {feature.properties?.pavadinimas ||
+                    feature.properties?.name ||
+                    "Be pavadinimo"}
+                </span>
+                <span className="text-[10px] text-muted-foreground uppercase mt-1 tracking-wider">
+                  {getLayerLabel?.((feature as MapGeoJSONFeature).layer?.id) ||
+                    (feature as MapGeoJSONFeature).layer?.id}
+                </span>
+              </button>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

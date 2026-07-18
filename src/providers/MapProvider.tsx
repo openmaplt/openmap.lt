@@ -36,8 +36,22 @@ interface MapTransformContextType {
   bbox: LngLatBounds | null;
 }
 
+/**
+ * A selected map feature. It keeps its own vector-tile `geometry`, `source` and
+ * `sourceLayer`, so the UI decides how to present it with no extra flags: a
+ * `Point` gets a marker, anything else gets a highlight overlay drawn from the
+ * same tiles (see useFeatureHighlight), matched by the feature's `id`.
+ * `extent`/`flyToZoom` are optional camera hints used by useSelectionCamera.
+ */
+export type MapFeature = Feature & {
+  source?: string;
+  sourceLayer?: string;
+  extent?: LngLatBoundsLike;
+  flyToZoom?: number;
+};
+
 interface MapSelectionContextType {
-  selectedFeature: Feature | null;
+  selectedFeature: MapFeature | null;
   selectedPoiId: string | null;
 }
 
@@ -51,7 +65,7 @@ interface MapActionsContextType {
   setViewState: (viewState: MapProps["initialViewState"]) => void;
   setActiveMapProfile: (profile: MapProfile) => void;
   setBbox: (bbox: LngLatBounds | null) => void;
-  setSelectedFeature: (feature: Feature | null) => void;
+  setSelectedFeature: (feature: MapFeature | null) => void;
   setSelectedPoiId: (id: string | null) => void;
   setMobileActiveMode: (mode: "search" | "filter" | "routing" | null) => void;
   handleOnChangeMapProfile: (profile: MapProfile) => void;
@@ -151,7 +165,7 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
   });
 
   const [bbox, setBbox] = useState<LngLatBounds | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
+  const [selectedFeature, setSelectedFeature] = useState<MapFeature | null>(
     initialPoiData,
   );
   const [selectedPoiId, setSelectedPoiId] = useState(poiIdFromUrl ?? null);

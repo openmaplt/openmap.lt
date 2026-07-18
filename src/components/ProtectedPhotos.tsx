@@ -3,17 +3,21 @@
 import { useEffect, useState } from "react";
 import type { ProtectedPhotoMeta } from "@/data/protectedPhotos";
 import { cn } from "@/lib/utils";
+import type { MapFeature } from "@/providers/MapProvider";
 
 /**
- * Photo gallery for a protected area, shown only in the interactive POI panel
- * (not in the crawlable SEO content). Fetching the list already pulls the full
+ * Photo gallery for a protected area, rendered as a POI-panel extra (see
+ * `poiPanelExtra` in map-profiles). Fetching the list already pulls the full
  * photo blob server-side, so it can take a moment — a skeleton stands in until
  * the images are ready, and each image fades in as it loads.
  */
-export function ProtectedPhotos({ id }: { id: string }) {
+export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
+  const id =
+    feature.properties?.id != null ? String(feature.properties.id) : null;
   const [photos, setPhotos] = useState<ProtectedPhotoMeta[] | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     let active = true;
     setPhotos(null);
     fetch(`/api/saugomos/${encodeURIComponent(id)}/photos`)
@@ -28,6 +32,8 @@ export function ProtectedPhotos({ id }: { id: string }) {
       active = false;
     };
   }, [id]);
+
+  if (!id) return null;
 
   // Still loading the list: show placeholder tiles so the panel doesn't jump.
   if (photos === null) {
