@@ -1,5 +1,6 @@
 import "server-only";
 
+import distance from "@turf/distance";
 import type { Feature, FeatureCollection, Point } from "geojson";
 import { mercatorBboxToWgs84 } from "@/lib/geo";
 import { fetchAreaSearch, type StvkSearchArea } from "./api";
@@ -13,7 +14,11 @@ import { fetchAreaSearch, type StvkSearchArea } from "./api";
 
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
 
-function toFeature(area: StvkSearchArea, category: string): Feature | null {
+function toFeature(
+  area: StvkSearchArea,
+  category: string,
+  pos: [number, number],
+): Feature | null {
   const projected = mercatorBboxToWgs84(
     area.xmin,
     area.ymin,
@@ -24,16 +29,21 @@ function toFeature(area: StvkSearchArea, category: string): Feature | null {
     return null;
   }
 
+  // Mirrors places.search's DIST (metres from the map centre), which
+  // SearchBox reads as `props.DIST / 1000` to show a distance in km.
+  const dist = distance(pos, projected.center, { units: "meters" });
+
   return {
     type: "Feature",
     id: area.id,
     geometry: { type: "Point", coordinates: projected.center } as Point,
-    properties: { id: area.id, name: area.name, category },
+    properties: { id: area.id, name: area.name, category, DIST: dist },
   };
 }
 
 export async function searchProtectedAreas(
   text: string,
+  pos: [number, number],
 ): Promise<FeatureCollection> {
   const groups = await fetchAreaSearch(text);
   if (groups.length === 0) {
@@ -43,7 +53,7 @@ export async function searchProtectedAreas(
   const features: Feature[] = [];
   for (const group of groups) {
     for (const area of group.areas ?? []) {
-      const feature = toFeature(area, group.typeName);
+      const feature = toFeature(area, group.typeName, pos);
       if (feature) features.push(feature);
     }
   }

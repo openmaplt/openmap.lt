@@ -26,7 +26,7 @@ export async function search(
   // Protected areas ("saugomos") come straight from the STVK API — we no longer
   // mirror them in our DB. Everything else stays on places.search.
   if (mapType === "saugomos") {
-    return searchProtectedAreas(text);
+    return searchProtectedAreas(text, pos);
   }
 
   try {

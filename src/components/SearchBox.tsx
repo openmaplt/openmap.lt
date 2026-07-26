@@ -161,13 +161,14 @@ export function SearchBox({ onSelectResult }: SearchBoxProps) {
                         {props.name || "Be pavadinimo"}
                       </div>
                       <div className="text-xs text-gray-500 truncate">
-                        {[
-                          props["addr:street"],
-                          props["addr:housenumber"],
-                          props["addr:city"],
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
+                        {props.category ||
+                          [
+                            props["addr:street"],
+                            props["addr:housenumber"],
+                            props["addr:city"],
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
                       </div>
                     </div>
                     {dist && (
