@@ -37,8 +37,15 @@ export function useFeatureHighlight() {
     if (!map) return;
 
     const remove = () => {
-      if (map.getLayer(LINE_LAYER)) map.removeLayer(LINE_LAYER);
-      if (map.getLayer(FILL_LAYER)) map.removeLayer(FILL_LAYER);
+      try {
+        if (map.getLayer(LINE_LAYER)) map.removeLayer(LINE_LAYER);
+        if (map.getLayer(FILL_LAYER)) map.removeLayer(FILL_LAYER);
+      } catch {
+        // The underlying MapLibre instance may already be torn down (e.g. on
+        // unmount, react-map-gl destroys it in its own layout-effect cleanup,
+        // which can run before this effect's cleanup) — nothing left to
+        // remove from in that case.
+      }
     };
 
     const add = () => {

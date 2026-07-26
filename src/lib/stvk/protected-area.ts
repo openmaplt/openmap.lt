@@ -1,10 +1,8 @@
 import "server-only";
 
-import bboxPolygon from "@turf/bbox-polygon";
-import center from "@turf/center";
-import { toWgs84 } from "@turf/projection";
 import type { Feature, Point } from "geojson";
 import type { LngLatBoundsLike } from "maplibre-gl";
+import { mercatorBboxToWgs84 } from "@/lib/geo";
 import { fetchProtectedArea, type StvkProtectedArea } from "./api";
 
 /**
@@ -27,32 +25,13 @@ function buildExtentAndCenter(area: StvkProtectedArea): {
   extent?: LngLatBoundsLike;
   center: [number, number] | null;
 } {
-  const { x_min, y_min, x_max, y_max } = area;
-  if (
-    x_min == null ||
-    y_min == null ||
-    x_max == null ||
-    y_max == null ||
-    !Number.isFinite(x_min) ||
-    !Number.isFinite(y_min) ||
-    !Number.isFinite(x_max) ||
-    !Number.isFinite(y_max)
-  ) {
-    return { extent: undefined, center: null };
-  }
-
-  // The STVK bbox is EPSG:3857 (Web Mercator); project the corners to WGS84.
-  const [minLng, minLat] = toWgs84([x_min, y_min] as [number, number]);
-  const [maxLng, maxLat] = toWgs84([x_max, y_max] as [number, number]);
-
-  const [centerLng, centerLat] = center(
-    bboxPolygon([minLng, minLat, maxLng, maxLat]),
-  ).geometry.coordinates;
-
-  return {
-    extent: [minLng, minLat, maxLng, maxLat],
-    center: [centerLng, centerLat],
-  };
+  const projected = mercatorBboxToWgs84(
+    area.x_min,
+    area.y_min,
+    area.x_max,
+    area.y_max,
+  );
+  return projected ?? { extent: undefined, center: null };
 }
 
 // Round to 2 decimals and drop trailing zeros / float noise (3.45000005 → 3.45).

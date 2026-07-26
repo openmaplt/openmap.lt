@@ -15,7 +15,10 @@ export function usePoiEnrichment(mapType?: string | null) {
       const source = (feature as MapGeoJSONFeature).source;
       const sourceLayer = (feature as MapGeoJSONFeature).sourceLayer;
 
-      if (source === "stvk" && id) {
+      // Protected areas are enriched from the STVK API, whether they come from
+      // the tiles (a click) or from search (a point with no tile source). Tile
+      // geometry/source/sourceLayer are kept so a polygon still highlights.
+      if (mapType === "saugomos" && id) {
         try {
           const info = (await getPoiInfo(id, mapType)) as MapFeature | null;
           if (info) {

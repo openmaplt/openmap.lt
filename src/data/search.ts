@@ -3,6 +3,7 @@
 import type { FeatureCollection } from "geojson";
 import { query } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { searchProtectedAreas } from "@/lib/stvk";
 
 const EMPTY_SEARCH_RESULT: FeatureCollection = {
   type: "FeatureCollection",
@@ -20,6 +21,12 @@ export async function search(
 
   if (text.length > 200) {
     return EMPTY_SEARCH_RESULT;
+  }
+
+  // Protected areas ("saugomos") come straight from the STVK API — we no longer
+  // mirror them in our DB. Everything else stays on places.search.
+  if (mapType === "saugomos") {
+    return searchProtectedAreas(text);
   }
 
   try {

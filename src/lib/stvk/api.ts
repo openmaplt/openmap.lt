@@ -10,6 +10,7 @@ import "server-only";
 const STVK_API_URL = process.env.STVK_API_URL ?? "https://test.stvk.lt";
 const PROTECTED_AREA_PATH = "/stk-api/rest/public/protected-area";
 const AREA_PHOTOS_PATH = "/stk-api/rest/public/get-area-photos";
+const AREA_SEARCH_PATH = "/stk-api/rest/public/get-grouped-area-search-result";
 
 // Cache the object endpoint for a day — protected-area records change rarely.
 const REVALIDATE_SECONDS = 86_400;
@@ -42,6 +43,23 @@ export interface StvkPhoto {
   name: string;
   file_ext: string;
   file_base64: string;
+}
+
+/** A single area hit from the grouped search endpoint (bbox is EPSG:3857). */
+export interface StvkSearchArea {
+  id: string;
+  name: string;
+  xmin: number;
+  ymin: number;
+  xmax: number;
+  ymax: number;
+}
+
+/** Search results grouped by area type, as returned by the search endpoint. */
+export interface StvkSearchGroup {
+  type: number;
+  typeName: string;
+  areas: StvkSearchArea[];
 }
 
 /** Fetch a single protected area's raw record, or null on any failure. */
@@ -93,6 +111,45 @@ export async function fetchAreaPhotos(id: string): Promise<StvkPhoto[]> {
     return json?.data ?? [];
   } catch (error) {
     console.error("Error fetching protected area photos from STVK:", error);
+    return [];
+  }
+}
+
+/**
+ * Text search over protected areas. Returns hits grouped by area type; empty
+ * array on any failure.
+ */
+export async function fetchAreaSearch(
+  text: string,
+): Promise<StvkSearchGroup[]> {
+  try {
+    const response = await fetch(`${STVK_API_URL}${AREA_SEARCH_PATH}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        pagingParams: null,
+        params: [
+          ["text", text],
+          ["areaType", null],
+          ["geoCriteria", null],
+          ["bastPastFilter", "[]"],
+          ["draSignificance", "0"],
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error(`STVK search API returned ${response.status}`);
+      return [];
+    }
+
+    const json = (await response.json()) as StvkSearchGroup[] | null;
+    return Array.isArray(json) ? json : [];
+  } catch (error) {
+    console.error("Error searching protected areas from STVK:", error);
     return [];
   }
 }
