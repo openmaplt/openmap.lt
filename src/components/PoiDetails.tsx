@@ -1,8 +1,11 @@
 "use client";
 
+import center from "@turf/center";
+import { point } from "@turf/helpers";
 import { useState } from "react";
 import { PoiContent } from "@/components/PoiContent";
 import { ProtectedPhotos } from "@/components/ProtectedPhotos";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -16,11 +19,15 @@ import {
   useMapConfig,
   useMapSelection,
 } from "@/providers/MapProvider";
+import { useRoute } from "@/providers/RouteProvider";
 
 export function PoiDetails() {
   const { selectedFeature: feature } = useMapSelection();
-  const { handleOnPoiDetailsClose: onOpenChange } = useMapActions();
+  const { handleOnPoiDetailsClose: onOpenChange, setMobileActiveMode } =
+    useMapActions();
   const { activeMapProfile } = useMapConfig();
+  const { routingEnabled, routingMode, setRouteEnd, setRoutingMode } =
+    useRoute();
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -29,6 +36,25 @@ export function PoiDetails() {
       setIsExpanded(false);
       onOpenChange();
     }
+  };
+
+  const handleRouteHere = () => {
+    if (!feature?.geometry) return;
+    let coords: number[];
+    try {
+      coords = center(feature).geometry.coordinates;
+    } catch {
+      return;
+    }
+
+    setRouteEnd(
+      point([coords[0], coords[1]], { name: feature.properties?.name ?? "" }),
+    );
+    if (!routingMode) {
+      setRoutingMode(true);
+      setMobileActiveMode("routing");
+    }
+    onOpenChange();
   };
 
   // Profilio deklaruotas papildomas panelės turinys (pvz. saugomų nuotraukos).
@@ -62,10 +88,20 @@ export function PoiDetails() {
             <div className="w-10 h-1 rounded-full bg-gray-300" />
           </button>
         )}
-        <SheetHeader className="px-4 pt-2 pb-3 shrink-0">
+        <SheetHeader className="px-4 pt-2 pb-3 shrink-0 gap-3">
           <SheetTitle className="text-lg text-foreground mr-5">
             {feature.properties?.name || "Be pavadinimo"}
           </SheetTitle>
+          {routingEnabled && (
+            <Button
+              type="button"
+              size="sm"
+              className="w-fit"
+              onClick={handleRouteHere}
+            >
+              🏁 Maršrutas į čia
+            </Button>
+          )}
         </SheetHeader>
         <div className="flex-1 overflow-y-auto">
           <PoiContent data={extractPoiData(feature.properties || {})} />

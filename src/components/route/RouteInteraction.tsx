@@ -9,8 +9,13 @@ import { useRoute } from "@/providers/RouteProvider";
 
 export function RouteInteraction() {
   const { current: map } = useMap();
-  const { routingMode, setRouteStart, setRouteEnd, setRoutingMode } =
-    useRoute();
+  const {
+    routingEnabled,
+    routingMode,
+    setRouteStart,
+    setRouteEnd,
+    setRoutingMode,
+  } = useRoute();
   const { setMobileActiveMode } = useMapActions();
 
   const [menuData, setMenuData] = useState<{
@@ -22,7 +27,7 @@ export function RouteInteraction() {
   } | null>(null);
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !routingEnabled) return;
 
     let touchTimeout: ReturnType<typeof setTimeout>;
     let touchStartDetail: { x: number; y: number } | null = null;
@@ -92,7 +97,7 @@ export function RouteInteraction() {
       map.off("drag", closeMenu);
       map.off("zoom", closeMenu);
     };
-  }, [map]);
+  }, [map, routingEnabled]);
 
   const handleSetPoint = (type: "start" | "end") => {
     if (!menuData) return;

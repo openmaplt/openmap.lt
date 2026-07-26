@@ -26,6 +26,7 @@ import {
 const ARRIVED_AUTO_STOP_MS = 4000;
 
 interface RouteContextType {
+  routingEnabled: boolean;
   routingMode: boolean;
   navigationMode: boolean;
   routeStart: Feature | null;
@@ -97,6 +98,8 @@ export function RouteProvider({ children }: { children: ReactNode }) {
   const { viewState } = useMapTransform();
   const { activeMapProfile } = useMapConfig();
   const { selectedFeature } = useMapSelection();
+
+  const routingEnabled = (activeMapProfile.routingProfiles?.length ?? 0) > 0;
 
   const [routingMode, setRoutingMode] = useState(() => initialRoute !== null);
   const [navigationMode, setNavigationMode] = useState(false);
@@ -242,6 +245,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
+      routingEnabled,
       routingMode,
       navigationMode,
       routeStart,
@@ -256,6 +260,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
       setHighlightedRoutePoint,
     }),
     [
+      routingEnabled,
       routingMode,
       navigationMode,
       routeStart,

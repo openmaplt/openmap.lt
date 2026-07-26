@@ -2,11 +2,18 @@
 
 import bbox from "@turf/bbox";
 import center from "@turf/center";
-import type { LngLatBoundsLike } from "maplibre-gl";
+import type { LngLatBoundsLike, PaddingOptions } from "maplibre-gl";
 import { useEffect, useMemo } from "react";
 import { MapConfig } from "@/config/config";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useMapActions, useMapSelection } from "@/providers/MapProvider";
+
+// Matches PoiDetails' collapsed sheet height (40dvh). fitBounds/flyTo/panTo
+// size the frame against the full container, so simply offsetting the
+// center upward (as before) still let the far edge of a large polygon end
+// up under the sheet — padding the bottom edge shrinks the usable frame
+// itself, keeping the whole feature above the sheet.
+const MOBILE_SHEET_HEIGHT_RATIO = 0.4;
 
 /**
  * Moves the camera to the selected feature, keeping it clear of the details
@@ -56,14 +63,21 @@ export function useSelectionCamera() {
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || lng === undefined || lat === undefined) return;
-    const offset: [number, number] = isMobile
-      ? [0, -Math.round(window.innerHeight * 0.2)]
-      : [192, 0];
+    const offset: [number, number] = isMobile ? [0, 0] : [192, 0];
+    const padding: PaddingOptions = isMobile
+      ? {
+          top: 50,
+          bottom:
+            Math.round(window.innerHeight * MOBILE_SHEET_HEIGHT_RATIO) + 50,
+          left: 50,
+          right: 50,
+        }
+      : { top: 50, bottom: 50, left: 50, right: 50 };
 
     if (extent && (isArea || flyToZoom !== undefined)) {
       map.fitBounds(extent, {
         offset,
-        padding: 50,
+        padding,
         maxZoom: MapConfig.MAX_ZOOM,
         duration: 1200,
       });
@@ -71,11 +85,12 @@ export function useSelectionCamera() {
       map.flyTo({
         center: [lng, lat],
         offset,
+        padding,
         zoom: flyToZoom,
         duration: 1200,
       });
     } else {
-      map.panTo([lng, lat], { offset, duration: 500 });
+      map.panTo([lng, lat], { offset, padding, duration: 500 });
     }
   }, [lng, lat, isMobile, mapRef, flyToZoom, extent, isArea]);
 }

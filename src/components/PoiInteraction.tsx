@@ -126,10 +126,17 @@ export function PoiInteraction() {
     }
 
     map.on("sourcedata", handleSourceData);
+    // A search selection (or deep link) fires this effect before the camera
+    // has actually moved to the target — the polygon's tile isn't rendered
+    // yet, so the attempts above find nothing. Retry once the fly/fitBounds
+    // animation settles on the target, since by then its tile has almost
+    // certainly loaded (the fetch started as the camera approached it).
+    map.on("moveend", displayPoi);
 
     return () => {
       if (!map) return;
       map.off("sourcedata", handleSourceData);
+      map.off("moveend", displayPoi);
     };
   }, [mapRef, onSelectFeature, poiId, enrichFeature, layers]);
 
