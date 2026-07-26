@@ -84,6 +84,7 @@ jobs:
             echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
             echo "GITHUB_REPOSITORY=${{ github.repository }}" >> .env
             echo "BASE_URL=https://openmap.lt" >> .env
+            echo "STVK_API_URL=https://stvk.lt" >> .env
             echo "IMAGE_TAG=$REQUESTED_TAG" >> .env
             echo "OSM_CLIENT_ID=${{ secrets.OSM_CLIENT_ID }}" >> .env
             echo "OSM_CLIENT_SECRET=${{ secrets.OSM_CLIENT_SECRET }}" >> .env
