@@ -1,5 +1,6 @@
 import { HelpCircle, MapPin } from "lucide-react";
 import type { ClassObject } from "@/data/omProfileClassObjects";
+import { ltCollator } from "@/lib/utils";
 
 interface ObjectsListProps {
   objects: ClassObject[];
@@ -22,7 +23,11 @@ export function ObjectsList({ objects }: ObjectsListProps) {
     return acc;
   }, {});
 
-  const letters = Object.keys(grouped).sort();
+  for (const list of Object.values(grouped)) {
+    list.sort((a, b) => ltCollator.compare(a.name, b.name));
+  }
+
+  const letters = Object.keys(grouped).sort((a, b) => ltCollator.compare(a, b));
 
   return (
     <div className="space-y-6">
