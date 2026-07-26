@@ -22,6 +22,9 @@ export function toSafeHttpUrl(value: string): string | null {
   }
 }
 
+// Collator for sorting strings by the Lithuanian alphabet (A Ą B C Č ... Z Ž)
+export const ltCollator = new Intl.Collator("lt");
+
 // Matches om_slugify() PostgreSQL function logic
 export function slugify(str: string): string {
   if (!str) return "";
