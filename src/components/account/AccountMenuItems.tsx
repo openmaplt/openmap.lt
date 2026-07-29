@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, MessageSquare, Settings } from "lucide-react";
+import Link from "next/link";
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -25,6 +26,12 @@ export function AccountMenuItems({
     <>
       <DropdownMenuLabel>{user.username ?? user.name}</DropdownMenuLabel>
       <DropdownMenuSeparator />
+      <DropdownMenuItem asChild onSelect={onRequestCloseMenu}>
+        <Link href="/komentarai">
+          <MessageSquare className="size-4" />
+          Mano komentarai
+        </Link>
+      </DropdownMenuItem>
       <DropdownMenuItem
         onSelect={() => {
           onRequestCloseMenu();

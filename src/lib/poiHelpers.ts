@@ -33,6 +33,21 @@ export function buildPoiDescription(
   return template.replace("{name}", name);
 }
 
+/**
+ * Link to a POI from a comment (moderation queue, "Mano komentarai") given
+ * the map_profile_id + object_ref it was posted under. Returns null if the
+ * profile id no longer resolves (e.g. a renamed/removed map profile) — the
+ * caller should fall back to rendering plain text in that case.
+ */
+export function buildCommentPoiHref(
+  mapProfileId: string,
+  objectRef: string,
+): string | null {
+  const profile = MAP_PROFILES.find((p) => p.id === mapProfileId);
+  if (!profile) return null;
+  return `/${profile.mapType}/${objectRef}`;
+}
+
 export function parsePoiSlug(slug: string[] | undefined) {
   const mapType = slug?.[0] ?? undefined;
   const poiSlug = slug?.[1] ?? undefined;

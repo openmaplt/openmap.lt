@@ -3,6 +3,7 @@
 import center from "@turf/center";
 import { point } from "@turf/helpers";
 import { useState } from "react";
+import { CommentsSection } from "@/components/comments/CommentsSection";
 import { PoiContent } from "@/components/PoiContent";
 import { ProtectedPhotos } from "@/components/ProtectedPhotos";
 import { Button } from "@/components/ui/button";
@@ -106,6 +107,7 @@ export function PoiDetails() {
         <div className="flex-1 overflow-y-auto">
           <PoiContent data={extractPoiData(feature.properties || {})} />
           {PoiPanelExtra && <PoiPanelExtra feature={feature} />}
+          <CommentsSection />
         </div>
       </SheetContent>
     </Sheet>
