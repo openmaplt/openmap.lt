@@ -26,6 +26,7 @@
 
 # IDE
 .idea
+.claude
 
 # debug
 npm-debug.log*
