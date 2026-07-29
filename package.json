@@ -38,6 +38,7 @@
     "react-markdown": "^10.1.0",
     "server-only": "^0.0.1",
     "sonner": "^2.0.7",
+    "swr": "^2.4.2",
     "tailwind-merge": "^3.6.0",
     "xmlbuilder2": "^4.0.3"
   },
@@ -60,7 +61,8 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "postcss": "^8.5.10",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "js-yaml": "^5.2.2"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "^1.30.1"
