@@ -193,7 +193,7 @@ export function PoiContent({ data }: PoiContentProps) {
       })}
 
       {data.osmLink && (
-        <div className="flex gap-4 pt-2 border-t border-border text-sm">
+        <div className="flex gap-4 py-2 border-t border-border border-b text-sm">
           <a
             href={data.osmLink.view}
             target="_blank"

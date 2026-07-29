@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { HelpButton } from "@/components/HelpButton";
+import { MapMenu } from "@/components/MapMenu";
 import { BASE_URL } from "@/config/config";
 import { getPoiInfo } from "@/data/poiInfo";
 import { buildPoiDescription, parsePoiSlug } from "@/lib/poiHelpers";
@@ -96,7 +96,7 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
         />
       )}
       <MapPage initialPoiData={hasPoiData ? poiData : null} />
-      <HelpButton />
+      <MapMenu />
     </>
   );
 }

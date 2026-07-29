@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import HelpLayout from "@/components/HelpLayout";
 import { BASE_URL } from "@/config/config";
 import { ClassesView } from "./_components/ClassesView";
 import { ObjectsView } from "./_components/ObjectsView";
@@ -45,5 +44,5 @@ export default async function Page({ params }: PageProps) {
     );
   }
 
-  return <HelpLayout>{view}</HelpLayout>;
+  return view;
 }

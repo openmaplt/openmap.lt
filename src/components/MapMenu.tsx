@@ -25,7 +25,7 @@ import {
 import { MENU_ITEMS } from "@/config/nav";
 import { useAuth } from "@/providers/AuthProvider";
 
-export function HelpButton() {
+export function MapMenu() {
   const { user } = useAuth();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
