@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import useSWR, { mutate } from "swr";
 import {
   approveCommentAction,
   type ModerationActionResult,
@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { buildCommentPoiHref } from "@/lib/poiHelpers";
+import { OWN_COMMENTS_KEY, PENDING_COMMENTS_KEY } from "@/lib/swrKeys";
 
 export type PendingCommentView = {
   id: number;
@@ -27,20 +28,32 @@ interface ModerationQueueProps {
 }
 
 export function ModerationQueue({ initialItems }: ModerationQueueProps) {
-  const router = useRouter();
-  const [items, setItems] = useState(initialItems);
+  const { data: items = [] } = useSWR<PendingCommentView[]>(
+    PENDING_COMMENTS_KEY,
+    null,
+    { fallbackData: initialItems },
+  );
   const [pendingId, setPendingId] = useState<number | null>(null);
 
-  // Keeps this list in sync with the "Mano komentarai" list on the same
-  // page: that list's own delete action can only refresh server data (via
-  // router.refresh() below), which flows back here as a new initialItems
-  // prop — plain useState wouldn't otherwise pick up that change.
+  // fallbackData only covers what useSWR *returns* when the cache is empty —
+  // it never writes into the cache itself. Without this, the first mutate()
+  // call below would read `current` as undefined and wipe the list. Seeding
+  // on mount makes each fresh page load (a real server refetch) the source
+  // of truth, while mutate() during this mount keeps both lists in sync.
   useEffect(() => {
-    setItems(initialItems);
+    mutate(PENDING_COMMENTS_KEY, initialItems, { revalidate: false });
   }, [initialItems]);
+
+  const removeFromQueue = (id: number) =>
+    mutate<PendingCommentView[]>(
+      PENDING_COMMENTS_KEY,
+      (current) => current?.filter((item) => item.id !== id),
+      { revalidate: false },
+    );
 
   const handleModerate = async (
     id: number,
+    status: "approved" | "rejected",
     action: (id: number) => Promise<ModerationActionResult>,
   ) => {
     setPendingId(id);
@@ -54,13 +67,19 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
           : "Nepavyko atlikti veiksmo.",
       );
       if (result.error === "already_moderated") {
-        setItems((current) => current.filter((item) => item.id !== id));
+        removeFromQueue(id);
       }
       return;
     }
 
-    setItems((current) => current.filter((item) => item.id !== id));
-    router.refresh();
+    removeFromQueue(id);
+    // Reflect the new status on "Mano komentarai" if the author has it open.
+    mutate<Array<{ id: number; status: string }>>(
+      OWN_COMMENTS_KEY,
+      (current) =>
+        current?.map((item) => (item.id === id ? { ...item, status } : item)),
+      { revalidate: false },
+    );
   };
 
   if (items.length === 0) {
@@ -104,7 +123,9 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
                 type="button"
                 size="sm"
                 disabled={pendingId === item.id}
-                onClick={() => handleModerate(item.id, approveCommentAction)}
+                onClick={() =>
+                  handleModerate(item.id, "approved", approveCommentAction)
+                }
               >
                 Patvirtinti
               </Button>
@@ -113,7 +134,9 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
                 size="sm"
                 variant="outline"
                 disabled={pendingId === item.id}
-                onClick={() => handleModerate(item.id, rejectCommentAction)}
+                onClick={() =>
+                  handleModerate(item.id, "rejected", rejectCommentAction)
+                }
               >
                 Atmesti
               </Button>

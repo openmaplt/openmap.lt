@@ -2,12 +2,13 @@
 
 import { Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import useSWR, { mutate } from "swr";
 import { deleteOwnCommentAction } from "@/actions/comments";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { buildCommentPoiHref } from "@/lib/poiHelpers";
+import { OWN_COMMENTS_KEY, PENDING_COMMENTS_KEY } from "@/lib/swrKeys";
 
 export type MyCommentView = {
   id: number;
@@ -36,18 +37,20 @@ interface MyCommentsProps {
 }
 
 export function MyComments({ initialItems }: MyCommentsProps) {
-  const router = useRouter();
-  const [items, setItems] = useState(initialItems);
+  const { data: items = [] } = useSWR<MyCommentView[]>(OWN_COMMENTS_KEY, null, {
+    fallbackData: initialItems,
+  });
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const confirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Keeps this list in sync with "Komentarų tvirtinimas" on the same page:
-  // that list's own approve/reject action can only refresh server data (via
-  // router.refresh() below), which flows back here as a new initialItems
-  // prop — plain useState wouldn't otherwise pick up that change.
+  // fallbackData only covers what useSWR *returns* when the cache is empty —
+  // it never writes into the cache itself. Without this, the first mutate()
+  // call below would read `current` as undefined and wipe the list. Seeding
+  // on mount makes each fresh page load (a real server refetch) the source
+  // of truth, while mutate() during this mount keeps both lists in sync.
   useEffect(() => {
-    setItems(initialItems);
+    mutate(OWN_COMMENTS_KEY, initialItems, { revalidate: false });
   }, [initialItems]);
 
   useEffect(() => {
@@ -75,8 +78,18 @@ export function MyComments({ initialItems }: MyCommentsProps) {
       return;
     }
 
-    setItems((current) => current.filter((item) => item.id !== id));
-    router.refresh();
+    mutate<MyCommentView[]>(
+      OWN_COMMENTS_KEY,
+      (current) => current?.filter((item) => item.id !== id),
+      { revalidate: false },
+    );
+    // The deleted comment might still be sitting in the moderation queue
+    // (e.g. a moderator deleting their own pending comment).
+    mutate<Array<{ id: number }>>(
+      PENDING_COMMENTS_KEY,
+      (current) => current?.filter((item) => item.id !== id),
+      { revalidate: false },
+    );
   };
 
   if (items.length === 0) {
