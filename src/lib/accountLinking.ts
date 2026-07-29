@@ -6,7 +6,7 @@ import {
   insertUserAuth,
   type ProviderProfile,
 } from "@/lib/auth";
-import { query } from "@/lib/db";
+import { query, queryOneOrThrow } from "@/lib/db";
 import type { Provider } from "@/lib/oauth/providers";
 import { PG_UNIQUE_VIOLATION } from "@/lib/pgErrorCodes";
 
@@ -62,11 +62,11 @@ export async function unlinkProvider(
   userId: number,
   provider: Provider,
 ): Promise<UnlinkResult> {
-  const countResult = await query(
+  const { count } = await queryOneOrThrow<{ count: number }>(
     `select count(*)::int as count from openmap.user_auths where user_id = $1`,
     [userId],
   );
-  if (countResult.rows[0].count <= 1) {
+  if (count <= 1) {
     return { ok: false, error: "last_remaining_method" };
   }
 

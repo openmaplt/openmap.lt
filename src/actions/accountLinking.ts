@@ -19,7 +19,7 @@ export type UnlinkActionResult =
 export async function unlinkAction(
   provider: Provider,
 ): Promise<UnlinkActionResult> {
-  if (await checkRateLimit("authUnlink")) {
+  if (await checkRateLimit("authUnlink", "mutation")) {
     return { ok: false, error: "rate_limited" };
   }
 

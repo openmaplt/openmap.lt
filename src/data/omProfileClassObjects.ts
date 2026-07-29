@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from "@/lib/db";
+import { queryResult } from "@/lib/db";
 
 export interface ClassObject {
   url: string;
@@ -13,11 +13,10 @@ export async function getProfileClassObjects(
   className: string,
 ): Promise<ClassObject[]> {
   try {
-    const res = await query(
+    const result = await queryResult(
       "SELECT public.om_profile_class_objects($1, $2) as result",
       [profile, className],
     );
-    const result = res.rows[0]?.result;
     return Array.isArray(result) ? (result as ClassObject[]) : [];
   } catch (err) {
     console.error(

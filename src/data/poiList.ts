@@ -1,7 +1,7 @@
 "use server";
 
 import type { FeatureCollection } from "geojson";
-import { query } from "@/lib/db";
+import { queryResult } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rateLimit";
 
 const EMPTY_FEATURE_COLLECTION: FeatureCollection = {
@@ -13,7 +13,7 @@ export async function getPoiList(
   bbox: number[],
   types: string,
 ): Promise<FeatureCollection> {
-  if (await checkRateLimit("getPoiList")) {
+  if (await checkRateLimit("getPoiList", "frequent")) {
     return EMPTY_FEATURE_COLLECTION;
   }
 
@@ -25,16 +25,14 @@ export async function getPoiList(
   }
 
   try {
-    const result = await query("SELECT places.list($1::jsonb) as result", [
-      JSON.stringify({
-        bbox,
-        types,
-      }),
-    ]);
+    const result = await queryResult(
+      "SELECT places.list($1::jsonb) as result",
+      [JSON.stringify({ bbox, types })],
+    );
 
-    if (result.rows.length > 0 && result.rows[0].result) {
-      const data = result.rows[0].result;
-      if (data && typeof data === "object" && "error" in data) {
+    if (result) {
+      const data = result as FeatureCollection | { error: string };
+      if ("error" in data) {
         console.error("POI list error from DB:", data.error);
         return EMPTY_FEATURE_COLLECTION;
       }

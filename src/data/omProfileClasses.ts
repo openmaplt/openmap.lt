@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from "@/lib/db";
+import { queryResult } from "@/lib/db";
 
 export interface ProfileClass {
   name: string;
@@ -13,10 +13,11 @@ export async function getProfileClasses(
   profile: string,
 ): Promise<ProfileClass[]> {
   try {
-    const res = await query("SELECT public.om_profile_classes($1) as result", [
-      profile,
-    ]);
-    return (res.rows[0]?.result as ProfileClass[]) || [];
+    const result = await queryResult<ProfileClass[]>(
+      "SELECT public.om_profile_classes($1) as result",
+      [profile],
+    );
+    return result || [];
   } catch (err) {
     console.error("Error fetching classes for profile:", profile, err);
     return [];

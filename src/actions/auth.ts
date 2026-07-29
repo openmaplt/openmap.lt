@@ -20,7 +20,7 @@ export type MeResult = {
 };
 
 export async function getMe(): Promise<MeResult> {
-  if (await checkRateLimit("authMe")) {
+  if (await checkRateLimit("authMe", "standard")) {
     return { user: null, linkedProviders: [] };
   }
 
@@ -34,7 +34,7 @@ export async function getMe(): Promise<MeResult> {
 }
 
 export async function logoutAction(): Promise<void> {
-  if (await checkRateLimit("authLogout")) {
+  if (await checkRateLimit("authLogout", "mutation")) {
     return;
   }
 
@@ -51,7 +51,7 @@ export async function startLoginAction(
   intent: OAuthIntent,
   returnTo: string,
 ): Promise<StartLoginResult> {
-  if (await checkRateLimit("authLogin")) {
+  if (await checkRateLimit("authLogin", "mutation")) {
     return { ok: false, error: "rate_limited" };
   }
 

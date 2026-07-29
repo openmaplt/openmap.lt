@@ -17,7 +17,7 @@ export async function GET(
     return Response.json([]);
   }
 
-  if (await checkRateLimit("protectedPhotos")) {
+  if (await checkRateLimit("protectedPhotos", "standard")) {
     return new Response(null, { status: 429 });
   }
 

@@ -1,7 +1,7 @@
 "use server";
 
 import type { FeatureCollection } from "geojson";
-import { query } from "@/lib/db";
+import { queryResult } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { searchProtectedAreas } from "@/lib/stvk";
 
@@ -15,7 +15,7 @@ export async function search(
   pos: [number, number],
   mapType?: string | null,
 ): Promise<FeatureCollection> {
-  if (await checkRateLimit("search")) {
+  if (await checkRateLimit("search", "frequent")) {
     return EMPTY_SEARCH_RESULT;
   }
 
@@ -30,17 +30,14 @@ export async function search(
   }
 
   try {
-    const result = await query("SELECT places.search($1::jsonb) as result", [
-      JSON.stringify({
-        text,
-        pos,
-        mapType,
-      }),
-    ]);
+    const result = await queryResult(
+      "SELECT places.search($1::jsonb) as result",
+      [JSON.stringify({ text, pos, mapType })],
+    );
 
-    if (result.rows.length > 0 && result.rows[0].result) {
-      const data = result.rows[0].result;
-      if (data && typeof data === "object" && "error" in data) {
+    if (result) {
+      const data = result as FeatureCollection | { error: string };
+      if ("error" in data) {
         console.error("Search error from DB:", data.error);
         return EMPTY_SEARCH_RESULT;
       }

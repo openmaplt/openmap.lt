@@ -24,14 +24,17 @@ export const MapConfig: Config = {
   BOUNDS: [20.7, 53.7, 27.05, 56.65],
 };
 
-export const RATE_LIMITS = {
-  // getPoiList highest: panning/zooming the map fires it continuously
-  getPoiList: { limit: 300, windowMs: 10_000 },
-  search: { limit: 150, windowMs: 10_000 },
-  protectedPhotos: { limit: 120, windowMs: 10_000 },
-  authLogin: { limit: 20, windowMs: 10_000 },
-  authCallback: { limit: 20, windowMs: 10_000 },
-  authMe: { limit: 60, windowMs: 10_000 },
-  authLogout: { limit: 20, windowMs: 10_000 },
-  authUnlink: { limit: 20, windowMs: 10_000 },
+// A handful of reusable tiers instead of one hand-tuned limit per action —
+// new features pick the tier that matches their traffic shape/risk instead of
+// growing this list forever (see checkRateLimit in src/lib/rateLimit.ts).
+export const RATE_LIMIT_TIERS = {
+  // Continuous, client-driven reads (map pan/zoom, search-as-you-type).
+  frequent: { limit: 300, windowMs: 10_000 },
+  // Normal data reads (lists, detail lookups, session checks).
+  standard: { limit: 120, windowMs: 10_000 },
+  // State-changing actions (create/update/delete, login/logout/unlink).
+  mutation: { limit: 30, windowMs: 10_000 },
+  // Abuse-prone actions worth a stricter, longer window (posting content,
+  // starting an auth flow).
+  strict: { limit: 10, windowMs: 60_000 },
 } as const;

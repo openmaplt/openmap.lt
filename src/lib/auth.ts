@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
-import { query } from "@/lib/db";
+import { query, queryOne, queryOneOrThrow } from "@/lib/db";
 import type { Provider } from "@/lib/oauth/providers";
 import { PG_UNIQUE_VIOLATION } from "@/lib/pgErrorCodes";
 import { hash } from "@/lib/serverUtils";
@@ -44,16 +44,19 @@ export async function getCurrentUser(): Promise<PublicUser | null> {
   const token = store.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return null;
 
-  const result = await query(
+  const row = await queryOne<{
+    id: number;
+    username: string | null;
+    name: string | null;
+    avatar_url: string | null;
+  }>(
     `select u.id, u.username, u.name, u.avatar_url
      from openmap.sessions s
      join openmap.users u on u.id = s.user_id
      where s.token_hash = $1 and s.expires_at > now()`,
     [hash(token)],
   );
-  if (result.rows.length === 0) return null;
-
-  return toPublicUser(result.rows[0]);
+  return row ? toPublicUser(row) : null;
 }
 
 export async function createSession(userId: number): Promise<void> {
@@ -95,11 +98,11 @@ export async function destroySession(): Promise<void> {
 }
 
 async function createUser(profile: ProviderProfile): Promise<number> {
-  const result = await query(
+  const row = await queryOneOrThrow<{ id: number }>(
     `insert into openmap.users (username, name, email, avatar_url) values ($1, $2, $3, $4) returning id`,
     [profile.username, profile.name, profile.email, profile.avatarUrl],
   );
-  return result.rows[0].id as number;
+  return row.id;
 }
 
 // Shared with src/lib/accountLinking.ts — both login and account-linking need
@@ -121,11 +124,11 @@ export async function findUserAuth(
   provider: Provider,
   providerUserId: string,
 ): Promise<number | null> {
-  const result = await query(
+  const row = await queryOne<{ user_id: number }>(
     `select user_id from openmap.user_auths where provider = $1 and provider_user_id = $2`,
     [provider, providerUserId],
   );
-  return result.rows.length > 0 ? (result.rows[0].user_id as number) : null;
+  return row ? row.user_id : null;
 }
 
 /**

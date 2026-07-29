@@ -5,7 +5,7 @@ import { handleOAuthCallback } from "@/lib/oauth/routeHelpers";
 import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function GET(request: NextRequest) {
-  if (await checkRateLimit("authCallback")) {
+  if (await checkRateLimit("authCallback", "mutation")) {
     return new NextResponse("Too many requests", { status: 429 });
   }
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { cache } from "react";
-import { query } from "@/lib/db";
+import { queryResult } from "@/lib/db";
 import { getProtectedArea } from "@/lib/stvk";
 
 export const getPoiInfo = cache(async function getPoiInfo(
@@ -15,17 +15,14 @@ export const getPoiInfo = cache(async function getPoiInfo(
   }
 
   try {
-    const result = await query("SELECT places.poi_info($1::jsonb) as result", [
-      JSON.stringify({
-        id,
-        mapType,
-      }),
-    ]);
+    const data = await queryResult(
+      "SELECT places.poi_info($1::jsonb) as result",
+      [JSON.stringify({ id, mapType })],
+    );
 
-    if (result.rows.length > 0 && result.rows[0].result) {
-      const data = result.rows[0].result;
+    if (data) {
       // Check if the returned object contains an error field (as per PL/SQL function behavior)
-      if (data && typeof data === "object" && "error" in data) {
+      if (typeof data === "object" && "error" in data) {
         console.error("POI Info error from DB:", data.error);
         return null;
       }

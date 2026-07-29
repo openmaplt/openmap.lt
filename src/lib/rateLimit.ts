@@ -1,7 +1,9 @@
 import "server-only";
 
 import { headers } from "next/headers";
-import { RATE_LIMITS } from "@/config/config";
+import { RATE_LIMIT_TIERS } from "@/config/config";
+
+export type RateLimitTier = keyof typeof RATE_LIMIT_TIERS;
 
 interface Bucket {
   count: number;
@@ -49,8 +51,25 @@ export function isRateLimited(key: string, limit: number, windowMs: number) {
 // crawlers must be able to fetch freely, so those data functions are not
 // rate-limited at all — a User-Agent allowlist would be trivially spoofable
 // anyway.
-export async function checkRateLimit(action: keyof typeof RATE_LIMITS) {
-  const { limit, windowMs } = RATE_LIMITS[action];
+//
+// `action` is just a free-form bucket label (keeps e.g. commentCreate and
+// commentDelete counted separately) — the actual limit/window comes from
+// `tier`, one of a handful of reusable tiers in RATE_LIMIT_TIERS, so adding a
+// new rate-limited action never requires a new config entry.
+export async function checkRateLimit(action: string, tier: RateLimitTier) {
+  const { limit, windowMs } = RATE_LIMIT_TIERS[tier];
   const ip = await getClientIp();
   return isRateLimited(`${action}:${ip}`, limit, windowMs);
+}
+
+// IP-based limiting alone is spoofable via a forged X-Forwarded-For header.
+// For actions gated behind a session, also key a bucket on the user id so
+// rotating the header can't bypass the limit for an authenticated abuser.
+export function checkUserRateLimit(
+  action: string,
+  userId: number,
+  tier: RateLimitTier,
+) {
+  const { limit, windowMs } = RATE_LIMIT_TIERS[tier];
+  return isRateLimited(`${action}:user:${userId}`, limit, windowMs);
 }

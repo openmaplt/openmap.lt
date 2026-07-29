@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from "@/lib/db";
+import { queryResult } from "@/lib/db";
 
 export interface Profile {
   name: string;
@@ -10,8 +10,10 @@ export interface Profile {
 
 export async function getProfiles(): Promise<Profile[]> {
   try {
-    const res = await query("SELECT public.om_profiles() as result");
-    return (res.rows[0]?.result as Profile[]) || [];
+    const result = await queryResult<Profile[]>(
+      "SELECT public.om_profiles() as result",
+    );
+    return result || [];
   } catch (err) {
     console.error("Error fetching sight profiles:", err);
     return [];
