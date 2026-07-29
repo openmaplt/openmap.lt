@@ -1,44 +1,26 @@
-import type { Feature } from "geojson";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { search } from "@/data/search";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 export function useSearch(
   query: string,
   mapCenter: { lat: number; lng: number },
   mapType?: string | null,
 ) {
-  const [results, setResults] = useState<Feature[]>([]);
-  const [loading, setLoading] = useState(false);
+  const debouncedQuery = useDebouncedValue(query, 500);
+  const debouncedLat = useDebouncedValue(mapCenter.lat, 500);
+  const debouncedLng = useDebouncedValue(mapCenter.lng, 500);
+  const debouncedMapType = useDebouncedValue(mapType, 500);
 
-  useEffect(() => {
-    if (query.length < 3) {
-      setResults([]);
-      return;
-    }
+  const { data, isLoading } = useSWR(
+    debouncedQuery.length >= 3
+      ? ["search", debouncedQuery, debouncedLat, debouncedLng, debouncedMapType]
+      : null,
+    ([, q, lat, lng, type]) => search(q, [lng, lat], type),
+    // Keep showing the previous results while a new debounced query is
+    // in flight, instead of flashing empty between keystrokes.
+    { keepPreviousData: true },
+  );
 
-    setLoading(true);
-
-    const fetchResults = async () => {
-      try {
-        const data = await search(
-          query,
-          [mapCenter.lng, mapCenter.lat],
-          mapType,
-        );
-        setResults(data.features || []);
-      } catch (error) {
-        console.error("Search error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const timer = setTimeout(fetchResults, 500);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [query, mapCenter.lat, mapCenter.lng, mapType]);
-
-  return { results, loading };
+  return { results: data?.features ?? [], loading: isLoading };
 }

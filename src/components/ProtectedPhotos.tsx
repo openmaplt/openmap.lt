@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import type { ProtectedPhotoMeta } from "@/data/protectedPhotos";
+import { fetchJson } from "@/lib/fetcher";
 import { cn } from "@/lib/utils";
 import type { MapFeature } from "@/providers/MapProvider";
 
@@ -14,29 +16,16 @@ import type { MapFeature } from "@/providers/MapProvider";
 export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
   const id =
     feature.properties?.id != null ? String(feature.properties.id) : null;
-  const [photos, setPhotos] = useState<ProtectedPhotoMeta[] | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    let active = true;
-    setPhotos(null);
-    fetch(`/api/saugomos/${encodeURIComponent(id)}/photos`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((list: ProtectedPhotoMeta[]) => {
-        if (active) setPhotos(list);
-      })
-      .catch(() => {
-        if (active) setPhotos([]);
-      });
-    return () => {
-      active = false;
-    };
-  }, [id]);
+  const { data, isLoading } = useSWR<ProtectedPhotoMeta[]>(
+    id ? `/api/saugomos/${encodeURIComponent(id)}/photos` : null,
+    fetchJson,
+  );
+  const photos = data ?? [];
 
   if (!id) return null;
 
   // Still loading the list: show placeholder tiles so the panel doesn't jump.
-  if (photos === null) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-2 px-4 pt-1 pb-4">
         <div className="h-28 rounded-md bg-muted animate-pulse" />

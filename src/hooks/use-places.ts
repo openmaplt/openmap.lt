@@ -1,52 +1,32 @@
 import type { FeatureCollection } from "geojson";
 import type { LngLatBounds } from "maplibre-gl";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { getPoiList } from "@/data/poiList";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+
+const EMPTY_FEATURE_COLLECTION: FeatureCollection = {
+  type: "FeatureCollection",
+  features: [],
+};
 
 export function usePlaces(bbox: LngLatBounds | null, types: string) {
-  const [places, setPlaces] = useState<FeatureCollection>({
-    type: "FeatureCollection",
-    features: [],
-  });
-  const [loading, setLoading] = useState(false);
+  // toArray() returns a fresh array every call, so derive a primitive string
+  // key before debouncing/using it as an SWR key.
+  const bboxKey = bbox ? bbox.toArray().flat().join(",") : null;
+  const debouncedBboxKey = useDebouncedValue(bboxKey, 300);
+  const debouncedTypes = useDebouncedValue(types, 300);
 
-  useEffect(() => {
-    if (!bbox || !types) {
-      setPlaces({ type: "FeatureCollection", features: [] });
-      return;
-    }
+  const { data, isLoading } = useSWR(
+    debouncedBboxKey && debouncedTypes
+      ? ["places", debouncedBboxKey, debouncedTypes]
+      : null,
+    ([, key, t]) => getPoiList(key.split(",").map(Number), t),
+    // Without this, every bbox change (i.e. every zoom/pan tick) swaps to a
+    // key SWR hasn't cached yet, so `data` goes undefined for a beat and all
+    // markers blink out until the new fetch resolves. Keep showing the
+    // previous tile's markers while the new one loads instead.
+    { keepPreviousData: true },
+  );
 
-    const fetchPlaces = async () => {
-      setLoading(true);
-      try {
-        const coords = bbox.toArray().flat() as number[];
-        const data = await getPoiList(coords, types);
-
-        if (
-          data &&
-          data.type === "FeatureCollection" &&
-          Array.isArray(data.features)
-        ) {
-          setPlaces(data);
-        } else {
-          setPlaces({
-            type: "FeatureCollection",
-            features: Array.isArray(data) ? data : [],
-          });
-        }
-      } catch (e) {
-        console.error("Failed to fetch places:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Debounce
-    const timeout = setTimeout(fetchPlaces, 300);
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [bbox, types]);
-
-  return { places, loading };
+  return { places: data ?? EMPTY_FEATURE_COLLECTION, loading: isLoading };
 }
