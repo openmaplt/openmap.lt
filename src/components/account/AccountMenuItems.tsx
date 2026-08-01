@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, MessageSquare, Settings } from "lucide-react";
+import { LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenuItem,
@@ -11,12 +11,10 @@ import { useAuth } from "@/providers/AuthProvider";
 
 interface AccountMenuItemsProps {
   onRequestCloseMenu: () => void;
-  onOpenAccountLinks: () => void;
 }
 
 export function AccountMenuItems({
   onRequestCloseMenu,
-  onOpenAccountLinks,
 }: AccountMenuItemsProps) {
   const { user, logout } = useAuth();
 
@@ -27,22 +25,10 @@ export function AccountMenuItems({
       <DropdownMenuLabel>{user.username ?? user.name}</DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild onSelect={onRequestCloseMenu}>
-        <Link href="/komentarai">
-          <MessageSquare className="size-4" />
-          Mano komentarai
+        <Link href="/paskyra">
+          <LayoutDashboard className="size-4" />
+          Valdymo skydas
         </Link>
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        onSelect={() => {
-          onRequestCloseMenu();
-          // Defer past the DropdownMenu's own close/focus teardown — opening
-          // the Dialog in the same tick races with it and gets dismissed
-          // immediately (Radix DropdownMenu + Dialog interaction quirk).
-          setTimeout(onOpenAccountLinks, 0);
-        }}
-      >
-        <Settings className="size-4" />
-        Tvarkyti prisijungimus
       </DropdownMenuItem>
       <DropdownMenuItem onSelect={logout}>
         <LogOut className="size-4" />

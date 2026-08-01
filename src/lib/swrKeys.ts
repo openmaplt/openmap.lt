@@ -11,3 +11,8 @@
 // network, only mutated locally after a Server Action confirms the change).
 export const OWN_COMMENTS_KEY = "comments:own";
 export const PENDING_COMMENTS_KEY = "comments:pending";
+// Separate from PENDING_COMMENTS_KEY because that list is capped at 100 rows
+// (listPendingComments()) — this key tracks the true total pending count
+// (countPendingComments()) for the sidebar badge / dashboard stat card, kept
+// in sync by the same approve/reject/delete call sites that mutate the list.
+export const PENDING_COUNT_KEY = "comments:pendingCount";

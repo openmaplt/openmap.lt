@@ -8,7 +8,11 @@ import { deleteOwnCommentAction } from "@/actions/comments";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { buildCommentPoiHref } from "@/lib/poiHelpers";
-import { OWN_COMMENTS_KEY, PENDING_COMMENTS_KEY } from "@/lib/swrKeys";
+import {
+  OWN_COMMENTS_KEY,
+  PENDING_COMMENTS_KEY,
+  PENDING_COUNT_KEY,
+} from "@/lib/swrKeys";
 
 export type MyCommentView = {
   id: number;
@@ -18,10 +22,11 @@ export type MyCommentView = {
   body: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+  rejectionReason: string | null;
 };
 
 const STATUS_LABEL: Record<MyCommentView["status"], string> = {
-  pending: "Laukia",
+  pending: "Laukiama patvirtinimo",
   approved: "Patvirtinta",
   rejected: "Atmesta",
 };
@@ -78,6 +83,8 @@ export function MyComments({ initialItems }: MyCommentsProps) {
       return;
     }
 
+    const deletedItem = items.find((item) => item.id === id);
+
     mutate<MyCommentView[]>(
       OWN_COMMENTS_KEY,
       (current) => current?.filter((item) => item.id !== id),
@@ -90,6 +97,13 @@ export function MyComments({ initialItems }: MyCommentsProps) {
       (current) => current?.filter((item) => item.id !== id),
       { revalidate: false },
     );
+    if (deletedItem?.status === "pending") {
+      mutate<number>(
+        PENDING_COUNT_KEY,
+        (current) => Math.max((current ?? 1) - 1, 0),
+        { revalidate: false },
+      );
+    }
   };
 
   if (items.length === 0) {
@@ -131,6 +145,11 @@ export function MyComments({ initialItems }: MyCommentsProps) {
             <p className="text-sm text-foreground whitespace-pre-wrap">
               {item.body}
             </p>
+            {item.status === "rejected" && item.rejectionReason && (
+              <p className="text-xs text-muted-foreground italic">
+                Priežastis: {item.rejectionReason}
+              </p>
+            )}
             <Button
               type="button"
               size="sm"

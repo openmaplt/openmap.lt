@@ -34,3 +34,18 @@ comment on column openmap.poi_comments.moderated_by is 'Kuris naudotojas patvirt
 create index if not exists poi_comments_thread_idx on openmap.poi_comments(map_profile_id, object_ref, status, created_at);
 create index if not exists poi_comments_user_id_idx on openmap.poi_comments(user_id);
 create index if not exists poi_comments_pending_idx on openmap.poi_comments(status, created_at) where status = 'pending';
+
+
+do $$ begin
+  alter table openmap.poi_comments add column rejection_reason text;
+exception when duplicate_column then null;
+end $$;
+
+do $$ begin
+  alter table openmap.poi_comments
+    add constraint poi_comments_rejection_reason_length
+    check (rejection_reason is null or char_length(rejection_reason) <= 500);
+exception when duplicate_object then null;
+end $$;
+
+comment on column openmap.poi_comments.rejection_reason is 'Neprivaloma moderatoriaus nurodyta atmetimo priežastis; NULL jei nenurodyta arba komentaras nebuvo atmestas';

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { query, queryOne, queryOneOrThrow } from "@/lib/db";
 
 export const COMMENT_STATUS = {
@@ -22,6 +23,7 @@ export type CommentRow = {
   createdAt: Date;
   moderatedAt: Date | null;
   moderatedBy: number | null;
+  rejectionReason: string | null;
 };
 
 type CommentDbRow = {
@@ -35,6 +37,7 @@ type CommentDbRow = {
   created_at: Date;
   moderated_at: Date | null;
   moderated_by: number | null;
+  rejection_reason: string | null;
 };
 
 function toCommentRow(row: CommentDbRow): CommentRow {
@@ -49,6 +52,7 @@ function toCommentRow(row: CommentDbRow): CommentRow {
     createdAt: row.created_at,
     moderatedAt: row.moderated_at,
     moderatedBy: row.moderated_by,
+    rejectionReason: row.rejection_reason,
   };
 }
 
@@ -56,7 +60,11 @@ export type PendingComment = CommentRow & {
   author: { username: string | null; name: string | null };
 };
 
-export async function listPendingComments(
+// Wrapped in React's request-scoped cache() because both the /paskyra
+// layout (sidebar badge count) and the /paskyra/komentarai/tvirtinimas page call this
+// with the same args during the same request — cache() dedupes them into a
+// single query instead of hitting the DB twice per navigation.
+export const listPendingComments = cache(async function listPendingComments(
   limit = 100,
 ): Promise<PendingComment[]> {
   const result = await query(
@@ -72,7 +80,21 @@ export async function listPendingComments(
     ...toCommentRow(row),
     author: { username: row.author_username, name: row.author_name },
   }));
-}
+});
+
+// listPendingComments() is capped at 100 rows for rendering the moderation
+// queue — it can't be used to report how many comments are actually pending.
+// This is a plain count query for the sidebar badge / dashboard stat card,
+// wrapped in cache() for the same per-request dedup reason as above.
+export const countPendingComments = cache(
+  async function countPendingComments(): Promise<number> {
+    const row = await queryOneOrThrow<{ count: number }>(
+      `select count(*)::int as count from openmap.poi_comments where status = $1`,
+      [COMMENT_STATUS.PENDING],
+    );
+    return row.count;
+  },
+);
 
 type ModeratedStatus =
   | typeof COMMENT_STATUS.APPROVED
@@ -82,13 +104,14 @@ async function moderateComment(
   id: number,
   moderatorId: number,
   status: ModeratedStatus,
+  reason: string | null = null,
 ): Promise<CommentRow | null> {
   const row = await queryOne<CommentDbRow>(
     `update openmap.poi_comments
-     set status = $2, moderated_at = now(), moderated_by = $3
+     set status = $2, moderated_at = now(), moderated_by = $3, rejection_reason = $5
      where id = $1 and status = $4
      returning *`,
-    [id, status, moderatorId, COMMENT_STATUS.PENDING],
+    [id, status, moderatorId, COMMENT_STATUS.PENDING, reason],
   );
   return row ? toCommentRow(row) : null;
 }
@@ -103,8 +126,9 @@ export async function approveComment(
 export async function rejectComment(
   id: number,
   moderatorId: number,
+  reason: string | null = null,
 ): Promise<CommentRow | null> {
-  return moderateComment(id, moderatorId, COMMENT_STATUS.REJECTED);
+  return moderateComment(id, moderatorId, COMMENT_STATUS.REJECTED, reason);
 }
 
 export type ApprovedComment = {

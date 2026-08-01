@@ -15,6 +15,7 @@ import { checkRateLimit, checkUserRateLimit } from "@/lib/rateLimit";
 const MAX_BODY_LENGTH = 2000;
 const MAX_POI_NAME_LENGTH = 200;
 const MAX_OBJECT_REF_LENGTH = 200;
+const MAX_REJECTION_REASON_LENGTH = 500;
 
 export type CreateCommentResult =
   | { ok: true; comment: CommentRow }
@@ -122,8 +123,12 @@ export async function approveCommentAction(
 
 export async function rejectCommentAction(
   id: number,
+  reason: string,
 ): Promise<ModerationActionResult> {
-  return moderateCommentAction(id, rejectComment);
+  const trimmed = reason.trim().slice(0, MAX_REJECTION_REASON_LENGTH) || null;
+  return moderateCommentAction(id, (commentId, moderatorId) =>
+    rejectComment(commentId, moderatorId, trimmed),
+  );
 }
 
 export type DeleteCommentResult =

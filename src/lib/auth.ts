@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { query, queryOne, queryOneOrThrow } from "@/lib/db";
 import type { Provider } from "@/lib/oauth/providers";
 import { PG_UNIQUE_VIOLATION } from "@/lib/pgErrorCodes";
@@ -57,6 +58,16 @@ export async function getCurrentUser(): Promise<PublicUser | null> {
     [hash(token)],
   );
   return row ? toPublicUser(row) : null;
+}
+
+// Repeated across every /paskyra/* page/layout: fetch the current user and
+// bounce to login (preserving where to come back to) if there isn't one.
+export async function requireUser(returnTo: string): Promise<PublicUser> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect(`/prisijungimas?returnTo=${encodeURIComponent(returnTo)}`);
+  }
+  return user;
 }
 
 export async function createSession(userId: number): Promise<void> {

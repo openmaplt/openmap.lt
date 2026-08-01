@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { AccountLinksDialog } from "@/components/account/AccountLinksDialog";
 import { AccountMenuItems } from "@/components/account/AccountMenuItems";
 import { LoginChoiceButtons } from "@/components/auth/LoginChoiceButtons";
 import {
@@ -30,7 +29,6 @@ export function MapMenu() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [accountLinksOpen, setAccountLinksOpen] = useState(false);
 
   return (
     <>
@@ -68,10 +66,7 @@ export function MapMenu() {
           })}
           <DropdownMenuSeparator />
           {user ? (
-            <AccountMenuItems
-              onRequestCloseMenu={() => setMenuOpen(false)}
-              onOpenAccountLinks={() => setAccountLinksOpen(true)}
-            />
+            <AccountMenuItems onRequestCloseMenu={() => setMenuOpen(false)} />
           ) : (
             <DropdownMenuItem
               onSelect={() => {
@@ -97,10 +92,6 @@ export function MapMenu() {
           <LoginChoiceButtons returnTo={pathname} />
         </DialogContent>
       </Dialog>
-      <AccountLinksDialog
-        open={accountLinksOpen}
-        onOpenChange={setAccountLinksOpen}
-      />
     </>
   );
 }
