@@ -2,6 +2,7 @@
 
 import { LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -22,7 +23,15 @@ export function AccountMenuItems({
 
   return (
     <>
-      <DropdownMenuLabel>{user.username ?? user.name}</DropdownMenuLabel>
+      <DropdownMenuLabel className="flex items-center gap-2">
+        <Avatar size="sm">
+          <AvatarImage src={user.avatarUrl ?? undefined} alt="" />
+          <AvatarFallback>
+            {(user.username ?? user.name ?? "?").charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        {user.username ?? user.name}
+      </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild onSelect={onRequestCloseMenu}>
         <Link href="/paskyra">
