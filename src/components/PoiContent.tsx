@@ -12,6 +12,7 @@ import {
   Ruler,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { ImageGallery } from "@/components/gallery/ImageGallery";
 import {
   formatOpeningHours,
   type PoiAttribute,
@@ -119,22 +120,7 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
         return null;
       }
 
-      return (
-        <a
-          href={safeImageUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block mt-2"
-        >
-          {/* biome-ignore lint/performance/noImgElement: External POI images don't need Next.js optimization */}
-          <img
-            src={safeImageUrl}
-            alt="POI"
-            className="max-w-full h-auto rounded-md"
-            loading="lazy"
-          />
-        </a>
-      );
+      return <ImageGallery images={[{ url: safeImageUrl }]} className="mt-2" />;
     }
 
     case "opening_hours": {

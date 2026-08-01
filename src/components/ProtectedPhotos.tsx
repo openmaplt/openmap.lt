@@ -1,17 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import useSWR from "swr";
+import { ImageGallery } from "@/components/gallery/ImageGallery";
 import type { ProtectedPhotoMeta } from "@/data/protectedPhotos";
 import { fetchJson } from "@/lib/fetcher";
-import { cn } from "@/lib/utils";
 import type { MapFeature } from "@/providers/MapProvider";
 
 /**
  * Photo gallery for a protected area, rendered as a POI-panel extra (see
  * `poiPanelExtra` in map-profiles). Fetching the list already pulls the full
- * photo blob server-side, so it can take a moment — a skeleton stands in until
- * the images are ready, and each image fades in as it loads.
+ * photo blob server-side, so it can take a moment — a skeleton stands in
+ * until the images are ready.
  */
 export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
   const id =
@@ -24,12 +23,11 @@ export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
 
   if (!id) return null;
 
-  // Still loading the list: show placeholder tiles so the panel doesn't jump.
+  // Still loading the list: show a placeholder tile so the panel doesn't jump.
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-2 px-4 pt-1 pb-4">
-        <div className="h-28 rounded-md bg-muted animate-pulse" />
-        <div className="h-28 rounded-md bg-muted animate-pulse" />
+      <div className="px-4 pt-1 pb-4">
+        <div className="h-56 rounded-md bg-muted animate-pulse" />
       </div>
     );
   }
@@ -39,42 +37,10 @@ export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 px-4 pt-1 pb-4">
-      {photos.map((photo) => (
-        <PhotoTile key={photo.id} photo={photo} />
-      ))}
-    </div>
-  );
-}
-
-function PhotoTile({ photo }: { photo: ProtectedPhotoMeta }) {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  // Drop a photo that fails to load rather than leave its skeleton pulsing.
-  if (failed) {
-    return null;
-  }
-
-  return (
-    <a
-      href={photo.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="relative block h-28 overflow-hidden rounded-md bg-muted"
-    >
-      {!loaded && <div className="absolute inset-0 animate-pulse bg-muted" />}
-      {/* biome-ignore lint/performance/noImgElement: External STVK photos don't need Next.js optimization */}
-      <img
-        src={photo.url}
-        alt={photo.name}
-        onLoad={() => setLoaded(true)}
-        onError={() => setFailed(true)}
-        className={cn(
-          "h-28 w-full object-cover transition-opacity duration-300",
-          loaded ? "opacity-100" : "opacity-0",
-        )}
+    <div className="px-4 pt-1 pb-4">
+      <ImageGallery
+        images={photos.map((photo) => ({ url: photo.url, name: photo.name }))}
       />
-    </a>
+    </div>
   );
 }
