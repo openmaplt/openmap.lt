@@ -21,6 +21,13 @@ export type MapProfile = {
   seoDescription?: string;
 };
 
+/**
+ * mapTypes `getPoiInfo` can resolve an id for — either via `places.poi_info`
+ * (places, craftbeer) or the STVK API (saugomos). Every other profile (maps,
+ * bicycle, river, ...) is vector-tile-only and has no per-id lookup.
+ */
+export const POI_INFO_PROFILES = new Set(["places", "craftbeer", "saugomos"]);
+
 const GENERAL_ACTIVE_LAYERS = ["label-amenity"];
 
 export const MAP_PROFILES: MapProfile[] = [

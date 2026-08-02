@@ -5,6 +5,9 @@
 export interface PoiProperties {
   id?: number | string;
   __type__?: string;
+  // POI category code (e.g. "PUB") — only populated for places/craftbeer, see
+  // PLACE_ICONS in @/config/places-icons for the name/color per code.
+  TYPE?: string;
   name?: string;
   official_name?: string;
   alt_name?: string;

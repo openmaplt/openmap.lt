@@ -1,6 +1,7 @@
 import type { Geometry, Point } from "geojson";
 import { JsonLd } from "@/components/JsonLd";
 import { PoiContent } from "@/components/PoiContent";
+import { PLACE_ICONS } from "@/config/places-icons";
 import { extractPoiData, type PoiProperties } from "@/lib/poiData";
 import { formatWikipediaUrl } from "@/lib/poiHelpers";
 import { toSafeHttpUrl } from "@/lib/utils";
@@ -51,12 +52,14 @@ export function PoiSeoContent({
   const postalCode = asString(props["addr:postcode"]);
 
   const sameAs = [website, wikipediaUrl].filter(Boolean);
+  const category = props.TYPE ? PLACE_ICONS[props.TYPE]?.name : undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "TouristAttraction",
     name,
     url,
+    ...(category && { additionalType: category }),
     ...(props.description && { description: props.description }),
     ...(image && { image }),
     ...(props.phone && { telephone: props.phone }),

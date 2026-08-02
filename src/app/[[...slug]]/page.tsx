@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { MapMenu } from "@/components/MapMenu";
 import { BASE_URL } from "@/config/config";
+import { POI_INFO_PROFILES } from "@/config/map-profiles";
 import { getPoiInfo } from "@/data/poiInfo";
 import { buildPoiDescription, parsePoiSlug } from "@/lib/poiHelpers";
 import { slugify } from "@/lib/utils";
@@ -62,10 +63,13 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
   const { slug } = await params;
   const { mapType, poiSlug, poiId } = parsePoiSlug(slug);
 
-  const DB_POI_PROFILES = new Set(["places", "craftbeer", "saugomos"]);
-
   let poiData = null;
-  if (poiId && /^\d+$/.test(poiId) && mapType && DB_POI_PROFILES.has(mapType)) {
+  if (
+    poiId &&
+    /^\d+$/.test(poiId) &&
+    mapType &&
+    POI_INFO_PROFILES.has(mapType)
+  ) {
     poiData = await getPoiInfo(poiId, mapType);
     if (!poiData || Object.entries(poiData).length === 0) {
       notFound();

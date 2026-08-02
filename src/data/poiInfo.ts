@@ -20,11 +20,18 @@ export const getPoiInfo = cache(async function getPoiInfo(
       [JSON.stringify({ id, mapType })],
     );
 
-    if (data) {
+    if (data && typeof data === "object") {
       // Check if the returned object contains an error field (as per PL/SQL function behavior)
-      if (typeof data === "object" && "error" in data) {
+      if ("error" in data) {
         console.error("POI Info error from DB:", data.error);
         return null;
+      }
+
+      // `type` (the places.poi 3-letter category, e.g. "PUB") comes back as a
+      // sibling of `properties`, not inside it — fold it in as `TYPE` so it
+      // reaches the client the same way places.list already exposes it.
+      if (data.type && data.properties && typeof data.properties === "object") {
+        data.properties = { ...data.properties, TYPE: data.type };
       }
 
       return data;

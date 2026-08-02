@@ -51,12 +51,17 @@ function SheetContent({
   showOverlay = false,
   preventOutsideClose = false,
   hideCloseButton = false,
+  closeButtonClassName,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left";
   showOverlay?: boolean;
   preventOutsideClose?: boolean;
   hideCloseButton?: boolean;
+  // Lets a colored SheetHeader (e.g. a POI category background) keep the
+  // close button visible, since it renders as a sibling positioned on top
+  // of the header, not a descendant that would inherit its text color.
+  closeButtonClassName?: string;
 }) {
   const preventOutsideCloseProps = preventOutsideClose
     ? {
@@ -87,7 +92,12 @@ function SheetContent({
       >
         {children}
         {!hideCloseButton && (
-          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none cursor-pointer">
+          <SheetPrimitive.Close
+            className={cn(
+              "data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none cursor-pointer",
+              closeButtonClassName,
+            )}
+          >
             <XIcon className="size-4" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
