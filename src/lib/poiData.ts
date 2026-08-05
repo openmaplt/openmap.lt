@@ -34,6 +34,7 @@ export interface PoiProperties {
   fee?: string;
   image?: string;
   maxspeed?: string;
+  operator?: string;
   [key: string]: string | number | undefined;
 }
 
@@ -55,7 +56,8 @@ export interface PoiAttribute {
     | "fee"
     | "beer_styles"
     | "maxspeed"
-    | "description";
+    | "description"
+    | "operator";
   icon?: string;
   label?: string;
 }
@@ -86,11 +88,13 @@ const SHOW_ATTRIBUTES = [
   "image",
   "maxspeed",
   "description",
+  "operator",
 ];
 
 // Lithuanian labels for attributes
 const ATTRIBUTE_LABELS: Record<string, string> = {
   official_name: "Oficialus pavadinimas",
+  opening_hours: "Darbo laikas",
   alt_name: "Kiti pavadinimai",
   address: "Adresas",
   email: "E-paštas",
@@ -99,6 +103,7 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   beer_styles: "Alaus stiliai",
   maxspeed: "Maksimalus greitis",
   description: "Aprašymas",
+  operator: "Valdytojas",
 };
 
 // Lucide React icon names for attributes
@@ -114,6 +119,7 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
   beer_styles: "Beer",
   maxspeed: "Gauge",
   description: "BookOpen",
+  operator: "Building",
 };
 
 /**

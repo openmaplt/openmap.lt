@@ -1,6 +1,7 @@
 import {
   Beer,
   BookOpen,
+  Building,
   Clock,
   ExternalLink,
   Gauge,
@@ -40,6 +41,7 @@ const iconComponents: Record<
   MapPin,
   Beer,
   Gauge,
+  Building,
 };
 
 function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
