@@ -64,12 +64,17 @@ export async function createCommentAction(input: {
     return { ok: false, error: "invalid_body" };
   }
 
+  const autoApprove = await currentUserHasPermission(
+    PERMISSIONS.COMMENTS_MODERATE,
+  );
+
   const comment = await insertComment({
     userId: user.id,
     mapProfileId: input.mapProfileId,
     objectRef: input.objectRef,
     poiName: input.poiName?.trim().slice(0, MAX_POI_NAME_LENGTH) || null,
     body,
+    autoApprove,
   });
 
   return { ok: true, comment };

@@ -167,6 +167,35 @@ export async function listApprovedComments(
   }));
 }
 
+// Same shape as ApprovedComment — used to show a moderator the pending
+// comments for the object+profile they're currently looking at, inline with
+// the already-approved ones, so they can approve/reject without leaving the
+// page.
+export async function listPendingCommentsForObject(
+  mapProfileId: string,
+  objectRef: string,
+): Promise<ApprovedComment[]> {
+  const result = await query(
+    `select c.id, c.body, c.created_at,
+            u.username as author_username, u.name as author_name, u.avatar_url as author_avatar_url
+     from openmap.poi_comments c
+     join openmap.users u on u.id = c.user_id
+     where c.map_profile_id = $1 and c.object_ref = $2 and c.status = $3
+     order by c.created_at asc`,
+    [mapProfileId, objectRef, COMMENT_STATUS.PENDING],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    body: row.body,
+    createdAt: row.created_at,
+    author: {
+      username: row.author_username,
+      name: row.author_name,
+      avatarUrl: row.author_avatar_url,
+    },
+  }));
+}
+
 export async function listOwnComments(userId: number): Promise<CommentRow[]> {
   const result = await query(
     `select * from openmap.poi_comments where user_id = $1 order by created_at desc`,
@@ -192,10 +221,18 @@ export async function insertComment(params: {
   objectRef: string;
   poiName: string | null;
   body: string;
+  // Set when the author holds comments.moderate — their own comments skip
+  // the pending queue and are self-approved on insert.
+  autoApprove?: boolean;
 }): Promise<CommentRow> {
+  const status = params.autoApprove
+    ? COMMENT_STATUS.APPROVED
+    : COMMENT_STATUS.PENDING;
+  const moderatedBy = params.autoApprove ? params.userId : null;
   const row = await queryOneOrThrow<CommentDbRow>(
-    `insert into openmap.poi_comments (user_id, map_profile_id, object_ref, poi_name, body)
-     values ($1, $2, $3, $4, $5)
+    `insert into openmap.poi_comments
+       (user_id, map_profile_id, object_ref, poi_name, body, status, moderated_at, moderated_by)
+     values ($1, $2, $3, $4, $5, $6, case when $7::int is null then null else now() end, $7)
      returning *`,
     [
       params.userId,
@@ -203,6 +240,8 @@ export async function insertComment(params: {
       params.objectRef,
       params.poiName,
       params.body,
+      status,
+      moderatedBy,
     ],
   );
   return toCommentRow(row);

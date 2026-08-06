@@ -1,5 +1,9 @@
 import { MAP_PROFILES } from "@/config/map-profiles";
-import { listApprovedComments } from "@/lib/comments";
+import {
+  listApprovedComments,
+  listPendingCommentsForObject,
+} from "@/lib/comments";
+import { currentUserHasPermission, PERMISSIONS } from "@/lib/permissions";
 import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function GET(request: Request) {
@@ -12,13 +16,23 @@ export async function GET(request: Request) {
     !objectRef ||
     !MAP_PROFILES.some((profile) => profile.id === mapProfileId)
   ) {
-    return Response.json([]);
+    return Response.json({ approved: [], pending: [] });
   }
 
   if (await checkRateLimit("commentList", "standard")) {
     return new Response(null, { status: 429 });
   }
 
-  const comments = await listApprovedComments(mapProfileId, objectRef);
-  return Response.json(comments);
+  const canModerate = await currentUserHasPermission(
+    PERMISSIONS.COMMENTS_MODERATE,
+  );
+
+  const [approved, pending] = await Promise.all([
+    listApprovedComments(mapProfileId, objectRef),
+    canModerate
+      ? listPendingCommentsForObject(mapProfileId, objectRef)
+      : Promise.resolve([]),
+  ]);
+
+  return Response.json({ approved, pending });
 }

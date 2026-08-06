@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { mutate } from "swr";
 import { createCommentAction } from "@/actions/comments";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { buildCommentsApiUrl } from "@/lib/poiHelpers";
 import { useAuth } from "@/providers/AuthProvider";
 
 const MAX_BODY_LENGTH = 2000;
@@ -26,7 +28,9 @@ export function CommentForm({
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState<"pending" | "approved" | null>(
+    null,
+  );
 
   if (!user) {
     return (
@@ -46,7 +50,9 @@ export function CommentForm({
   if (submitted) {
     return (
       <p className="text-sm text-muted-foreground">
-        Jūsų komentaras laukia patvirtinimo.
+        {submitted === "approved"
+          ? "Jūsų komentaras paskelbtas."
+          : "Jūsų komentaras laukia patvirtinimo."}
       </p>
     );
   }
@@ -76,7 +82,10 @@ export function CommentForm({
       return;
     }
 
-    setSubmitted(true);
+    setSubmitted(result.comment.status === "approved" ? "approved" : "pending");
+    if (result.comment.status === "approved") {
+      mutate(buildCommentsApiUrl(mapProfileId, objectRef));
+    }
   };
 
   return (

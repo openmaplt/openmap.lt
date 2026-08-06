@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import useSWR, { mutate } from "swr";
 import {
   approveCommentAction,
   type ModerationActionResult,
   rejectCommentAction,
 } from "@/actions/comments";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { PendingCommentControls } from "@/components/comments/PendingCommentControls";
 import { toast } from "@/components/ui/toast";
 import { buildCommentPoiHref } from "@/lib/poiHelpers";
 import {
@@ -17,8 +16,6 @@ import {
   PENDING_COMMENTS_KEY,
   PENDING_COUNT_KEY,
 } from "@/lib/swrKeys";
-
-const MAX_REJECTION_REASON_LENGTH = 500;
 
 export type PendingCommentView = {
   id: number;
@@ -40,10 +37,6 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
     null,
     { fallbackData: initialItems },
   );
-  const [pendingId, setPendingId] = useState<number | null>(null);
-  const [rejectingId, setRejectingId] = useState<number | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-
   // fallbackData only covers what useSWR *returns* when the cache is empty —
   // it never writes into the cache itself. Without this, the first mutate()
   // call below would read `current` as undefined and wipe the list. Seeding
@@ -98,19 +91,12 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
   };
 
   const handleApprove = async (id: number) => {
-    setPendingId(id);
     const result = await approveCommentAction(id);
-    setPendingId(null);
     applyModerationResult(id, result, "approved", null);
   };
 
-  const handleReject = async (id: number) => {
-    setPendingId(id);
-    const reason = rejectReason.trim();
+  const handleReject = async (id: number, reason: string) => {
     const result = await rejectCommentAction(id, reason);
-    setPendingId(null);
-    setRejectingId(null);
-    setRejectReason("");
     applyModerationResult(id, result, "rejected", reason || null);
   };
 
@@ -127,7 +113,6 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
       {items.map((item) => {
         const href = buildCommentPoiHref(item.mapProfileId, item.objectRef);
         const title = item.poiName || item.objectRef;
-        const isRejecting = rejectingId === item.id;
         return (
           <li
             key={item.id}
@@ -151,67 +136,10 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
             <p className="text-sm text-foreground whitespace-pre-wrap">
               {item.body}
             </p>
-            {isRejecting ? (
-              <div className="space-y-2">
-                <Textarea
-                  value={rejectReason}
-                  onChange={(event) =>
-                    setRejectReason(
-                      event.target.value.slice(0, MAX_REJECTION_REASON_LENGTH),
-                    )
-                  }
-                  maxLength={MAX_REJECTION_REASON_LENGTH}
-                  placeholder="Priežastis (neprivaloma)..."
-                  disabled={pendingId === item.id}
-                />
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="destructive"
-                    disabled={pendingId === item.id}
-                    onClick={() => handleReject(item.id)}
-                  >
-                    Patvirtinti atmetimą
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={pendingId === item.id}
-                    onClick={() => {
-                      setRejectingId(null);
-                      setRejectReason("");
-                    }}
-                  >
-                    Atšaukti
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={pendingId === item.id}
-                  onClick={() => handleApprove(item.id)}
-                >
-                  Patvirtinti
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={pendingId === item.id}
-                  onClick={() => {
-                    setRejectingId(item.id);
-                    setRejectReason("");
-                  }}
-                >
-                  Atmesti
-                </Button>
-              </div>
-            )}
+            <PendingCommentControls
+              onApprove={() => handleApprove(item.id)}
+              onReject={(reason) => handleReject(item.id, reason)}
+            />
           </li>
         );
       })}
