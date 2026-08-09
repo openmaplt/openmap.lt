@@ -17,6 +17,10 @@ export interface DashboardNavItem {
   // Which pending-count bucket (see DashboardSidebar) to badge this item
   // with. Only meaningful together with requiredPermission.
   pendingCountKey?: "comments" | "photos";
+  // Undefined = personal section (own content). "admin" groups the
+  // permission-gated moderation queues under their own sidebar heading,
+  // separate from "my content" — see DashboardSidebar.
+  section?: "admin";
 }
 
 export const DASHBOARD_MENU_ITEMS: DashboardNavItem[] = [
@@ -27,16 +31,18 @@ export const DASHBOARD_MENU_ITEMS: DashboardNavItem[] = [
     icon: MessageSquare,
   },
   {
+    href: "/paskyra/nuotraukos",
+    label: "Mano nuotraukos",
+    icon: ImageIcon,
+  },
+  { href: "/paskyra/prisijungimai", label: "Prisijungimo būdai", icon: Link2 },
+  {
     href: "/paskyra/komentarai/tvirtinimas",
     label: "Komentarų tvirtinimas",
     icon: ShieldCheck,
     requiredPermission: PERMISSIONS.COMMENTS_MODERATE,
     pendingCountKey: "comments",
-  },
-  {
-    href: "/paskyra/nuotraukos",
-    label: "Mano nuotraukos",
-    icon: ImageIcon,
+    section: "admin",
   },
   {
     href: "/paskyra/nuotraukos/tvirtinimas",
@@ -44,6 +50,6 @@ export const DASHBOARD_MENU_ITEMS: DashboardNavItem[] = [
     icon: ShieldCheck,
     requiredPermission: PERMISSIONS.PHOTOS_MODERATE,
     pendingCountKey: "photos",
+    section: "admin",
   },
-  { href: "/paskyra/prisijungimai", label: "Prisijungimo būdai", icon: Link2 },
 ];

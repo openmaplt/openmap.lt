@@ -10,6 +10,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DASHBOARD_MENU_ITEMS } from "@/config/dashboardNav";
@@ -64,6 +66,13 @@ export function DashboardSidebar({
     (item) =>
       !item.requiredPermission || permissionSet.has(item.requiredPermission),
   );
+  // "Administravimas" groups the moderation queues separately from personal
+  // content — they act on everyone's comments/photos, not the viewer's own,
+  // so nesting them under "Mano komentarai"/"Mano nuotraukos" would misread
+  // as a filtered view of your own content. Only ever visible to the (small)
+  // subset of users holding a moderation permission.
+  const personalItems = items.filter((item) => item.section !== "admin");
+  const adminItems = items.filter((item) => item.section === "admin");
   const badgeCountFor = (item: (typeof items)[number]) =>
     item.pendingCountKey ? pendingCounts[item.pendingCountKey] : 0;
   const totalPendingBadge = items.reduce(
@@ -84,6 +93,49 @@ export function DashboardSidebar({
   const CurrentIcon = current.icon;
   const isItemActive = (item: (typeof items)[number]) =>
     item.href === current.href;
+
+  const renderMobileItem = (item: (typeof items)[number]) => {
+    const Icon = item.icon;
+    const isActive = isItemActive(item);
+    const badgeCount = badgeCountFor(item);
+    return (
+      <DropdownMenuItem
+        key={item.href}
+        asChild
+        className={cn(
+          isActive && "bg-secondary text-secondary-foreground font-semibold",
+        )}
+      >
+        <Link href={item.href}>
+          <Icon className="size-4" />
+          {item.label}
+          {badgeCount > 0 && <CountBadge count={badgeCount} />}
+        </Link>
+      </DropdownMenuItem>
+    );
+  };
+
+  const renderDesktopItem = (item: (typeof items)[number]) => {
+    const Icon = item.icon;
+    const isActive = isItemActive(item);
+    const badgeCount = badgeCountFor(item);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={cn(
+          "flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
+          isActive
+            ? "bg-secondary text-secondary-foreground font-semibold"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/40",
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="flex-1 min-w-0">{item.label}</span>
+        {badgeCount > 0 && <CountBadge count={badgeCount} />}
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -112,54 +164,30 @@ export function DashboardSidebar({
             align="start"
             className="w-[calc(100vw-2rem)] sm:w-[calc(100vw-3rem)]"
           >
-            {items.map((item) => {
-              const Icon = item.icon;
-              const isActive = isItemActive(item);
-              const badgeCount = badgeCountFor(item);
-              return (
-                <DropdownMenuItem
-                  key={item.href}
-                  asChild
-                  className={cn(
-                    isActive &&
-                      "bg-secondary text-secondary-foreground font-semibold",
-                  )}
-                >
-                  <Link href={item.href}>
-                    <Icon className="size-4" />
-                    {item.label}
-                    {badgeCount > 0 && <CountBadge count={badgeCount} />}
-                  </Link>
-                </DropdownMenuItem>
-              );
-            })}
+            {personalItems.map(renderMobileItem)}
+            {adminItems.length > 0 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Administravimas</DropdownMenuLabel>
+                {adminItems.map(renderMobileItem)}
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
       {/* Desktop: full vertical nav column. */}
       <nav className="hidden md:flex md:flex-col gap-1 md:w-64 md:shrink-0">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const isActive = isItemActive(item);
-          const badgeCount = badgeCountFor(item);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-secondary text-secondary-foreground font-semibold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/40",
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span className="flex-1 min-w-0">{item.label}</span>
-              {badgeCount > 0 && <CountBadge count={badgeCount} />}
-            </Link>
-          );
-        })}
+        {personalItems.map(renderDesktopItem)}
+        {adminItems.length > 0 && (
+          <>
+            <div className="my-2 border-t border-border" />
+            <span className="px-3 text-xs font-semibold text-muted-foreground uppercase">
+              Administravimas
+            </span>
+            {adminItems.map(renderDesktopItem)}
+          </>
+        )}
       </nav>
     </>
   );
