@@ -7,7 +7,7 @@ import useSWR, { mutate } from "swr";
 import { deleteOwnCommentAction } from "@/actions/comments";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import { buildCommentPoiHref } from "@/lib/poiHelpers";
+import { buildCommentPoiHref, getMapProfileLabel } from "@/lib/poiHelpers";
 import {
   OWN_COMMENTS_KEY,
   PENDING_COMMENTS_KEY,
@@ -133,6 +133,8 @@ export function MyComments({ initialItems }: MyCommentsProps) {
                 ) : (
                   title
                 )}
+                {" · "}
+                {getMapProfileLabel(item.mapProfileId)}
                 {" · "}
                 {new Date(item.createdAt).toLocaleDateString("lt-LT")}
               </div>

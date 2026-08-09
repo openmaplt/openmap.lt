@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
 import { PHOTO_LICENSE_INFO, type PhotoLicense } from "@/config/photoLicenses";
-import { buildCommentPoiHref } from "@/lib/poiHelpers";
+import { buildCommentPoiHref, getMapProfileLabel } from "@/lib/poiHelpers";
 import {
   OWN_PHOTOS_KEY,
   PENDING_PHOTOS_COUNT_KEY,
@@ -166,6 +166,8 @@ export function MyPhotos({ initialItems }: MyPhotosProps) {
                 ) : (
                   title
                 )}
+                {" · "}
+                {getMapProfileLabel(item.mapProfileId)}
               </div>
               <span
                 className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_CLASS[item.status]}`}

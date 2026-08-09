@@ -49,6 +49,19 @@ export function buildCommentPoiHref(
 }
 
 /**
+ * Human-readable map profile name (e.g. "Alus", "Lankytinos", "Saugomos") for
+ * lists spanning multiple profiles — "Mano komentarai"/"Mano nuotraukos" and
+ * their moderation queues — so it's visible without following the POI link.
+ * Each profile's first mapStyle is its own primary named style (the second,
+ * when present, is always the "Orto" satellite alternative), so it doubles
+ * as a fitting profile label.
+ */
+export function getMapProfileLabel(mapProfileId: string): string {
+  const profile = MAP_PROFILES.find((p) => p.id === mapProfileId);
+  return profile?.mapStyles[0]?.name ?? mapProfileId;
+}
+
+/**
  * GET /api/comments URL (and matching SWR key) for a POI's comment thread,
  * given the map_profile_id + object_ref it's posted under.
  */

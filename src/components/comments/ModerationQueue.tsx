@@ -10,7 +10,7 @@ import {
 } from "@/actions/comments";
 import { PendingCommentControls } from "@/components/comments/PendingCommentControls";
 import { toast } from "@/components/ui/toast";
-import { buildCommentPoiHref } from "@/lib/poiHelpers";
+import { buildCommentPoiHref, getMapProfileLabel } from "@/lib/poiHelpers";
 import {
   OWN_COMMENTS_KEY,
   PENDING_COMMENTS_KEY,
@@ -127,6 +127,8 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
                 ) : (
                   title
                 )}
+                {" · "}
+                {getMapProfileLabel(item.mapProfileId)}
                 {" · "}
                 {item.author.username ?? item.author.name ?? "Naudotojas"}
                 {" · "}
