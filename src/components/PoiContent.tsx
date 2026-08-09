@@ -13,7 +13,6 @@ import {
   Ruler,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { ImageGallery } from "@/components/gallery/ImageGallery";
 import {
   formatOpeningHours,
   type PoiAttribute,
@@ -116,15 +115,6 @@ function AttributeValue({ attribute }: { attribute: PoiAttribute }) {
         </a>
       );
 
-    case "image": {
-      const safeImageUrl = toSafeHttpUrl(value);
-      if (!safeImageUrl) {
-        return null;
-      }
-
-      return <ImageGallery images={[{ url: safeImageUrl }]} className="mt-2" />;
-    }
-
     case "opening_hours": {
       const lines = formatOpeningHours(value);
       return (
@@ -159,7 +149,7 @@ export function PoiContent({ data }: PoiContentProps) {
           ? iconComponents[attribute.icon]
           : null;
 
-        if (attribute.key === "name") {
+        if (attribute.key === "name" || attribute.type === "image") {
           return null;
         }
 

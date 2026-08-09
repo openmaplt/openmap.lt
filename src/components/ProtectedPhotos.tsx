@@ -1,18 +1,26 @@
 "use client";
 
 import useSWR from "swr";
-import { ImageGallery } from "@/components/gallery/ImageGallery";
+import { PoiPhotoGallery } from "@/components/gallery/PoiPhotoGallery";
 import type { ProtectedPhotoMeta } from "@/data/protectedPhotos";
 import { fetchJson } from "@/lib/fetcher";
-import type { MapFeature } from "@/providers/MapProvider";
+import {
+  type MapFeature,
+  useMapConfig,
+  useMapSelection,
+} from "@/providers/MapProvider";
 
 /**
  * Photo gallery for a protected area, rendered as a POI-panel extra (see
- * `poiPanelExtra` in map-profiles). Fetching the list already pulls the full
- * photo blob server-side, so it can take a moment — a skeleton stands in
- * until the images are ready.
+ * `poiPanelExtra` in map-profiles). Fetches the STVK photo list itself (that
+ * already pulls the full photo blob server-side, so it can take a moment — a
+ * skeleton stands in until the images are ready), then hands the result to
+ * PoiPhotoGallery as `externalImages` — PoiPhotoGallery always additionally
+ * fetches+shows our own user-uploaded photos, merging both into one gallery.
  */
 export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
+  const { selectedPoiId } = useMapSelection();
+  const { activeMapProfile } = useMapConfig();
   const id =
     feature.properties?.id != null ? String(feature.properties.id) : null;
   const { data, isLoading } = useSWR<ProtectedPhotoMeta[]>(
@@ -21,9 +29,10 @@ export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
   );
   const photos = data ?? [];
 
-  if (!id) return null;
+  if (!id || selectedPoiId == null) return null;
 
-  // Still loading the list: show a placeholder tile so the panel doesn't jump.
+  // Still loading the STVK list: show a placeholder tile so the panel
+  // doesn't jump (our own uploaded photos load independently, right after).
   if (isLoading) {
     return (
       <div className="px-4 pt-1 pb-4">
@@ -32,15 +41,18 @@ export function ProtectedPhotos({ feature }: { feature: MapFeature }) {
     );
   }
 
-  if (photos.length === 0) {
-    return null;
-  }
-
   return (
-    <div className="px-4 pt-1 pb-4">
-      <ImageGallery
-        images={photos.map((photo) => ({ url: photo.url, name: photo.name }))}
-      />
-    </div>
+    <PoiPhotoGallery
+      mapProfileId={activeMapProfile.id}
+      objectRef={String(selectedPoiId)}
+      poiName={feature.properties?.name ?? null}
+      externalImages={photos.map((photo) => ({
+        url: photo.url,
+        name: photo.name,
+        attribution: {
+          source: "Saugomų teritorijų valstybės kadastras (STVK)",
+        },
+      }))}
+    />
   );
 }

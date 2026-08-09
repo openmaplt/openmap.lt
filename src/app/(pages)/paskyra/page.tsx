@@ -3,6 +3,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { requireUser } from "@/lib/auth";
 import { countPendingComments, listOwnComments } from "@/lib/comments";
 import { currentUserHasPermission, PERMISSIONS } from "@/lib/permissions";
+import { countPendingPhotos, listOwnPhotos } from "@/lib/photos";
 
 export const metadata: Metadata = {
   title: "Apžvalga - Openmap.lt",
@@ -12,13 +13,17 @@ export const metadata: Metadata = {
 export default async function Page() {
   const user = await requireUser("/paskyra");
 
-  const canModerate = await currentUserHasPermission(
-    PERMISSIONS.COMMENTS_MODERATE,
-  );
-  const [ownComments, pendingCount] = await Promise.all([
-    listOwnComments(user.id),
-    canModerate ? countPendingComments() : Promise.resolve(0),
+  const [canModerateComments, canModeratePhotos] = await Promise.all([
+    currentUserHasPermission(PERMISSIONS.COMMENTS_MODERATE),
+    currentUserHasPermission(PERMISSIONS.PHOTOS_MODERATE),
   ]);
+  const [ownComments, commentsPendingCount, ownPhotos, photosPendingCount] =
+    await Promise.all([
+      listOwnComments(user.id),
+      canModerateComments ? countPendingComments() : Promise.resolve(0),
+      listOwnPhotos(user.id),
+      canModeratePhotos ? countPendingPhotos() : Promise.resolve(0),
+    ]);
 
   return (
     <div className="space-y-4">
@@ -29,11 +34,23 @@ export default async function Page() {
           label="Mano komentarai"
           count={ownComments.length}
         />
-        {canModerate && (
+        {canModerateComments && (
           <StatCard
             href="/paskyra/komentarai/tvirtinimas"
-            label="Laukia patvirtinimo"
-            count={pendingCount}
+            label="Komentarai laukia patvirtinimo"
+            count={commentsPendingCount}
+          />
+        )}
+        <StatCard
+          href="/paskyra/nuotraukos"
+          label="Mano nuotraukos"
+          count={ownPhotos.length}
+        />
+        {canModeratePhotos && (
+          <StatCard
+            href="/paskyra/nuotraukos/tvirtinimas"
+            label="Nuotraukos laukia patvirtinimo"
+            count={photosPendingCount}
           />
         )}
       </div>

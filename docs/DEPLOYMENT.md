@@ -29,7 +29,20 @@ GRANT ALL PRIVILEGES ON DATABASE openmap TO openmap;
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
 
-### 3. GitHub Secrets konfigūracija
+### 3. Naudotojų nuotraukų katalogas (vienkartinis setup)
+
+Naudotojų įkeltos nuotraukos (žr. `src/lib/photoStorage.ts`) saugomos serverio diske, bind mount'inamos į konteinerį (`docker-compose.prod.yml`) — taip jos išlieka per visus deployment'us, nes deploy skriptas šio katalogo niekada neliečia (tik `.env` ir `docker-compose.prod.yml`).
+
+Katalogas turi egzistuoti ir būti rašomas Docker konteinerio `nextjs` naudotojo (uid `1001`, žr. `Dockerfile`) **prieš pirmą deployment'ą**:
+
+```bash
+mkdir -p /opt/openmap/uploads
+chown 1001:1001 /opt/openmap/uploads
+```
+
+Jei `DEPLOY_PATH` kitas nei numatytas `/opt/openmap`, naudokite tą kelią. `uploads/` pakatalogis toliau kuriamas automatiškai (`mkdir -p uploads` deploy skripte), bet nuosavybė (`chown`) — tik vienkartinis rankinis žingsnis.
+
+### 4. GitHub Secrets konfigūracija
 
 GitHub repository Settings → Secrets and variables → Actions, pridėkite šiuos secrets:
 
@@ -47,7 +60,7 @@ GitHub repository Settings → Secrets and variables → Actions, pridėkite ši
 - `OSM_CLIENT_ID` / `OSM_CLIENT_SECRET` - registruojama https://www.openstreetmap.org/oauth2/applications (redirect URI: `https://openmap.lt/auth/osm/callback`, scope: `read_prefs`)
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - registruojama https://console.cloud.google.com/apis/credentials (redirect URI: `https://openmap.lt/auth/google/callback`, scope: `openid email profile`)
 
-### 4. SSH Private Key generavimas
+### 5. SSH Private Key generavimas
 
 Jei neturite SSH key, sugeneruokite:
 

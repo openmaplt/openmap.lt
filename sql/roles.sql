@@ -22,9 +22,9 @@ comment on column openmap.user_permissions.created_at is 'Kada teisė priskirta 
 
 create index if not exists user_permissions_user_id_idx on openmap.user_permissions(user_id);
 
--- Šiam etapui reikalinga tik viena teisė — komentarų moderavimas.
 insert into openmap.permissions (slug, description) values
-  ('comments.moderate', 'Gali matyti komentarų moderavimo eilę ir patvirtinti/atmesti komentarus')
+  ('comments.moderate', 'Gali matyti komentarų moderavimo eilę ir patvirtinti/atmesti komentarus'),
+  ('photos.moderate', 'Gali matyti nuotraukų moderavimo eilę ir patvirtinti/atmesti nuotraukas')
 on conflict (slug) do nothing;
 
 -- Pirmas administratorius / moderatorius priskiriami rankiniu SQL, pvz.:

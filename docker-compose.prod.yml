@@ -14,6 +14,12 @@ services:
       - OSM_CLIENT_SECRET=${OSM_CLIENT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    # Bind mount (not a named volume) on purpose: it's a plain host directory
+    # that the deploy script never touches, so user-uploaded photos survive
+    # every `docker compose down && up` across releases. See docs/DEPLOYMENT.md
+    # for the one-time server-side setup this path needs.
+    volumes:
+      - ${UPLOADS_PATH:-./uploads}:/app/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

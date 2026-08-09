@@ -13,34 +13,64 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DASHBOARD_MENU_ITEMS } from "@/config/dashboardNav";
-import { PENDING_COUNT_KEY } from "@/lib/swrKeys";
+import type { Permission } from "@/config/permissions";
+import { PENDING_COUNT_KEY, PENDING_PHOTOS_COUNT_KEY } from "@/lib/swrKeys";
 import { cn } from "@/lib/utils";
 
 interface DashboardSidebarProps {
-  canModerate: boolean;
-  initialPendingCount: number;
+  permissions: Permission[];
+  initialCommentsPendingCount: number;
+  initialPhotosPendingCount: number;
 }
 
 export function DashboardSidebar({
-  canModerate,
-  initialPendingCount,
+  permissions,
+  initialCommentsPendingCount,
+  initialPhotosPendingCount,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const permissionSet = new Set(permissions);
 
-  // Seeds the same SWR cache key that ModerationQueue/MyComments mutate on
-  // approve/reject/delete, so the sidebar badge updates live without a
-  // dedicated fetcher — see swrKeys.ts for the cross-component contract.
+  // Seeds the same SWR cache keys that ModerationQueue/MyComments (and their
+  // photo equivalents) mutate on approve/reject/delete, so the sidebar badges
+  // update live without a dedicated fetcher — see swrKeys.ts.
   useEffect(() => {
-    mutate(PENDING_COUNT_KEY, initialPendingCount, { revalidate: false });
-  }, [initialPendingCount]);
+    mutate(PENDING_COUNT_KEY, initialCommentsPendingCount, {
+      revalidate: false,
+    });
+  }, [initialCommentsPendingCount]);
+  useEffect(() => {
+    mutate(PENDING_PHOTOS_COUNT_KEY, initialPhotosPendingCount, {
+      revalidate: false,
+    });
+  }, [initialPhotosPendingCount]);
 
-  const { data: pendingCount = 0 } = useSWR<number>(PENDING_COUNT_KEY, null, {
-    fallbackData: initialPendingCount,
-  });
+  const { data: commentsPendingCount = 0 } = useSWR<number>(
+    PENDING_COUNT_KEY,
+    null,
+    { fallbackData: initialCommentsPendingCount },
+  );
+  const { data: photosPendingCount = 0 } = useSWR<number>(
+    PENDING_PHOTOS_COUNT_KEY,
+    null,
+    { fallbackData: initialPhotosPendingCount },
+  );
+  const pendingCounts = {
+    comments: commentsPendingCount,
+    photos: photosPendingCount,
+  };
 
   const items = DASHBOARD_MENU_ITEMS.filter(
-    (item) => !item.requiresModerate || canModerate,
+    (item) =>
+      !item.requiredPermission || permissionSet.has(item.requiredPermission),
   );
+  const badgeCountFor = (item: (typeof items)[number]) =>
+    item.pendingCountKey ? pendingCounts[item.pendingCountKey] : 0;
+  const totalPendingBadge = items.reduce(
+    (sum, item) => sum + badgeCountFor(item),
+    0,
+  );
+
   const matches = (item: (typeof items)[number]) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
   // Nested routes (e.g. /paskyra/komentarai/tvirtinimas) also match their
@@ -71,8 +101,8 @@ export function DashboardSidebar({
                 {current.label}
               </span>
               <span className="flex items-center gap-2">
-                {pendingCount > 0 && canModerate && (
-                  <CountBadge count={pendingCount} />
+                {totalPendingBadge > 0 && (
+                  <CountBadge count={totalPendingBadge} />
                 )}
                 <ChevronDown className="size-4 text-muted-foreground" />
               </span>
@@ -85,7 +115,7 @@ export function DashboardSidebar({
             {items.map((item) => {
               const Icon = item.icon;
               const isActive = isItemActive(item);
-              const showBadge = item.requiresModerate && pendingCount > 0;
+              const badgeCount = badgeCountFor(item);
               return (
                 <DropdownMenuItem
                   key={item.href}
@@ -98,7 +128,7 @@ export function DashboardSidebar({
                   <Link href={item.href}>
                     <Icon className="size-4" />
                     {item.label}
-                    {showBadge && <CountBadge count={pendingCount} />}
+                    {badgeCount > 0 && <CountBadge count={badgeCount} />}
                   </Link>
                 </DropdownMenuItem>
               );
@@ -112,7 +142,7 @@ export function DashboardSidebar({
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = isItemActive(item);
-          const showBadge = item.requiresModerate && pendingCount > 0;
+          const badgeCount = badgeCountFor(item);
           return (
             <Link
               key={item.href}
@@ -126,7 +156,7 @@ export function DashboardSidebar({
             >
               <Icon className="size-4 shrink-0" />
               <span className="flex-1 min-w-0">{item.label}</span>
-              {showBadge && <CountBadge count={pendingCount} />}
+              {badgeCount > 0 && <CountBadge count={badgeCount} />}
             </Link>
           );
         })}

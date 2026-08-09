@@ -16,3 +16,8 @@ export const PENDING_COMMENTS_KEY = "comments:pending";
 // (countPendingComments()) for the sidebar badge / dashboard stat card, kept
 // in sync by the same approve/reject/delete call sites that mutate the list.
 export const PENDING_COUNT_KEY = "comments:pendingCount";
+
+// Same contract as the comments keys above, for /paskyra/nuotraukos.
+export const OWN_PHOTOS_KEY = "photos:own";
+export const PENDING_PHOTOS_KEY = "photos:pending";
+export const PENDING_PHOTOS_COUNT_KEY = "photos:pendingCount";

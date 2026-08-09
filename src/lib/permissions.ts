@@ -1,7 +1,11 @@
 import "server-only";
 
+import { PERMISSIONS, type Permission } from "@/config/permissions";
 import { getCurrentUser } from "@/lib/auth";
 import { queryOne, queryOneOrThrow } from "@/lib/db";
+
+export { PERMISSIONS };
+export type { Permission };
 
 export const ROLES = {
   ADMIN: "admin",
@@ -9,12 +13,6 @@ export const ROLES = {
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
-
-export const PERMISSIONS = {
-  COMMENTS_MODERATE: "comments.moderate",
-} as const;
-
-export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 export async function userHasPermission(
   userId: number,

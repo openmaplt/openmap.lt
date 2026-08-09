@@ -5,6 +5,7 @@ import { point } from "@turf/helpers";
 import { Navigation } from "lucide-react";
 import { useState } from "react";
 import { CommentsSection } from "@/components/comments/CommentsSection";
+import { PoiPhotoGallery } from "@/components/gallery/PoiPhotoGallery";
 import { PoiContent } from "@/components/PoiContent";
 import { ProtectedPhotos } from "@/components/ProtectedPhotos";
 import {
@@ -16,6 +17,7 @@ import {
 import { PLACE_ICONS } from "@/config/places-icons";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
+import { toSafeHttpUrl } from "@/lib/utils";
 import {
   useMapActions,
   useMapConfig,
@@ -24,7 +26,7 @@ import {
 import { useRoute } from "@/providers/RouteProvider";
 
 export function PoiDetails() {
-  const { selectedFeature: feature } = useMapSelection();
+  const { selectedFeature: feature, selectedPoiId } = useMapSelection();
   const { handleOnPoiDetailsClose: onOpenChange, setMobileActiveMode } =
     useMapActions();
   const { activeMapProfile } = useMapConfig();
@@ -67,6 +69,14 @@ export function PoiDetails() {
   if (!feature) return null;
 
   const category = PLACE_ICONS[feature.properties?.TYPE as string];
+  const poiData = extractPoiData(feature.properties || {});
+  // Only present for OSM-sourced POIs with an `image` tag — profiles that
+  // fetch their own photos (e.g. "protected", via PoiPanelExtra) don't have
+  // this attribute at all, so the two photo sources never overlap.
+  const osmImageUrl = toSafeHttpUrl(
+    poiData.attributes.find((attribute) => attribute.type === "image")?.value ??
+      "",
+  );
 
   return (
     <Sheet open onOpenChange={handleOpenChange} modal={false}>
@@ -128,8 +138,32 @@ export function PoiDetails() {
           </div>
         )}
         <div className="flex-1 overflow-y-auto pt-4">
-          <PoiContent data={extractPoiData(feature.properties || {})} />
-          {PoiPanelExtra && <PoiPanelExtra feature={feature} />}
+          <PoiContent data={poiData} />
+          {PoiPanelExtra ? (
+            <PoiPanelExtra feature={feature} />
+          ) : (
+            selectedPoiId != null && (
+              <PoiPhotoGallery
+                mapProfileId={activeMapProfile.id}
+                objectRef={String(selectedPoiId)}
+                poiName={feature.properties?.name ?? null}
+                externalImages={
+                  osmImageUrl
+                    ? [
+                        {
+                          url: osmImageUrl,
+                          name: feature.properties?.name,
+                          // Not a license claim, just crediting the source —
+                          // the OSM `image` tag is a bare URL with no
+                          // per-photo author/license data of its own.
+                          attribution: { source: "OpenStreetMap" },
+                        },
+                      ]
+                    : []
+                }
+              />
+            )
+          )}
           <CommentsSection />
         </div>
       </SheetContent>

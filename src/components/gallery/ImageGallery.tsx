@@ -11,6 +11,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import { AttributionCaption } from "./AttributionCaption";
 import { GallerySlide } from "./GallerySlide";
 import { PhotoLightbox } from "./PhotoLightbox";
 import type { GalleryImage } from "./types";
@@ -64,6 +65,7 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
             loading="lazy"
           />
           <Expand className="absolute top-2 right-2 h-6 w-6 rounded bg-black/50 p-1 text-white" />
+          <AttributionCaption image={image} />
         </button>
         <PhotoLightbox
           images={images}

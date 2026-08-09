@@ -20,6 +20,9 @@
 # production
 /build
 
+# nuotraukų įkėlimai (lokaliame dev — production naudoja bind mount, žr. docs/DEPLOYMENT.md)
+/uploads
+
 # misc
 .DS_Store
 *.pem

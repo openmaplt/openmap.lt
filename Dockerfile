@@ -37,6 +37,13 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# User-uploaded photos (see src/lib/photoStorage.ts). In production this path
+# is bind-mounted from a host directory (docker-compose.prod.yml) so uploads
+# survive every deploy — this mkdir just gives the mount point the right
+# ownership before anything is mounted over it.
+RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
+ENV UPLOADS_DIR=/app/uploads
+
 USER nextjs
 
 EXPOSE 3000

@@ -3,6 +3,7 @@
 import { Expand } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { AttributionCaption } from "./AttributionCaption";
 import type { GalleryImage } from "./types";
 
 interface GallerySlideProps {
@@ -39,6 +40,7 @@ export function GallerySlide({ image, onOpen }: GallerySlideProps) {
         )}
       />
       <Expand className="absolute top-2 right-2 h-6 w-6 rounded bg-black/50 p-1 text-white" />
+      <AttributionCaption image={image} />
     </button>
   );
 }

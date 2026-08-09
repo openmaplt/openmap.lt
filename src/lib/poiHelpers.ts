@@ -63,6 +63,22 @@ export function buildCommentsApiUrl(
   return `/api/comments?${params}`;
 }
 
+/**
+ * GET /api/photos URL (and matching SWR key) for a POI's uploaded-photo set,
+ * given the map_profile_id + object_ref it's posted under — mirrors
+ * buildCommentsApiUrl.
+ */
+export function buildPhotosApiUrl(
+  mapProfileId: string,
+  objectRef: string,
+): string {
+  const params = new URLSearchParams({
+    profile: mapProfileId,
+    ref: objectRef,
+  });
+  return `/api/photos?${params}`;
+}
+
 export function parsePoiSlug(slug: string[] | undefined) {
   const mapType = slug?.[0] ?? undefined;
   const poiSlug = slug?.[1] ?? undefined;

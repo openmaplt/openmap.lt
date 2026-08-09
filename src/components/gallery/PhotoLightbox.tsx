@@ -16,6 +16,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AttributionCaption } from "./AttributionCaption";
 import type { GalleryImage } from "./types";
 
 interface PhotoLightboxProps {
@@ -102,6 +103,7 @@ export function PhotoLightbox({
               alt={image.name || "Nuotrauka"}
               className="block h-auto max-h-[85vh] w-auto max-w-[90vw] object-contain"
             />
+            <AttributionCaption image={image} />
             {CLOSE_BUTTON}
           </div>
         </DialogContent>
@@ -126,13 +128,17 @@ export function PhotoLightbox({
         >
           <CarouselContent className={`ml-0 ${STAGE_HEIGHT}`}>
             {images.map((image) => (
-              <CarouselItem key={image.url} className={`pl-0 ${STAGE_HEIGHT}`}>
+              <CarouselItem
+                key={image.url}
+                className={`relative pl-0 ${STAGE_HEIGHT}`}
+              >
                 {/* biome-ignore lint/performance/noImgElement: External photos don't need Next.js optimization */}
                 <img
                   src={image.url}
                   alt={image.name || "Nuotrauka"}
                   className="h-full w-full object-contain"
                 />
+                <AttributionCaption image={image} />
               </CarouselItem>
             ))}
           </CarouselContent>

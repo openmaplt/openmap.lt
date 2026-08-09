@@ -94,6 +94,11 @@ jobs:
             # Pull latest docker-compose.prod.yml
             curl -o docker-compose.prod.yml "https://raw.githubusercontent.com/${{ github.repository }}/$REPO_REF/docker-compose.prod.yml"
 
+            # Bind-mount source dir for user-uploaded photos (see docker-compose.prod.yml).
+            # Idempotent — never touches an existing directory's contents. First-time
+            # setup on a fresh server still needs a one-off chown, see docs/DEPLOYMENT.md.
+            mkdir -p uploads
+
             # Login to GitHub Container Registry
             echo ${{ secrets.GHCR_PAT }} | docker login ${{ env.REGISTRY }} -u paumas --password-stdin
 
