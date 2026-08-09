@@ -37,6 +37,16 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Next's standalone-output file tracer misses sharp's native bindings — it
+# dlopen's libvips-cpp.so at runtime, which is a dynamic load the tracer
+# can't follow statically, so it's dropped from the trimmed node_modules it
+# builds. Copy the full packages in explicitly (this is sharp's own
+# documented workaround for Next.js standalone deployments) — without this,
+# photo uploads fail at runtime with ERR_DLOPEN_FAILED even though the build
+# itself succeeds.
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/sharp ./node_modules/sharp
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@img ./node_modules/@img
+
 # User-uploaded photos (see src/lib/photoStorage.ts). In production this path
 # is bind-mounted from a host directory (docker-compose.prod.yml) so uploads
 # survive every deploy — this mkdir just gives the mount point the right
