@@ -37,11 +37,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  serverActions: {
-    // Nuotraukų įkėlimas leidžia iki 10 failų po 10 MB viename veiksme
-    // (žr. MAX_FILES_PER_UPLOAD / MAX_FILE_SIZE_BYTES src/actions/photos.ts),
-    // todėl limitas turi apimti visą tą kiekį + multipart overhead.
-    bodySizeLimit: "110mb",
+  experimental: {
+    serverActions: {
+      // Nuotraukų įkėlimas leidžia iki 10 failų po 10 MB viename veiksme
+      // (žr. MAX_FILES_PER_UPLOAD / MAX_FILE_SIZE_BYTES src/actions/photos.ts),
+      // todėl limitas turi apimti visą tą kiekį + multipart overhead.
+      bodySizeLimit: "110mb",
+    },
   },
 };
 
