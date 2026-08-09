@@ -56,6 +56,10 @@ GitHub repository Settings → Secrets and variables → Actions, pridėkite ši
 - `SSH_PORT` - SSH portas (default: `22`)
 - `DEPLOY_PATH` - Kelias serveryje kur bus deployment (default: `/opt/openmap`)
 
+#### SMTP (dienos suvestinė moderatoriams, žr. `src/lib/moderationDigest.ts`):
+- `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` - nenustačius `SMTP_HOST`, dienos suvestinė tiesiog nesiunčiama, likusi aplikacija veikia normaliai
+- `MODERATION_DIGEST_HOUR` - valanda (0-23) Lietuvos laiku, kada siunčiama suvestinė (default: `8`)
+
 #### OAuth prisijungimo secrets:
 - `OSM_CLIENT_ID` / `OSM_CLIENT_SECRET` - registruojama https://www.openstreetmap.org/oauth2/applications (redirect URI: `https://openmap.lt/auth/osm/callback`, scope: `read_prefs`)
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - registruojama https://console.cloud.google.com/apis/credentials (redirect URI: `https://openmap.lt/auth/google/callback`, scope: `openid email profile`)

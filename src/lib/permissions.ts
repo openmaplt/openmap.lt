@@ -2,27 +2,18 @@ import "server-only";
 
 import { PERMISSIONS, type Permission } from "@/config/permissions";
 import { getCurrentUser } from "@/lib/auth";
-import { queryOne, queryOneOrThrow } from "@/lib/db";
+import { queryOneOrThrow } from "@/lib/db";
+import { getUserRole, ROLES, type Role } from "@/lib/users";
 
-export { PERMISSIONS };
-export type { Permission };
-
-export const ROLES = {
-  ADMIN: "admin",
-  MODERATOR: "moderator",
-} as const;
-
-export type Role = (typeof ROLES)[keyof typeof ROLES];
+export { PERMISSIONS, ROLES };
+export type { Permission, Role };
 
 export async function userHasPermission(
   userId: number,
   slug: Permission,
 ): Promise<boolean> {
-  const userRow = await queryOne<{ role: Role | null }>(
-    `select role from openmap.users where id = $1`,
-    [userId],
-  );
-  if (userRow?.role === ROLES.ADMIN) return true;
+  const role = await getUserRole(userId);
+  if (role === ROLES.ADMIN) return true;
 
   const row = await queryOneOrThrow<{ has_permission: boolean }>(
     `select exists (

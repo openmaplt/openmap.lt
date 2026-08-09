@@ -90,6 +90,12 @@ jobs:
             echo "OSM_CLIENT_SECRET=${{ secrets.OSM_CLIENT_SECRET }}" >> .env
             echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
             echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> .env
+            echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> .env
+            echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env
+            echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
+            echo "SMTP_FROM=${{ secrets.SMTP_FROM }}" >> .env
+            echo "MODERATION_DIGEST_HOUR=${{ secrets.MODERATION_DIGEST_HOUR || '8' }}" >> .env
 
             # Pull latest docker-compose.prod.yml
             curl -o docker-compose.prod.yml "https://raw.githubusercontent.com/${{ github.repository }}/$REPO_REF/docker-compose.prod.yml"

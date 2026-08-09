@@ -56,6 +56,10 @@ When a `DropdownMenuItem` needs to open a `Dialog` (e.g. the anonymous-user "Pri
 
 Sessions are stored in the DB (`openmap.sessions`, cookie `om_session`), not JWTs. OAuth providers: Google and OpenStreetMap (`src/lib/oauth/`). Roles/permissions via `permissions.ts` (`ROLES.ADMIN`/`ROLES.MODERATOR`, `PERMISSIONS.COMMENTS_MODERATE`) — admin always has every permission without a separate grant.
 
+### Moderation email digest
+
+`src/lib/mailer.ts` (nodemailer SMTP wrapper) + `src/lib/moderationDigest.ts` (queries pending comments/photos + admin/moderator recipients, builds the email) send **one daily digest** email to admins/moderators listing everything currently pending, instead of a notification per comment/photo — avoids flooding moderators when someone uploads many photos at once. Scheduled in-process via `src/instrumentation.ts` (Next.js's server-boot hook — no external cron needed since the app runs as a long-lived Docker container, not serverless) checking hourly against `MODERATION_DIGEST_HOUR` (default 8, Lithuanian local time — the Docker image sets `TZ=Europe/Vilnius` specifically for this). If `SMTP_HOST` isn't set, `sendMail` no-ops with a `console.warn` — mail failures/missing config must never break the comment/photo submission itself. New SMTP env vars need to be added in three places to actually reach production: `docker-compose.prod.yml` (`environment:`), `.github/workflows/deploy.yml` (the `.env` generation step), and `docs/DEPLOYMENT.md`'s secrets list.
+
 ## Working rules (for every agent)
 
 1. **Before every commit**: run `npm run format`, then `npm run lint`, fix any issues — ONLY THEN `git add`/`git commit`.

@@ -96,6 +96,26 @@ export const countPendingComments = cache(
   },
 );
 
+// Just the fields the moderation-digest email needs (src/lib/moderationDigest.ts)
+// — no author join, and no cache() since this runs from a scheduled timer,
+// outside any request context.
+export async function listPendingCommentSummaries(): Promise<
+  { poiName: string | null; objectRef: string; mapProfileId: string }[]
+> {
+  const result = await query(
+    `select poi_name, object_ref, map_profile_id
+     from openmap.poi_comments
+     where status = $1
+     order by created_at`,
+    [COMMENT_STATUS.PENDING],
+  );
+  return result.rows.map((row) => ({
+    poiName: row.poi_name,
+    objectRef: row.object_ref,
+    mapProfileId: row.map_profile_id,
+  }));
+}
+
 type ModeratedStatus =
   | typeof COMMENT_STATUS.APPROVED
   | typeof COMMENT_STATUS.REJECTED;

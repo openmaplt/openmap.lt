@@ -29,6 +29,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# tzdata: Alpine has no timezone database by default. Needed so the
+# moderation-digest scheduler (src/lib/moderationDigest.ts) fires at the
+# intended Lithuanian local hour instead of UTC.
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Vilnius
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
