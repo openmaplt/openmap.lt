@@ -63,7 +63,7 @@ export function RouteStepsList({
               : step;
           return (
             <RouteStepItem
-              key={`${idx}-${step.text.substring(0, 10)}`}
+              key={step.interval.join("-")}
               step={displayStep}
               idx={idx}
               actionWord={actionWord}

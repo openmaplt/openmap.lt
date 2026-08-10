@@ -1,5 +1,3 @@
-import type { LngLatBoundsLike } from "maplibre-gl";
-
 export const BASE_URL = process.env.BASE_URL ?? "https://openmap.lt";
 
 type Config = {
@@ -10,7 +8,7 @@ type Config = {
   DEFAULT_ZOOM: number;
   MIN_ZOOM: number;
   MAX_ZOOM: number;
-  BOUNDS: LngLatBoundsLike;
+  BOUNDS: [number, number, number, number];
 };
 
 export const MapConfig: Config = {

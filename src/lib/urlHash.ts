@@ -31,7 +31,7 @@ const LOCALSTORAGE_KEY = "openmap_state";
  * Example: #m/14/54.93429/23.91776/0/0 or #m/14/54.93429/23.91776/0/0/p2811970425
  */
 export function parseHash(hash: string): MapState | null {
-  if (!hash || !hash.startsWith("#")) {
+  if (!hash?.startsWith("#")) {
     return null;
   }
 

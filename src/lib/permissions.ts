@@ -5,8 +5,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { queryOneOrThrow } from "@/lib/db";
 import { getUserRole, ROLES, type Role } from "@/lib/users";
 
-export { PERMISSIONS, ROLES };
 export type { Permission, Role };
+export { PERMISSIONS, ROLES };
 
 export async function userHasPermission(
   userId: number,

@@ -23,7 +23,7 @@ export default function SafeImage({
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
+    // biome-ignore lint/performance/noImgElement: generic wrapper for arbitrary/external sources with an onError fallback, not eligible for next/image optimization
     <img
       src={src}
       alt={alt}

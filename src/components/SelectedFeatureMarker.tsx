@@ -25,7 +25,7 @@ import { useMapConfig, useMapSelection } from "@/providers/MapProvider";
 export function SelectedFeatureMarker() {
   const { selectedFeature: feature } = useMapSelection();
   const { activeMapProfile } = useMapConfig();
-  if (!feature || feature.geometry?.type !== "Point") return null;
+  if (feature?.geometry?.type !== "Point") return null;
 
   const [lng, lat] = (feature.geometry as Point).coordinates;
   const type = feature.properties?.TYPE;

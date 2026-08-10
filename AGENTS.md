@@ -40,6 +40,10 @@ Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS 4 · 
 
 ## Critical things you won't get from reading the code alone
 
+### maplibre-gl is pinned below v6 — don't bump without re-testing thoroughly
+
+`maplibre-gl` is intentionally kept at `^5.24.0`. Bumping to v6 needs an explicit `setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString())` call before any `<Map>` renders (v6 no longer auto-configures its worker under a bundler) — without it the map silently never fires `load` (style/sprite fetch fine, zero console errors, just a blank canvas forever). Even with that fix applied, as of Next.js 16.3.0 + Turbopack the vector tile sources still never finish loading (`sourcedata` fires with `isSourceLoaded: false` and then just stops — confirmed reproducible in a clean browser tab, not a stale-tab/WebGL-context artifact). This lines up with an open upstream report of Turbopack's dev server mismanaging MapLibre's worker protocol ([vercel/next.js#86495](https://github.com/vercel/next.js/issues/86495)), but the failure here reproduced in a production `next build` + standalone server too, so it isn't purely a dev-only issue. Re-attempt the v6 upgrade only with a fresh visual test (new browser tab, not a reused one — dozens of reloads in one tab can exhaust Chrome's per-tab WebGL context limit and produce a false "blank map" that looks identical but is unrelated).
+
 ### DB schema source of truth
 
 `docker/db/*.sql` is STALE and does NOT match the real schema. The real dev/prod PostgreSQL (schemas: `openmap`, `places`, `patrulis`, `address`, `public` + PostGIS/tiger) is reachable through a tunnel — connection string `DATABASE_URL` from `.env`/`.env.local`. Before designing any schema change, connect to the real DB (`psql "$DATABASE_URL"`) and check the current state. Apply DDL changes manually (`psql "$DATABASE_URL" -f sql/....sql`), not via `docker-entrypoint-initdb.d`. Keep reference DDL files in `sql/`, not `docker/db/`.
@@ -78,3 +82,13 @@ Sessions are stored in the DB (`openmap.sessions`, cookie `om_session`), not JWT
 ## Environment variables
 
 See `.env.example`. Key ones: `DATABASE_URL` (real DB via tunnel during dev), `OSM_CLIENT_ID`/`OSM_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `STVK_API_URL`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

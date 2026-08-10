@@ -178,10 +178,10 @@ export function PoiInteraction() {
             <SheetTitle>Pasirinkite objektą</SheetTitle>
           </SheetHeader>
           <div className="flex-1 flex flex-col overflow-y-auto">
-            {candidateFeatures.map((feature, index) => (
+            {candidateFeatures.map((feature) => (
               <button
                 type="button"
-                key={`${feature.id}-${index}`}
+                key={`${(feature as MapGeoJSONFeature).layer?.id}-${feature.id}`}
                 className="flex flex-col items-start px-4 py-4 hover:bg-accent transition-colors border-b text-left w-full"
                 onClick={() => handleSelectCandidate(feature)}
               >
