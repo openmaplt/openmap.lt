@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /prisijungimas
 
 Sitemap: https://openmap.lt/sitemap.xml

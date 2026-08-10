@@ -6,6 +6,10 @@ import { isSafeRelativePath } from "@/lib/oauth/state";
 
 export const metadata: Metadata = {
   title: "Prisijungimas",
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 interface PageProps {
