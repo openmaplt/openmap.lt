@@ -1,4 +1,5 @@
 import type { Feature } from "geojson";
+import { useCallback } from "react";
 import { SearchBox } from "@/components/SearchBox";
 import { getPoiInfo } from "@/data/poiInfo";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
@@ -9,7 +10,8 @@ import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 const SEARCH_RESULT_ZOOM = 16;
 
 export function SearchFeature() {
-  const { setSelectedFeature: onSelectFeature } = useMapActions();
+  const { setSelectedFeature: onSelectFeature, setHighlightedPoiIds } =
+    useMapActions();
   const { activeMapProfile } = useMapConfig();
   const { enrichFeature } = usePoiEnrichment(activeMapProfile.mapType);
 
@@ -43,10 +45,16 @@ export function SearchFeature() {
     });
   };
 
+  const handleAiHighlight = useCallback(
+    (ids: string[]) => setHighlightedPoiIds(ids.length > 0 ? ids : null),
+    [setHighlightedPoiIds],
+  );
+
   return (
     <SearchBox
       onSelectResult={handleSearchResultSelect}
       onSelectPoiId={handleAiPoiSelect}
+      onHighlightPoiIds={handleAiHighlight}
     />
   );
 }

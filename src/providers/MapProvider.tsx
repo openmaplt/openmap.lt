@@ -53,6 +53,10 @@ export type MapFeature = Feature & {
 interface MapSelectionContextType {
   selectedFeature: MapFeature | null;
   selectedPoiId: string | null;
+  // POI ids to visually emphasize on the map (AI search results, see
+  // AiSearchChat.tsx) — other places-layer markers are dimmed while this is
+  // set. `null` means no highlight is active.
+  highlightedPoiIds: string[] | null;
 }
 
 interface MapConfigContextType {
@@ -67,6 +71,7 @@ interface MapActionsContextType {
   setBbox: (bbox: LngLatBounds | null) => void;
   setSelectedFeature: (feature: MapFeature | null) => void;
   setSelectedPoiId: (id: string | null) => void;
+  setHighlightedPoiIds: (ids: string[] | null) => void;
   setMobileActiveMode: (mode: "search" | "filter" | "routing" | null) => void;
   handleOnChangeMapProfile: (profile: MapProfile) => void;
   handleOnPoiDetailsClose: () => void;
@@ -169,6 +174,9 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     initialPoiData,
   );
   const [selectedPoiId, setSelectedPoiId] = useState(poiIdFromUrl ?? null);
+  const [highlightedPoiIds, setHighlightedPoiIds] = useState<string[] | null>(
+    null,
+  );
   const [mobileActiveMode, setMobileActiveMode] = useState<
     "search" | "filter" | "routing" | null
   >(null);
@@ -197,6 +205,7 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     setSelectedPoiId(null);
     setSelectedFeature(null);
     setMobileActiveMode(null);
+    setHighlightedPoiIds(null);
   }, []);
 
   const handleOnPoiDetailsClose = useCallback(() => {
@@ -209,8 +218,8 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     [viewState, bbox],
   );
   const selectionValue = useMemo(
-    () => ({ selectedFeature, selectedPoiId }),
-    [selectedFeature, selectedPoiId],
+    () => ({ selectedFeature, selectedPoiId, highlightedPoiIds }),
+    [selectedFeature, selectedPoiId, highlightedPoiIds],
   );
   const configValue = useMemo(
     () => ({ activeMapProfile, mobileActiveMode }),
@@ -224,6 +233,7 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
       setBbox,
       setSelectedFeature,
       setSelectedPoiId,
+      setHighlightedPoiIds,
       setMobileActiveMode,
       handleOnChangeMapProfile,
       handleOnPoiDetailsClose,

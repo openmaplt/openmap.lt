@@ -4,6 +4,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import {
   convertToModelMessages,
   createProviderRegistry,
+  createUIMessageStream,
   createUIMessageStreamResponse,
   generateText,
   Output,
@@ -148,9 +149,23 @@ export async function streamSearchResponse(
     },
   });
 
-  // toUIMessageStreamResponse() on the result is deprecated in ai@7 in
-  // favor of these standalone helpers.
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
+  // A transient data part carries the matched POI ids to the client
+  // (AiSearchChat.tsx's onData) so the map can highlight them all — this is
+  // the full match set, unlike the [label](poi:<id>) markdown links, which
+  // only cover the 3-8 POIs the model chose to mention in its reply.
+  // "transient" keeps it out of persisted message history.
+  const stream = createUIMessageStream({
+    execute: ({ writer }) => {
+      writer.write({
+        type: "data-aiSearchResultIds",
+        data: poiList.map((p) => p.id),
+        transient: true,
+      });
+      // toUIMessageStreamResponse() on the result is deprecated in ai@7 in
+      // favor of these standalone helpers.
+      writer.merge(toUIMessageStream({ stream: result.stream }));
+    },
   });
+
+  return createUIMessageStreamResponse({ stream });
 }

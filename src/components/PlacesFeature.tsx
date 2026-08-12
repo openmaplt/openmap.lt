@@ -2,7 +2,7 @@
 
 import type { Feature } from "geojson";
 import type { GeoJSONFeature } from "maplibre-gl";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Layer, Source } from "react-map-gl/maplibre";
 import { PlacesFilter } from "@/components/PlacesFilter";
 import { PLACE_ICONS } from "@/config/places-icons";
@@ -23,7 +23,7 @@ interface PlacesFeatureProps {
 export function PlacesFeature({ initialFilterType }: PlacesFeatureProps) {
   const { mapRef, setSelectedFeature: onSelectFeature } = useMapActions();
   const { bbox } = useMapTransform();
-  const { selectedPoiId: poiId } = useMapSelection();
+  const { selectedPoiId: poiId, highlightedPoiIds } = useMapSelection();
   const { activeMapProfile } = useMapConfig();
   const mapType = activeMapProfile.mapType;
   const [filterTypes, setFilterTypes] = useState(() => {
@@ -85,6 +85,21 @@ export function PlacesFeature({ initialFilterType }: PlacesFeatureProps) {
     "icon-default",
   ];
 
+  // Dims every marker not in the AI search result set (see
+  // src/components/AiSearchChat.tsx) while a highlight is active — full
+  // opacity for everything otherwise. Feature ids are numeric on the
+  // GeoJSON source but string on highlightedPoiIds (from AiSearchPoiSummary),
+  // hence to-string.
+  const iconOpacityExpression = useMemo(() => {
+    if (!highlightedPoiIds || highlightedPoiIds.length === 0) return 1;
+    return [
+      "case",
+      ["in", ["to-string", ["id"]], ["literal", highlightedPoiIds]],
+      1,
+      0.15,
+    ];
+  }, [highlightedPoiIds]);
+
   return (
     <>
       <PlacesFilter
@@ -101,6 +116,8 @@ export function PlacesFeature({ initialFilterType }: PlacesFeatureProps) {
             "icon-size": 1,
             "icon-allow-overlap": true,
           }}
+          // biome-ignore lint/suspicious/noExplicitAny: same as icon-image above — react-map-gl's paint types don't model this expression shape.
+          paint={{ "icon-opacity": iconOpacityExpression as any }}
         />
       </Source>
     </>
