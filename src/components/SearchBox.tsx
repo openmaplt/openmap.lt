@@ -27,10 +27,15 @@ import { useRoute } from "@/providers/RouteProvider";
 interface SearchBoxProps {
   onSelectResult: (feature: Feature) => void;
   onSelectPoiId: (id: string) => void;
+  onHighlightPoiIds: (ids: string[]) => void;
 }
 
-export function SearchBox({ onSelectResult, onSelectPoiId }: SearchBoxProps) {
-  const { viewState, bbox } = useMapTransform();
+export function SearchBox({
+  onSelectResult,
+  onSelectPoiId,
+  onHighlightPoiIds,
+}: SearchBoxProps) {
+  const { viewState } = useMapTransform();
   const { activeMapProfile, mobileActiveMode } = useMapConfig();
   const { setMobileActiveMode } = useMapActions();
   const { routingMode, setRoutingMode } = useRoute();
@@ -222,9 +227,9 @@ export function SearchBox({ onSelectResult, onSelectPoiId }: SearchBoxProps) {
         <AiSearchChat
           open={showAiChat}
           onOpenChange={setAiChatOpen}
-          bbox={bbox}
           pos={[viewState?.longitude || 0, viewState?.latitude || 0]}
           onSelectPoiId={onSelectPoiId}
+          onHighlightIds={onHighlightPoiIds}
         />
       )}
     </div>

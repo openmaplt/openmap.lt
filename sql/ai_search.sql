@@ -12,9 +12,11 @@
 --   "groups": [
 --     {"types": "qr", "tagFilters": [{"key":"shop","value":"bakery"}], "keywords": ["kepykla","duona"]}
 --   ],
---   "bbox": [west, south, east, north],
 --   "pos": [lng, lat]
 -- }
+--
+-- Paieška NEAPRIBOTA matomu žemėlapio langu (bbox) — grąžina LIMIT
+-- artimiausius atitikmenis nuo pos, nepriklausomai nuo atstumo.
 --
 -- Grupės sujungiamos OR. Grupės viduje: struktūrinė dalis IR (keywords,
 -- jei nurodyta). Struktūrinė dalis: jei duoti abu types ir tagFilters, jie
@@ -32,7 +34,6 @@
 create or replace function places.ai_search(p_params jsonb) returns jsonb as $$
 declare
   r jsonb;
-  l_bbox_filter text;
   l_pos_point text;
   l_groups_where text;
   l_group jsonb;
@@ -46,14 +47,6 @@ declare
   l_query text;
   l_limit constant int := 25;
 begin
-  l_bbox_filter := format(
-    'geom && ST_SetSRID(''BOX(%s %s,%s %s)''::box2d, 4326)',
-    ((p_params->'bbox')->>0)::double precision,
-    ((p_params->'bbox')->>3)::double precision,
-    ((p_params->'bbox')->>2)::double precision,
-    ((p_params->'bbox')->>1)::double precision
-  );
-
   l_pos_point := format(
     'ST_SetSRID(ST_MakePoint(%s, %s), 4326)',
     ((p_params->'pos')->>0)::double precision,
@@ -124,11 +117,11 @@ begin
        select id, type, attr, geom,
               ST_Distance(ST_Transform(geom, 3346), ST_Transform(%s, 3346)) as dist
        from places.poi
-       where %s and (%s)
+       where (%s)
        order by dist
        limit %s
      ) matched',
-    l_pos_point, l_bbox_filter, l_groups_where, l_limit
+    l_pos_point, l_groups_where, l_limit
   );
 
   execute l_query into r;
@@ -141,4 +134,4 @@ exception when others then
 end
 $$ language plpgsql;
 
-comment on function places.ai_search(jsonb) is 'AI paieška: p_params.groups suformuoja LLM (per src/app/api/ai-search/route.ts) kaip struktūrizuotą JSON (types/tagFilters/keywords), NIEKADA kaip SQL. Grupės OR''inamos tarpusavyje; grupės viduje struktūrinė dalis (types AND tagFilters, kai duoti abu; arba tik vienas iš jų, kai duotas vienas) IR (keywords, jei yra). Naudoja places.get_where_condition (nepakeistą) tipams, attr->>key = value arba attr->>key is not null (kai value=''*'') tagFilters (patikrintus prieš TS whitelist''ą, žr. src/config/ai-search-catalog.ts), tsvector/trigram/ILIKE paieškai vardo/aprašymo tekste, ir atstumą nuo pos (SRID 3346) rikiavimui. Grąžina iki 25 GeoJSON Feature. Logguoja į places.log su prefiksu ''AI_SEARCH: ''.';
+comment on function places.ai_search(jsonb) is 'AI paieška: p_params.groups suformuoja LLM (per src/app/api/ai-search/route.ts) kaip struktūrizuotą JSON (types/tagFilters/keywords), NIEKADA kaip SQL. Grupės OR''inamos tarpusavyje; grupės viduje struktūrinė dalis (types AND tagFilters, kai duoti abu; arba tik vienas iš jų, kai duotas vienas) IR (keywords, jei yra). Naudoja places.get_where_condition (nepakeistą) tipams, attr->>key = value arba attr->>key is not null (kai value=''*'') tagFilters (patikrintus prieš TS whitelist''ą, žr. src/config/ai-search-catalog.ts), tsvector/trigram/ILIKE paieškai vardo/aprašymo tekste. NEfiltruoja pagal bbox — rikiuoja pagal atstumą nuo pos (SRID 3346) ir grąžina iki 25 artimiausius GeoJSON Feature, nepriklausomai nuo atstumo. Logguoja į places.log su prefiksu ''AI_SEARCH: ''.';

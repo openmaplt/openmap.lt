@@ -35,13 +35,9 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const messages = body.messages as UIMessage[];
-  const bbox = body.bbox as unknown;
   const pos = body.pos as unknown;
 
   if (
-    !Array.isArray(bbox) ||
-    bbox.length !== 4 ||
-    bbox.some((n) => typeof n !== "number" || !Number.isFinite(n)) ||
     !Array.isArray(pos) ||
     pos.length !== 2 ||
     pos.some((n) => typeof n !== "number" || !Number.isFinite(n)) ||
@@ -62,11 +58,7 @@ export async function POST(request: Request) {
   }
 
   const groups = sanitizePlan(plan);
-  const dbResult = await searchPlacesForAi(
-    groups,
-    bbox,
-    pos as [number, number],
-  );
+  const dbResult = await searchPlacesForAi(groups, pos as [number, number]);
   const poiList = toPoiSummaries(dbResult.features);
 
   return streamSearchResponse(messages, poiList);

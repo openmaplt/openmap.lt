@@ -11,14 +11,13 @@ const EMPTY_RESULT: FeatureCollection = {
 
 export async function searchPlacesForAi(
   groups: SanitizedAiSearchGroup[],
-  bbox: number[],
   pos: [number, number],
 ): Promise<FeatureCollection> {
   if (groups.length === 0) return EMPTY_RESULT;
 
   const result = await queryResult<AiSearchDbResult>(
     "SELECT places.ai_search($1::jsonb) as result",
-    [JSON.stringify({ groups, bbox, pos })],
+    [JSON.stringify({ groups, pos })],
   );
 
   if (result && "error" in result) {

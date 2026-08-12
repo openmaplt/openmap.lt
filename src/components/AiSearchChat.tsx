@@ -3,7 +3,6 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Send, Sparkles, Trash2 } from "lucide-react";
-import type { LngLatBounds } from "maplibre-gl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown, {
   type Components,
@@ -21,9 +20,12 @@ import { Textarea } from "@/components/ui/textarea";
 interface AiSearchChatProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  bbox: LngLatBounds | null;
   pos: [number, number];
   onSelectPoiId: (id: string) => void;
+  // Called with the full AI search result id set (see streamSearchResponse
+  // in src/lib/aiSearchClient.ts) so the map can highlight them, and with
+  // [] to clear the highlight (chat closed or cleared).
+  onHighlightIds: (ids: string[]) => void;
 }
 
 function extractMessageText(parts: { type: string; text?: string }[]): string {
@@ -36,31 +38,40 @@ function extractMessageText(parts: { type: string; text?: string }[]): string {
 export function AiSearchChat({
   open,
   onOpenChange,
-  bbox,
   pos,
   onSelectPoiId,
+  onHighlightIds,
 }: AiSearchChatProps) {
   const [input, setInput] = useState("");
 
-  const bboxArray = bbox
-    ? (bbox.toArray().flat() as [number, number, number, number])
-    : null;
-
-  // Recreating the transport on every bbox/pos change doesn't itself send a
+  // Recreating the transport on every pos change doesn't itself send a
   // request — it only sets what gets attached to the NEXT sendMessage call,
   // so no debouncing needed.
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: "/api/ai-search",
-        body: { bbox: bboxArray, pos },
+        body: { pos },
       }),
-    [bboxArray, pos],
+    [pos],
   );
 
   const { messages, sendMessage, setMessages, status, error } = useChat({
     transport,
+    // Transient "data-aiSearchResultIds" part (written in
+    // streamSearchResponse, src/lib/aiSearchClient.ts) — the full match set,
+    // not just the ids the model happened to mention in its reply.
+    onData: (dataPart) => {
+      if (dataPart.type === "data-aiSearchResultIds") {
+        onHighlightIds(dataPart.data as string[]);
+      }
+    },
   });
+
+  // Clear the map highlight once the chat is closed.
+  useEffect(() => {
+    if (!open) onHighlightIds([]);
+  }, [open, onHighlightIds]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -134,7 +145,10 @@ export function AiSearchChat({
               size="icon"
               variant="ghost"
               title="Išvalyti pokalbį"
-              onClick={() => setMessages([])}
+              onClick={() => {
+                setMessages([]);
+                onHighlightIds([]);
+              }}
             >
               <Trash2 className="size-4" />
             </Button>
