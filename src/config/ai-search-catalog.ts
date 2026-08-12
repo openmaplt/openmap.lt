@@ -26,6 +26,10 @@ export const AI_PROMPT_HINTS: Record<string, string> = {
 
 export type AiSearchTagFilter = {
   key: string;
+  // "*" is a sentinel meaning "this attr key is present, any value" (see
+  // sql/ai_search.sql) — for attrs storing free-form data (e.g. real_ale
+  // holds a beer-style list like "ipa;lager;stout", never a plain "yes"),
+  // not a boolean/enum worth matching exactly.
   value: string;
   description: string;
 };
@@ -45,9 +49,9 @@ export const AI_SEARCH_TAG_FILTERS: AiSearchTagFilter[] = [
   { key: "shop", value: "alcohol", description: "Alkoholio parduotuvės" },
   {
     key: "real_ale",
-    value: "yes",
+    value: "*",
     description:
-      'Baras/alude su tikru (real/craft) alumi — naudoti su types="r" (aludės, barai)',
+      'Vieta su tikru (real/craft) alumi — gali naudoti kartu su types="r" (aludės, barai), kad susiaurintų iki barų/aludžių',
   },
 ];
 

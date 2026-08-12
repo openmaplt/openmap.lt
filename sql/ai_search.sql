@@ -16,9 +16,16 @@
 --   "pos": [lng, lat]
 -- }
 --
--- Grupės sujungiamos OR. Grupės viduje: (types ARBA tagFilters) IR
--- (keywords, jei nurodyta). Grupė be types/tagFilters remiasi vien
--- keywords (pvz. "itališkas maistas" neturi atr. požymio duomenyse).
+-- Grupės sujungiamos OR. Grupės viduje: struktūrinė dalis IR (keywords,
+-- jei nurodyta). Struktūrinė dalis: jei duoti abu types ir tagFilters, jie
+-- jungiami AND (tagFilters susiaurina types, pvz. "barai su real_ale
+-- žyma"); jei duotas tik vienas iš jų, naudojamas tik jis (tagFilters tarp
+-- savęs jungiami OR). Grupė be types/tagFilters remiasi vien keywords (pvz.
+-- "itališkas maistas" neturi atr. požymio duomenyse).
+--
+-- tagFilters reikšmė "*" reiškia "šis attr raktas egzistuoja, nepriklausomai
+-- nuo reikšmės" (pvz. real_ale DB'je yra alaus stilių sąrašas, ne "yes") —
+-- žr. src/config/ai-search-catalog.ts.
 --
 -- Visos laisvo teksto reikšmės į dinaminį SQL įterpiamos TIK per
 -- format(...,%L) (quote_literal), niekada tiesiogine konkatenacija.
@@ -31,8 +38,10 @@ declare
   l_group jsonb;
   l_group_types text;
   l_group_struct text;
+  l_group_tags text;
   l_group_keywords text;
   l_tag jsonb;
+  l_tag_cond text;
   l_kw text;
   l_query text;
   l_limit constant int := 25;
@@ -57,16 +66,29 @@ begin
   loop
     l_group_types := coalesce(l_group->>'types', '');
 
+    -- tagFilters tarp savęs OR'inami (bet kuris atitikmuo tinka), tada visa
+    -- tai AND'inama su types (jei jis nurodytas) — tagFilters susiaurina
+    -- types, ne prideda alternatyvių eilučių.
+    l_group_tags := 'false';
+    for l_tag in select * from jsonb_array_elements(coalesce(l_group->'tagFilters', '[]'::jsonb))
+    loop
+      if l_tag->>'value' = '*' then
+        l_tag_cond := format('attr->>%L is not null', l_tag->>'key');
+      else
+        l_tag_cond := format('attr->>%L = %L', l_tag->>'key', l_tag->>'value');
+      end if;
+      l_group_tags := l_group_tags || ' or (' || l_tag_cond || ')';
+    end loop;
+
     if l_group_types = '' and jsonb_array_length(coalesce(l_group->'tagFilters', '[]'::jsonb)) = 0 then
       -- Nėra struktūrinio filtro šiai grupei — sprendžia vien keywords.
       l_group_struct := 'true';
-    else
+    elsif l_group_types = '' then
+      l_group_struct := '(' || l_group_tags || ')';
+    elsif jsonb_array_length(coalesce(l_group->'tagFilters', '[]'::jsonb)) = 0 then
       l_group_struct := '(' || places.get_where_condition(l_group_types) || ')';
-
-      for l_tag in select * from jsonb_array_elements(coalesce(l_group->'tagFilters', '[]'::jsonb))
-      loop
-        l_group_struct := l_group_struct || format(' or (attr->>%L = %L)', l_tag->>'key', l_tag->>'value');
-      end loop;
+    else
+      l_group_struct := '(' || places.get_where_condition(l_group_types) || ') and (' || l_group_tags || ')';
     end if;
 
     if jsonb_array_length(coalesce(l_group->'keywords', '[]'::jsonb)) = 0 then
@@ -119,4 +141,4 @@ exception when others then
 end
 $$ language plpgsql;
 
-comment on function places.ai_search(jsonb) is 'AI paieška: p_params.groups suformuoja LLM (per src/app/api/ai-search/route.ts) kaip struktūrizuotą JSON (types/tagFilters/keywords), NIEKADA kaip SQL. Grupės OR''inamos tarpusavyje; grupės viduje (types ARBA tagFilters) IR (keywords, jei yra). Naudoja places.get_where_condition (nepakeistą) tipams, attr->>key = value tagFilters (patikrintus prieš TS whitelist''ą, žr. src/config/ai-search-catalog.ts), tsvector/trigram/ILIKE paieškai vardo/aprašymo tekste, ir atstumą nuo pos (SRID 3346) rikiavimui. Grąžina iki 25 GeoJSON Feature. Logguoja į places.log su prefiksu ''AI_SEARCH: ''.';
+comment on function places.ai_search(jsonb) is 'AI paieška: p_params.groups suformuoja LLM (per src/app/api/ai-search/route.ts) kaip struktūrizuotą JSON (types/tagFilters/keywords), NIEKADA kaip SQL. Grupės OR''inamos tarpusavyje; grupės viduje struktūrinė dalis (types AND tagFilters, kai duoti abu; arba tik vienas iš jų, kai duotas vienas) IR (keywords, jei yra). Naudoja places.get_where_condition (nepakeistą) tipams, attr->>key = value arba attr->>key is not null (kai value=''*'') tagFilters (patikrintus prieš TS whitelist''ą, žr. src/config/ai-search-catalog.ts), tsvector/trigram/ILIKE paieškai vardo/aprašymo tekste, ir atstumą nuo pos (SRID 3346) rikiavimui. Grąžina iki 25 GeoJSON Feature. Logguoja į places.log su prefiksu ''AI_SEARCH: ''.';
