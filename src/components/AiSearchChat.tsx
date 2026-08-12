@@ -4,7 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Send, Sparkles, Trash2 } from "lucide-react";
 import type { LngLatBounds } from "maplibre-gl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown, {
   type Components,
   defaultUrlTransform,
@@ -61,6 +61,15 @@ export function AiSearchChat({
   const { messages, sendMessage, setMessages, status, error } = useChat({
     transport,
   });
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // The input now sits at the top (see below), so new messages grow
+  // downward, out of view, unless we scroll to them ourselves.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-runs on every message/status change, though it only reads the ref
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ block: "end" });
+  }, [messages, status]);
 
   // `poi:<id>` links (see buildSecondCallSystemPrompt in
   // src/app/api/ai-search/route.ts) are intercepted here and call
@@ -132,7 +141,30 @@ export function AiSearchChat({
           )}
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 flex flex-col gap-3">
+        <div className="p-4 border-b flex gap-2">
+          <Textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="Klauskite apie vietas..."
+            className="min-h-10 resize-none"
+            rows={1}
+          />
+          <Button
+            size="icon"
+            onClick={handleSend}
+            disabled={status === "submitted" || status === "streaming"}
+          >
+            <Send className="size-4" />
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
           {messages.length === 0 && (
             <p className="text-sm text-muted-foreground">
               Paklauskite, pvz. „kur galiu suvalgyti cepelinų netoliese?“ arba
@@ -166,29 +198,7 @@ export function AiSearchChat({
               {error?.message || "Kilo klaida, pabandykite vėliau."}
             </p>
           )}
-        </div>
-
-        <div className="p-4 border-t flex gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder="Klauskite apie vietas..."
-            className="min-h-10 resize-none"
-            rows={1}
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={status === "submitted" || status === "streaming"}
-          >
-            <Send className="size-4" />
-          </Button>
+          <div ref={messagesEndRef} />
         </div>
       </SheetContent>
     </Sheet>
