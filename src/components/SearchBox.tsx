@@ -138,7 +138,11 @@ export function SearchBox({ onSelectResult, onSelectPoiId }: SearchBoxProps) {
                 </InputGroupButton>
               </InputGroupAddon>
             )}
-          {user?.isAdmin && (
+          {/* places.ai_search only ever queries places.poi — the feature
+              is meaningless (and poi: links resolve against the wrong
+              dataset) on any other profile (bike trails, rivers, saugomos,
+              general map). */}
+          {user?.isAdmin && mapType === "places" && (
             <InputGroupAddon align="inline-end">
               <InputGroupButton
                 onClick={() => setAiChatOpen(true)}
@@ -214,7 +218,7 @@ export function SearchBox({ onSelectResult, onSelectPoiId }: SearchBoxProps) {
         </div>
       )}
 
-      {user?.isAdmin && (
+      {user?.isAdmin && mapType === "places" && (
         <AiSearchChat
           open={showAiChat}
           onOpenChange={setAiChatOpen}
