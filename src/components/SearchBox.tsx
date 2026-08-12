@@ -1,8 +1,9 @@
 "use client";
 
 import type { Feature } from "geojson";
-import { Navigation, Search, X } from "lucide-react";
+import { Navigation, Search, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { AiSearchChat } from "@/components/AiSearchChat";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -14,22 +15,27 @@ import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
 import { useSearch } from "@/hooks/use-search";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/providers/AuthProvider";
 import {
   useMapActions,
   useMapConfig,
+  useMapSelection,
   useMapTransform,
 } from "@/providers/MapProvider";
 import { useRoute } from "@/providers/RouteProvider";
 
 interface SearchBoxProps {
   onSelectResult: (feature: Feature) => void;
+  onSelectPoiId: (id: string) => void;
 }
 
-export function SearchBox({ onSelectResult }: SearchBoxProps) {
-  const { viewState } = useMapTransform();
+export function SearchBox({ onSelectResult, onSelectPoiId }: SearchBoxProps) {
+  const { viewState, bbox } = useMapTransform();
   const { activeMapProfile, mobileActiveMode } = useMapConfig();
   const { setMobileActiveMode } = useMapActions();
   const { routingMode, setRoutingMode } = useRoute();
+  const { user } = useAuth();
+  const { selectedFeature } = useMapSelection();
   const mapCenter = {
     lat: viewState?.latitude || 0,
     lng: viewState?.longitude || 0,
@@ -37,11 +43,21 @@ export function SearchBox({ onSelectResult }: SearchBoxProps) {
   const mapType = activeMapProfile.mapType;
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [aiChatOpen, setAiChatOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { results, loading } = useSearch(query, mapCenter, mapType);
 
   const isMobile = useIsMobile();
+
+  // On mobile, the AI chat (side="right", nearly full width) covers the POI
+  // details sheet (side="bottom") opened by a `poi:` link click — the user
+  // can no longer see the marker on the map. `aiChatOpen` stays the user's
+  // INTENT (true until they click X); `showAiChat` is the actual
+  // visibility — auto-hidden on mobile while POI details are showing, and
+  // restored once they close, with no loss of chat state (AiSearchChat
+  // never unmounts).
+  const showAiChat = aiChatOpen && !(isMobile && selectedFeature);
 
   const handleSelect = (feature: Feature) => {
     onSelectResult(feature);
@@ -122,6 +138,16 @@ export function SearchBox({ onSelectResult }: SearchBoxProps) {
                 </InputGroupButton>
               </InputGroupAddon>
             )}
+          {user?.isAdmin && (
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                onClick={() => setAiChatOpen(true)}
+                title="AI paieška"
+              >
+                <Sparkles className="w-4 h-4 text-purple-500" />
+              </InputGroupButton>
+            </InputGroupAddon>
+          )}
         </InputGroup>
       )}
 
@@ -186,6 +212,16 @@ export function SearchBox({ onSelectResult }: SearchBoxProps) {
             )}
           </ul>
         </div>
+      )}
+
+      {user?.isAdmin && (
+        <AiSearchChat
+          open={showAiChat}
+          onOpenChange={setAiChatOpen}
+          bbox={bbox}
+          pos={[viewState?.longitude || 0, viewState?.latitude || 0]}
+          onSelectPoiId={onSelectPoiId}
+        />
       )}
     </div>
   );

@@ -35,4 +35,10 @@ export const RATE_LIMIT_TIERS = {
   // Abuse-prone actions worth a stricter, longer window (posting content,
   // starting an auth flow).
   strict: { limit: 10, windowMs: 60_000 },
+  // AI chat search (src/app/api/ai-search/route.ts): each request costs two
+  // real Gemini calls — this tier exists to bound spend, not just abuse.
+  // Admin-only + low volume, so a modest cap is enough. In-memory/per-process
+  // like the other tiers — doesn't cap aggregate spend across instances, an
+  // accepted gap while this stays single-instance/admin-only.
+  aiSearch: { limit: 15, windowMs: 60_000 },
 } as const;

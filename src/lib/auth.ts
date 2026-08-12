@@ -7,6 +7,7 @@ import { query, queryOne, queryOneOrThrow } from "@/lib/db";
 import type { Provider } from "@/lib/oauth/providers";
 import { PG_UNIQUE_VIOLATION } from "@/lib/pgErrorCodes";
 import { hash } from "@/lib/serverUtils";
+import { ROLES, type Role } from "@/lib/users";
 
 const SESSION_COOKIE_NAME = "om_session";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -16,6 +17,11 @@ export type PublicUser = {
   username: string | null;
   name: string | null;
   avatarUrl: string | null;
+  // Derived from openmap.users.role — only the boolean is exposed to the
+  // client (never the raw role string), enough to gate the AI search
+  // trigger button (src/components/SearchBox.tsx). The actual authorization
+  // boundary is always the server-side check in the API route, not this.
+  isAdmin: boolean;
 };
 
 export type ProviderProfile = {
@@ -31,12 +37,14 @@ function toPublicUser(row: {
   username: string | null;
   name: string | null;
   avatar_url: string | null;
+  role: Role | null;
 }): PublicUser {
   return {
     id: row.id,
     username: row.username,
     name: row.name,
     avatarUrl: row.avatar_url,
+    isAdmin: row.role === ROLES.ADMIN,
   };
 }
 
@@ -50,8 +58,9 @@ export async function getCurrentUser(): Promise<PublicUser | null> {
     username: string | null;
     name: string | null;
     avatar_url: string | null;
+    role: Role | null;
   }>(
-    `select u.id, u.username, u.name, u.avatar_url
+    `select u.id, u.username, u.name, u.avatar_url, u.role
      from openmap.sessions s
      join openmap.users u on u.id = s.user_id
      where s.token_hash = $1 and s.expires_at > now()`,

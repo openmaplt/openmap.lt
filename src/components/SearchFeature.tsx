@@ -1,5 +1,6 @@
 import type { Feature } from "geojson";
 import { SearchBox } from "@/components/SearchBox";
+import { getPoiInfo } from "@/data/poiInfo";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
 import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
@@ -23,5 +24,29 @@ export function SearchFeature() {
     onSelectFeature({ ...enriched, flyToZoom: SEARCH_RESULT_ZOOM });
   };
 
-  return <SearchBox onSelectResult={handleSearchResultSelect} />;
+  // AI chat search results (src/components/AiSearchChat.tsx) carry no
+  // geometry over the LLM stream — only an id, so this calls getPoiInfo
+  // directly (not enrichFeature, which trusts the geometry of the feature
+  // passed to it — we have none here). The camera is still driven by the
+  // same setSelectedFeature.
+  const handleAiPoiSelect = async (id: string) => {
+    const info = await getPoiInfo(id, activeMapProfile.mapType);
+    if (!info?.properties || !info.geometry) return;
+
+    onSelectFeature({
+      type: "Feature",
+      id,
+      geometry: info.geometry,
+      properties: { ...info.properties, id },
+      ...(info.extent ? { extent: info.extent } : {}),
+      flyToZoom: SEARCH_RESULT_ZOOM,
+    });
+  };
+
+  return (
+    <SearchBox
+      onSelectResult={handleSearchResultSelect}
+      onSelectPoiId={handleAiPoiSelect}
+    />
+  );
 }

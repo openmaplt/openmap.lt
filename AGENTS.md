@@ -28,14 +28,14 @@ Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS 4 · 
 
 - `src/app/[[...slug]]/` — the main map page (catch-all route); profiles render based on the slug
 - `src/app/(pages)/` — static/account pages: `paskyra` (account/dashboard), `prisijungimas` (login), `kontaktai` (contact), `prisidekite` (contribute), `bendra-informacija` / `technine-informacija` (general/technical info), `zemelapio-duomenys` (map data)
-- `src/app/api/` — API route handlers (currently only `comments`); most logic goes through server actions instead of new API routes
+- `src/app/api/` — API route handlers (`comments`, `ai-search`); most logic goes through server actions instead of new API routes — `ai-search` is a deliberate exception (streaming, see below), not a precedent for defaulting to route handlers
 - `src/actions/` — Next.js server actions (`auth`, `comments`, `accountLinking`) — prefer this over adding a new API route for mutations
 - `src/components/` — UI; subfolders: `ui/` (shadcn primitives), `route/` (navigation/routing), `comments/`, `gallery/`, `dashboard/`, `account/`, `auth/`, `controls/` (map controls)
 - `src/lib/` — server-only logic: `auth.ts` (sessions), `db.ts` (pg pool), `permissions.ts` (roles/permissions), `oauth/` (google, osm), `stvk/` (protected-area API integration), `comments.ts`, `rateLimit.ts`, `geo.ts` / `polyline.ts` / `routeUtils.ts` (routing)
 - `src/data/` — static POI/profile definitions (`omProfiles`, `poiInfo`, `poiList`, `protectedPhotos`, `search`)
 - `src/config/` — map config (`config.ts`), navigation, per-profile filters
 - `src/hooks/` — `use-*` hooks for routing, map sync, search, etc.
-- `sql/` — DDL files as DOCUMENTATION of the current schema (roles, auth, comments); applied manually, NOT an auto-migration system
+- `sql/` — DDL files as DOCUMENTATION of the current schema (roles, auth, comments, `ai_search` function); applied manually, NOT an auto-migration system
 - `docker/db/` — only the local `docker-compose` PostgreSQL seed, an OLD/incomplete schema — never treat as the schema source of truth (see below)
 
 ## Critical things you won't get from reading the code alone
@@ -64,12 +64,20 @@ Sessions are stored in the DB (`openmap.sessions`, cookie `om_session`), not JWT
 
 `src/lib/mailer.ts` (nodemailer SMTP wrapper) + `src/lib/moderationDigest.ts` (queries pending comments/photos + admin/moderator recipients, builds the email) send **one daily digest** email to admins/moderators listing everything currently pending, instead of a notification per comment/photo — avoids flooding moderators when someone uploads many photos at once. Scheduled in-process via `src/instrumentation.ts` (Next.js's server-boot hook — no external cron needed since the app runs as a long-lived Docker container, not serverless) checking hourly against `MODERATION_DIGEST_HOUR` (default 8, Lithuanian local time — the Docker image sets `TZ=Europe/Vilnius` specifically for this). If `SMTP_HOST` isn't set, `sendMail` no-ops with a `console.warn` — mail failures/missing config must never break the comment/photo submission itself. New SMTP env vars need to be added in three places to actually reach production: `docker-compose.prod.yml` (`environment:`), `.github/workflows/deploy.yml` (the `.env` generation step), and `docs/DEPLOYMENT.md`'s secrets list.
 
+### AI chat search (Gemini) — admin-only, why a Route Handler, and the SQL-injection decision
+
+`src/app/api/ai-search/route.ts` powers an admin-only AI chat Sheet (trigger button in `SearchBox.tsx`, gated on `useAuth().user?.isAdmin`) that turns a free-text query into place results. It is a **Route Handler, not a server action**, specifically because the response streams token-by-token — Next.js server actions are single-roundtrip only and dispatch one at a time per client (see `node_modules/next/dist/docs/01-app/02-guides/server-actions.md`). This is the one deliberate exception to "prefer server actions"; don't generalize from it.
+
+The core design decision (discussed at length, not accidental): the LLM **never produces SQL**. It only returns a Zod-validated JSON plan (`src/lib/aiSearchSchema.ts`: `groups[].{types, tagFilters, keywords}`), which is then re-validated server-side (`sanitizePlan`) against a fixed whitelist (`src/config/ai-search-catalog.ts`) *before* being passed to `places.ai_search` (`sql/ai_search.sql`). `types` reuses the existing `places.get_where_condition` letter-code catalog (`src/config/places-filters.ts`) unchanged; `tagFilters` is a small, manually-curated list of exact `attr` key/value pairs confirmed against real DB counts (e.g. `shop=bakery`, `real_ale=yes`) — extend it only after re-confirming against the live DB, never let the model invent a new key/value. `keywords` are free-text synonyms the model generates, matched via parameterized `tsvector`/trigram/`ILIKE`, never string-concatenated as raw SQL syntax. The second LLM call (response synthesis) is given the exact id→name list of DB results and told to reference only those via `[label](poi:<id>)` markdown links — it must never invent an id. The client's markdown renderer (`AiSearchChat.tsx`) intercepts `poi:` links and calls the same `setSelectedFeature`/camera-fly mechanism `SearchFeature.tsx` already uses for normal search results (via `getPoiInfo`, not `usePoiEnrichment`, since a chat result only carries an id, no pre-existing feature geometry to fall back on).
+
+Two version-specific gotchas hit during implementation, worth knowing before touching this code again: (1) `@ai-sdk/google`'s bare `google`/`createGoogleGenerativeAI()` reads `GOOGLE_GENERATIVE_AI_API_KEY` from env by default — this repo's key is named `GEMINI_API_KEY`, so `createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY })` must be called explicitly, or it silently breaks in production. (2) `generateObject` (used for the first LLM call) is marked `@deprecated` in `ai@7` in favor of `generateText({ output: Output.object({ schema }) })` — still fully functional in the installed version, kept for simplicity; re-check if bumping the `ai` package majors. `messages` from `useChat` are `UIMessage[]` and must go through `convertToModelMessages()` before reaching `streamText`/`generateObject`.
+
 ## Working rules (for every agent)
 
 1. **Before every commit**: run `npm run format`, then `npm run lint`, fix any issues — ONLY THEN `git add`/`git commit`.
 2. **Never commit on your own initiative.** Only when the user explicitly asks for it, at that moment — an earlier "commit" request does not carry forward to later changes in the same session.
 3. **UI/frontend changes**: verify by actually rendering the app and taking screenshots (e.g. Playwright), not just lint/typecheck. This project has many floating/overlapping elements over the map that only break visibly once actually rendered.
-4. **Language**: the app's UI text and communication with the (Lithuanian-speaking) maintainer should be in Lithuanian. Code/identifiers/commit messages can be in English or Lithuanian (existing practice is mixed).
+4. **Language**: the app's UI text and communication with the (Lithuanian-speaking) maintainer should be in Lithuanian. **Code comments and identifiers should be English** — the maintainer wants the codebase forkable/readable by non-Lithuanian speakers (existing older comments are mixed; don't feel obligated to retrofix them, but write new comments in English). LLM prompt strings and other Lithuanian *application content* (not comments) stay Lithuanian, since that's the app's UI language, not code documentation. Commit messages can be in English or Lithuanian.
 
 ## Commands
 
@@ -81,7 +89,7 @@ Sessions are stored in the DB (`openmap.sessions`, cookie `om_session`), not JWT
 
 ## Environment variables
 
-See `.env.example`. Key ones: `DATABASE_URL` (real DB via tunnel during dev), `OSM_CLIENT_ID`/`OSM_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `STVK_API_URL`.
+See `.env.example`. Key ones: `DATABASE_URL` (real DB via tunnel during dev), `OSM_CLIENT_ID`/`OSM_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `STVK_API_URL`, `GEMINI_API_KEY` (AI chat search, see below).
 
 <!-- BEGIN:nextjs-agent-rules -->
 
