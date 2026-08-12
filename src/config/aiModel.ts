@@ -9,4 +9,4 @@
 // the Vercel AI Gateway by default, which needs its own Vercel-side
 // credentials and doesn't fit this self-hosted Docker app (billed directly
 // against our own GEMINI_API_KEY).
-export const AI_MODEL_ID = "google:gemini-3.5-flash-lite";
+export const AI_MODEL_ID = "google:gemini-3.5-flash";

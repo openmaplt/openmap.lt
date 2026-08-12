@@ -22,6 +22,10 @@ export const ALL_PLACE_TYPE_CODES = PLACES_FILTERS.flatMap((category) =>
 export const AI_PROMPT_HINTS: Record<string, string> = {
   b: "senoviniai žemės įtvirtinimai, NE mūrinės/akmeninės pilys",
   a: "ČIA patenka mūrinės/akmeninės pilys (pvz. „Kauno pilis“, „Trakų pilis“), rūmai, kiti istoriniai statiniai",
+  J: "naudok šį kodą bendram/nekonkretizuotam „bažnyčia“/„bažnyčios“ atvejui (dauguma Lietuvos bažnyčių yra katalikų), nebent aiškiai nurodyta kita konfesija",
+  K: "TIK jei aiškiai nurodyta „evangelikų“/„liuteronų“/„reformatų“ bažnyčia",
+  L: "TIK jei aiškiai nurodyta „stačiatikių“ bažnyčia arba „cerkvė“",
+  M: "kitų (ne krikščioniškų) religijų maldos namai — sinagogos, mečetės ir pan.",
 };
 
 export type AiSearchTagFilter = {
@@ -51,7 +55,7 @@ export const AI_SEARCH_TAG_FILTERS: AiSearchTagFilter[] = [
     key: "real_ale",
     value: "*",
     description:
-      'Vieta su tikru (real/craft) alumi — gali naudoti kartu su types="r" (aludės, barai), kad susiaurintų iki barų/aludžių',
+      'PRIVALOMA naudoti kartu su types=["r"], KAI TIK užklausoje minimas žodis "craft"/"craftinis"/"amatininkų"/"tikras" alus — be šio tag\'o rezultatuose bus VISI barai/aludės, ne tik tie su craft alumi',
   },
 ];
 

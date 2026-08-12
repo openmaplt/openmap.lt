@@ -49,7 +49,7 @@ Kiekviena grupė gali turėti:
 ${buildPlaceTypeCatalogPrompt()}
 - "tagFilterIds": masyvą id IŠ ŠIO SĄRAŠO (tikslūs faktai, kai jie tinka, pvz. ["shop=bakery"]):
 ${buildTagFilterCatalogPrompt()}
-- "keywords": 2-6 lietuviškus sinonimus/susijusius žodžius (NE pažodinį vartotojo pasikartojimą), kai nėra tikslaus tipo/tag atitikmens (pvz. virtuvės rūšis, konkretus patiekalas).
+- "keywords": 2-6 lietuviškus sinonimus/susijusius žodžius (NE pažodinį vartotojo pasikartojimą), kai nėra tikslaus tipo/tag atitikmens (pvz. virtuvės rūšis, konkretus patiekalas). IŠIMTIS: jei vartotojas paminėjo KONKRETŲ VIETOS/OBJEKTO PAVADINIMĄ (pvz. darželis "Žingsnelis", baras "Špunka"), VISADA įtrauk TIKSLŲ tą pavadinimą (ne sinonimą, ne bendrą kategoriją) kaip keyword — net jei tinka konkretus "types" kodas tai kategorijai. Šiuo atveju "types" (jei toks yra) IR pavadinimo keyword naudojami KARTU toje pačioje grupėje — pavadinimas susiaurina iki BŪTENT to vieno objekto, ne visos kategorijos.
 
 TAISYKLĖS DĖL "types" (SVARBU, LAIKYKIS TIKSLIAI):
 1. Rašyk NE DAUGIAU KAIP 1-3 KODUS.
@@ -57,7 +57,16 @@ TAISYKLĖS DĖL "types" (SVARBU, LAIKYKIS TIKSLIAI):
 3. NIEKADA nerašyk daugiau nei 3 kodų — jei neaišku, rink 1 labiausiai tikėtiną arba palik [].
 4. Ignoruok visus katalogo kodus, kurie NEsusiję su užklausa.
 
-Jei užklausa turi kelis skirtingus norus (pvz. "itališko maisto IR craft alaus"), sukurk KELIAS ATSKIRAS grupes masyve "groups", ne vieną sujungtą — jos bus sujungtos "arba". Jei grupei tinka konkretus tipas/tag, naudok jį PIRMENYBĖS TVARKA prieš keywords — jis tikslesnis. Visada grąžink bent vieną grupę.`;
+TAISYKLĖS DĖL GRUPIŲ IR "tagFilterIds" (SVARBU, LAIKYKIS TIKSLIAI):
+5. Jei "types" IR "tagFilterIds" abu tinka TAI PAČIAI vartotojo minčiai (pvz. "craftinio alaus baras" = tipas "r" + tag "real_ale=*"), abu įrašyk Į TĄ PAČIĄ grupę (tas pats grupės objektas, abu laukai užpildyti kartu). NIEKADA nekurk atskiros grupės vien su "types" IR dar vienos atskiros grupės vien su "tagFilterIds" tai pačiai minčiai — grupės jungiamos "ARBA", tad atskira "types" grupė be tag filtro grąžins VISUS to tipo objektus ir taip prarasi susiaurinimą.
+6. Kelias ATSKIRAS grupes kurk TIK kai vartotojas nori kelių NESUSIJUSIŲ dalykų (pvz. "itališko maisto IR craft alaus" — viena grupė itališkam maistui per keywords, kita grupė craft alui su types+tagFilterIds kartu, kaip 5 taisyklėje).
+7. Jei "tagFilterIds" sąrašo aprašyme parašyta "PRIVALOMA" ir užklausoje yra tą aprašymą atitinkantis žodis, VISADA įtrauk tą tagFilterId — net jei atitinkamas "types" kodas atrodo pakankamas be jo. Vien "types" BE "tagFilterIds" tokiu atveju yra KLAIDINGAS atsakymas.
+
+PAVYZDYS: užklausa "kur galiu paragauti craftinio alaus?" →
+TEISINGAI: {"groups": [{"types": ["r"], "tagFilterIds": ["real_ale=*"], "keywords": []}]} — VIENA grupė, abu laukai kartu.
+NETEISINGAI: {"groups": [{"types": ["r"], ...}, {"tagFilterIds": ["real_ale=*"], ...}]} — dvi atskiros grupės tai pačiai minčiai grąžintų VISUS barus, ne tik craftinius.
+
+Jei vartotojas klausia apie BENDRĄ KATEGORIJĄ (ne konkretų pavadinimą), naudok tipą/tag PIRMENYBĖS TVARKA prieš keywords — jis tikslesnis. Jei vartotojas paminėjo KONKRETŲ PAVADINIMĄ, žr. IŠIMTĮ prie "keywords" aukščiau. Visada grąžink bent vieną grupę.`;
 }
 
 export type AiSearchPoiSummary = {
