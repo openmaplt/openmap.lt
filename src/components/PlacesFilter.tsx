@@ -23,7 +23,7 @@ export function PlacesFilter({
   const { setMobileActiveMode } = useMapActions();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
-    PLACES_FILTERS.map((c) => c.label),
+    PLACES_FILTERS.map((c) => c.id),
   );
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -44,9 +44,9 @@ export function PlacesFilter({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleCategory = (label: string) => {
+  const toggleCategory = (id: string) => {
     setExpandedCategories((prev) =>
-      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label],
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
   };
 
@@ -140,7 +140,7 @@ export function PlacesFilter({
 
           <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
             {PLACES_FILTERS.map((category) => {
-              const isExpanded = expandedCategories.includes(category.label);
+              const isExpanded = expandedCategories.includes(category.id);
               const selectionState = getCategorySelectionState(category);
               const selectedCount = category.items.filter((i) =>
                 selectedTypes.includes(i.id),
@@ -148,7 +148,7 @@ export function PlacesFilter({
 
               return (
                 <div
-                  key={category.label}
+                  key={category.id}
                   className="border rounded-md overflow-hidden bg-card/50"
                 >
                   <div
@@ -167,7 +167,7 @@ export function PlacesFilter({
                         "flex items-center gap-2 flex-1 has-[>svg]:px-0 hover:bg-transparent py-0",
                         selectionState !== "none" && category.textColor,
                       )}
-                      onClick={() => toggleCategory(category.label)}
+                      onClick={() => toggleCategory(category.id)}
                     >
                       {isExpanded ? (
                         <ChevronDown className="size-4" />

@@ -52,7 +52,24 @@ export type FilterItem = {
   icon: React.ElementType;
 };
 
+export const FILTER_GROUP_ID = {
+  HERITAGE: "heritage",
+  TOURISM: "tourism",
+  ACCOMMODATION: "accommodation",
+  TRANSPORT: "transport",
+  FOOD: "food",
+  CULTURE: "culture",
+  HEALTH: "health",
+  SHOPS: "shops",
+  RELIGION: "religion",
+  OFFICES: "offices",
+  FINANCE: "finance",
+} as const;
+
+export type FilterGroupId = (typeof FILTER_GROUP_ID)[keyof typeof FILTER_GROUP_ID];
+
 export type FilterCategory = {
+  id: FilterGroupId;
   label: string;
   color: string;
   textColor: string;
@@ -62,6 +79,7 @@ export type FilterCategory = {
 
 export const PLACES_FILTERS: FilterCategory[] = [
   {
+    id: FILTER_GROUP_ID.HERITAGE,
     label: "Paveldas",
     color: "bg-amber-700",
     textColor: "text-amber-700",
@@ -75,6 +93,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.TOURISM,
     label: "Turizmas",
     color: "bg-green-700",
     textColor: "text-green-700",
@@ -91,6 +110,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.ACCOMMODATION,
     label: "Apgyvendinimas",
     color: "bg-blue-700",
     textColor: "text-blue-700",
@@ -102,6 +122,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.TRANSPORT,
     label: "Transportas",
     color: "bg-black",
     textColor: "text-black",
@@ -114,6 +135,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.FOOD,
     label: "Maistas, gėrimai",
     color: "bg-purple-700",
     textColor: "text-purple-700",
@@ -126,6 +148,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.CULTURE,
     label: "Kultūra",
     color: "bg-red-900",
     textColor: "text-red-900",
@@ -139,6 +162,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.HEALTH,
     label: "Sveikata",
     color: "bg-teal-700",
     textColor: "text-teal-700",
@@ -152,6 +176,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.SHOPS,
     label: "Parduotuvės",
     color: "bg-indigo-700",
     textColor: "text-indigo-700",
@@ -165,6 +190,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.RELIGION,
     label: "Religija",
     color: "bg-orange-700",
     textColor: "text-orange-700",
@@ -178,6 +204,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.OFFICES,
     label: "Kontoros",
     color: "bg-slate-700",
     textColor: "text-slate-700",
@@ -192,6 +219,7 @@ export const PLACES_FILTERS: FilterCategory[] = [
     ],
   },
   {
+    id: FILTER_GROUP_ID.FINANCE,
     label: "Finansai",
     color: "bg-emerald-700",
     textColor: "text-emerald-700",
