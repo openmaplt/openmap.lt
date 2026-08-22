@@ -2,8 +2,17 @@
 
 import { COLLECTION_TYPE_CODES } from "@/config/collection-filters";
 import { getCurrentUser } from "@/lib/auth";
-import { replaceUserCollectionTypeCodes } from "@/lib/collections";
+import {
+  getUserCollectionTypeCodes,
+  replaceUserCollectionTypeCodes,
+} from "@/lib/collections";
 import { checkRateLimit, checkUserRateLimit } from "@/lib/rateLimit";
+
+export async function getMyCollectionTypeCodesAction(): Promise<string[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  return getUserCollectionTypeCodes(user.id);
+}
 
 export type SaveCollectionSelectionResult =
   | { ok: true }

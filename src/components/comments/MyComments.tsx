@@ -7,6 +7,7 @@ import useSWR, { mutate } from "swr";
 import { deleteOwnCommentAction } from "@/actions/comments";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
+import { COMMENT_STATUS, type CommentStatus } from "@/domain/commentStatus";
 import { buildCommentPoiHref, getMapProfileLabel } from "@/lib/poiHelpers";
 import {
   OWN_COMMENTS_KEY,
@@ -20,21 +21,21 @@ export type MyCommentView = {
   objectRef: string;
   poiName: string | null;
   body: string;
-  status: "pending" | "approved" | "rejected";
+  status: CommentStatus;
   createdAt: string;
   rejectionReason: string | null;
 };
 
-const STATUS_LABEL: Record<MyCommentView["status"], string> = {
-  pending: "Laukiama patvirtinimo",
-  approved: "Patvirtinta",
-  rejected: "Atmesta",
+const STATUS_LABEL: Record<CommentStatus, string> = {
+  [COMMENT_STATUS.PENDING]: "Laukiama patvirtinimo",
+  [COMMENT_STATUS.APPROVED]: "Patvirtinta",
+  [COMMENT_STATUS.REJECTED]: "Atmesta",
 };
 
-const STATUS_CLASS: Record<MyCommentView["status"], string> = {
-  pending: "bg-muted text-muted-foreground",
-  approved: "bg-primary/10 text-primary",
-  rejected: "bg-destructive/10 text-destructive",
+const STATUS_CLASS: Record<CommentStatus, string> = {
+  [COMMENT_STATUS.PENDING]: "bg-muted text-muted-foreground",
+  [COMMENT_STATUS.APPROVED]: "bg-primary/10 text-primary",
+  [COMMENT_STATUS.REJECTED]: "bg-destructive/10 text-destructive",
 };
 
 interface MyCommentsProps {
@@ -97,7 +98,7 @@ export function MyComments({ initialItems }: MyCommentsProps) {
       (current) => current?.filter((item) => item.id !== id),
       { revalidate: false },
     );
-    if (deletedItem?.status === "pending") {
+    if (deletedItem?.status === COMMENT_STATUS.PENDING) {
       mutate<number>(
         PENDING_COUNT_KEY,
         (current) => Math.max((current ?? 1) - 1, 0),
@@ -147,11 +148,12 @@ export function MyComments({ initialItems }: MyCommentsProps) {
             <p className="text-sm text-foreground whitespace-pre-wrap">
               {item.body}
             </p>
-            {item.status === "rejected" && item.rejectionReason && (
-              <p className="text-xs text-muted-foreground italic">
-                Priežastis: {item.rejectionReason}
-              </p>
-            )}
+            {item.status === COMMENT_STATUS.REJECTED &&
+              item.rejectionReason && (
+                <p className="text-xs text-muted-foreground italic">
+                  Priežastis: {item.rejectionReason}
+                </p>
+              )}
             <Button
               type="button"
               size="sm"

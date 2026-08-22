@@ -34,6 +34,18 @@ export const getPoiInfo = cache(async function getPoiInfo(
         data.properties = { ...data.properties, TYPE: data.type };
       }
 
+      // `filter` (the single-letter PLACES_FILTERS code, e.g. "r") is also a
+      // sibling of `properties` — fold it in as FILTER_CODE so components can
+      // check it against a user's collected type codes without a second
+      // lookup table.
+      if (
+        data.filter &&
+        data.properties &&
+        typeof data.properties === "object"
+      ) {
+        data.properties = { ...data.properties, FILTER_CODE: data.filter };
+      }
+
       return data;
     }
   } catch (error) {

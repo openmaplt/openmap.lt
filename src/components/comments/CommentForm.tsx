@@ -7,6 +7,7 @@ import { mutate } from "swr";
 import { createCommentAction } from "@/actions/comments";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { COMMENT_STATUS, type CommentStatus } from "@/domain/commentStatus";
 import { buildCommentsApiUrl } from "@/lib/poiHelpers";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -28,9 +29,10 @@ export function CommentForm({
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState<"pending" | "approved" | null>(
-    null,
-  );
+  const [submitted, setSubmitted] = useState<Exclude<
+    CommentStatus,
+    typeof COMMENT_STATUS.REJECTED
+  > | null>(null);
 
   if (!user) {
     return (
@@ -50,7 +52,7 @@ export function CommentForm({
   if (submitted) {
     return (
       <p className="text-sm text-muted-foreground">
-        {submitted === "approved"
+        {submitted === COMMENT_STATUS.APPROVED
           ? "Jūsų komentaras paskelbtas."
           : "Jūsų komentaras laukia patvirtinimo."}
       </p>
@@ -82,8 +84,12 @@ export function CommentForm({
       return;
     }
 
-    setSubmitted(result.comment.status === "approved" ? "approved" : "pending");
-    if (result.comment.status === "approved") {
+    setSubmitted(
+      result.comment.status === COMMENT_STATUS.APPROVED
+        ? COMMENT_STATUS.APPROVED
+        : COMMENT_STATUS.PENDING,
+    );
+    if (result.comment.status === COMMENT_STATUS.APPROVED) {
       mutate(buildCommentsApiUrl(mapProfileId, objectRef));
     }
   };

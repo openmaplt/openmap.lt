@@ -2,6 +2,7 @@
 
 import { MAP_PROFILES } from "@/config/map-profiles";
 import { PHOTO_LICENSES, type PhotoLicense } from "@/config/photoLicenses";
+import type { PhotoStatus } from "@/domain/photoStatus";
 import { getCurrentUser } from "@/lib/auth";
 import { currentUserHasPermission, PERMISSIONS } from "@/lib/permissions";
 import {
@@ -14,7 +15,6 @@ import {
   deleteOwnPhoto,
   insertPhoto,
   type PhotoRow,
-  type PhotoStatus,
   rejectPhoto,
   updateOwnPhotoShowAuthor,
 } from "@/lib/photos";

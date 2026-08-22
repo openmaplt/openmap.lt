@@ -21,3 +21,15 @@ export const PENDING_COUNT_KEY = "comments:pendingCount";
 export const OWN_PHOTOS_KEY = "photos:own";
 export const PENDING_PHOTOS_KEY = "photos:pending";
 export const PENDING_PHOTOS_COUNT_KEY = "photos:pendingCount";
+
+// "Kolekcionavimas" (src/hooks/use-poi-collection-status.ts). The logged-in
+// user's saved type codes are a single static key — no need to parameterize
+// by user id, same reasoning as OWN_COMMENTS_KEY above (the client cache is
+// scoped to one active session at a time).
+export const MY_COLLECTION_TYPE_CODES_KEY = "collections:myTypeCodes";
+
+// Per-POI visited/not-interesting status — combined with the objectRef into
+// an array key at the call site (see use-poi-collection-status.ts), same as
+// every other per-argument SWR key in this codebase (e.g. use-search.ts's
+// ["search", query, ...]).
+export const POI_COLLECTION_STATUS_KEY = "collections:poiStatus";

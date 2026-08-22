@@ -2,15 +2,12 @@ import "server-only";
 
 import { cache } from "react";
 import type { PhotoLicense } from "@/config/photoLicenses";
+import {
+  type ModeratedPhotoStatus,
+  PHOTO_STATUS,
+  type PhotoStatus,
+} from "@/domain/photoStatus";
 import { query, queryOne, queryOneOrThrow } from "@/lib/db";
-
-export const PHOTO_STATUS = {
-  PENDING: "pending",
-  APPROVED: "approved",
-  REJECTED: "rejected",
-} as const;
-
-export type PhotoStatus = (typeof PHOTO_STATUS)[keyof typeof PHOTO_STATUS];
 
 export type PhotoRow = {
   id: number;
@@ -122,14 +119,10 @@ export async function listPendingPhotoSummaries(): Promise<
   }));
 }
 
-type ModeratedStatus =
-  | typeof PHOTO_STATUS.APPROVED
-  | typeof PHOTO_STATUS.REJECTED;
-
 async function moderatePhoto(
   id: number,
   moderatorId: number,
-  status: ModeratedStatus,
+  status: ModeratedPhotoStatus,
   reason: string | null = null,
 ): Promise<PhotoRow | null> {
   const row = await queryOne<PhotoDbRow>(

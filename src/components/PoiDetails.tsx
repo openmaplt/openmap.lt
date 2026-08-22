@@ -4,6 +4,7 @@ import center from "@turf/center";
 import { point } from "@turf/helpers";
 import { Navigation } from "lucide-react";
 import { useState } from "react";
+import { PoiCollectionStatus } from "@/components/collections/PoiCollectionStatus";
 import { CommentsSection } from "@/components/comments/CommentsSection";
 import { PoiPhotoGallery } from "@/components/gallery/PoiPhotoGallery";
 import { PoiContent } from "@/components/PoiContent";
@@ -15,6 +16,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { PLACE_ICONS } from "@/config/places-icons";
+import { usePoiCollectionStatus } from "@/hooks/use-poi-collection-status";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
 import { toSafeHttpUrl } from "@/lib/utils";
@@ -32,6 +34,7 @@ export function PoiDetails() {
   const { activeMapProfile } = useMapConfig();
   const { routingEnabled, routingMode, setRouteEnd, setRoutingMode } =
     useRoute();
+  const { isEligible: isCollectionEligible } = usePoiCollectionStatus();
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -125,16 +128,19 @@ export function PoiDetails() {
             {feature.properties?.name || "Be pavadinimo"}
           </SheetTitle>
         </SheetHeader>
-        {routingEnabled && (
-          <div className="flex items-center gap-3 px-4 py-2 border-b shrink-0">
-            <button
-              type="button"
-              onClick={handleRouteHere}
-              className="flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium outline-none"
-            >
-              <Navigation className="size-4" />
-              Maršrutas
-            </button>
+        {(routingEnabled || isCollectionEligible) && (
+          <div className="flex items-center gap-3 px-4 py-2 border-b shrink-0 flex-wrap">
+            {routingEnabled && (
+              <button
+                type="button"
+                onClick={handleRouteHere}
+                className="flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium outline-none"
+              >
+                <Navigation className="size-4" />
+                Maršrutas
+              </button>
+            )}
+            <PoiCollectionStatus />
           </div>
         )}
         <div className="flex-1 overflow-y-auto pt-4">

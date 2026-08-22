@@ -1,16 +1,12 @@
 import "server-only";
 
 import { cache } from "react";
+import {
+  COMMENT_STATUS,
+  type CommentStatus,
+  type ModeratedCommentStatus,
+} from "@/domain/commentStatus";
 import { query, queryOne, queryOneOrThrow } from "@/lib/db";
-
-export const COMMENT_STATUS = {
-  PENDING: "pending",
-  APPROVED: "approved",
-  REJECTED: "rejected",
-} as const;
-
-export type CommentStatus =
-  (typeof COMMENT_STATUS)[keyof typeof COMMENT_STATUS];
 
 export type CommentRow = {
   id: number;
@@ -116,14 +112,10 @@ export async function listPendingCommentSummaries(): Promise<
   }));
 }
 
-type ModeratedStatus =
-  | typeof COMMENT_STATUS.APPROVED
-  | typeof COMMENT_STATUS.REJECTED;
-
 async function moderateComment(
   id: number,
   moderatorId: number,
-  status: ModeratedStatus,
+  status: ModeratedCommentStatus,
   reason: string | null = null,
 ): Promise<CommentRow | null> {
   const row = await queryOne<CommentDbRow>(

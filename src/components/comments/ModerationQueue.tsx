@@ -10,6 +10,10 @@ import {
 } from "@/actions/comments";
 import { PendingCommentControls } from "@/components/comments/PendingCommentControls";
 import { toast } from "@/components/ui/toast";
+import {
+  COMMENT_STATUS,
+  type ModeratedCommentStatus,
+} from "@/domain/commentStatus";
 import { buildCommentPoiHref, getMapProfileLabel } from "@/lib/poiHelpers";
 import {
   OWN_COMMENTS_KEY,
@@ -56,7 +60,7 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
   const applyModerationResult = (
     id: number,
     result: ModerationActionResult,
-    status: "approved" | "rejected",
+    status: ModeratedCommentStatus,
     rejectionReason: string | null,
   ) => {
     if (!result.ok) {
@@ -92,12 +96,12 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
 
   const handleApprove = async (id: number) => {
     const result = await approveCommentAction(id);
-    applyModerationResult(id, result, "approved", null);
+    applyModerationResult(id, result, COMMENT_STATUS.APPROVED, null);
   };
 
   const handleReject = async (id: number, reason: string) => {
     const result = await rejectCommentAction(id, reason);
-    applyModerationResult(id, result, "rejected", reason || null);
+    applyModerationResult(id, result, COMMENT_STATUS.REJECTED, reason || null);
   };
 
   if (items.length === 0) {

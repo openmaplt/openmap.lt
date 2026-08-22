@@ -12,7 +12,7 @@ export function usePoiEnrichment(mapType?: string | null) {
     async (feature: Feature | null): Promise<MapFeature | null> => {
       if (!feature) return null;
 
-      const id = feature.properties?.id;
+      const id = feature.properties?.id ?? feature.id;
       const source = (feature as MapGeoJSONFeature).source;
       const sourceLayer = (feature as MapGeoJSONFeature).sourceLayer;
 

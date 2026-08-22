@@ -11,6 +11,7 @@ import {
 import { PendingCommentControls } from "@/components/comments/PendingCommentControls";
 import { toast } from "@/components/ui/toast";
 import { PHOTO_LICENSE_INFO, type PhotoLicense } from "@/config/photoLicenses";
+import { type ModeratedPhotoStatus, PHOTO_STATUS } from "@/domain/photoStatus";
 import { buildCommentPoiHref, getMapProfileLabel } from "@/lib/poiHelpers";
 import {
   OWN_PHOTOS_KEY,
@@ -55,7 +56,7 @@ export function PhotoModerationQueue({
   const applyModerationResult = (
     id: number,
     result: ModerationActionResult,
-    status: "approved" | "rejected",
+    status: ModeratedPhotoStatus,
     rejectionReason: string | null,
   ) => {
     if (!result.ok) {
@@ -90,12 +91,12 @@ export function PhotoModerationQueue({
 
   const handleApprove = async (id: number) => {
     const result = await approvePhotoAction(id);
-    applyModerationResult(id, result, "approved", null);
+    applyModerationResult(id, result, PHOTO_STATUS.APPROVED, null);
   };
 
   const handleReject = async (id: number, reason: string) => {
     const result = await rejectPhotoAction(id, reason);
-    applyModerationResult(id, result, "rejected", reason || null);
+    applyModerationResult(id, result, PHOTO_STATUS.REJECTED, reason || null);
   };
 
   if (items.length === 0) {

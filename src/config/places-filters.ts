@@ -66,7 +66,8 @@ export const FILTER_GROUP_ID = {
   FINANCE: "finance",
 } as const;
 
-export type FilterGroupId = (typeof FILTER_GROUP_ID)[keyof typeof FILTER_GROUP_ID];
+export type FilterGroupId =
+  (typeof FILTER_GROUP_ID)[keyof typeof FILTER_GROUP_ID];
 
 export type FilterCategory = {
   id: FilterGroupId;

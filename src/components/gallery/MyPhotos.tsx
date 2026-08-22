@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
 import { PHOTO_LICENSE_INFO, type PhotoLicense } from "@/config/photoLicenses";
+import { PHOTO_STATUS, type PhotoStatus } from "@/domain/photoStatus";
 import { buildCommentPoiHref, getMapProfileLabel } from "@/lib/poiHelpers";
 import {
   OWN_PHOTOS_KEY,
@@ -28,21 +29,21 @@ export type MyPhotoView = {
   fileName: string;
   license: PhotoLicense;
   showAuthor: boolean;
-  status: "pending" | "approved" | "rejected";
+  status: PhotoStatus;
   createdAt: string;
   rejectionReason: string | null;
 };
 
-const STATUS_LABEL: Record<MyPhotoView["status"], string> = {
-  pending: "Laukiama patvirtinimo",
-  approved: "Patvirtinta",
-  rejected: "Atmesta",
+const STATUS_LABEL: Record<PhotoStatus, string> = {
+  [PHOTO_STATUS.PENDING]: "Laukiama patvirtinimo",
+  [PHOTO_STATUS.APPROVED]: "Patvirtinta",
+  [PHOTO_STATUS.REJECTED]: "Atmesta",
 };
 
-const STATUS_CLASS: Record<MyPhotoView["status"], string> = {
-  pending: "bg-muted text-muted-foreground",
-  approved: "bg-primary/10 text-primary",
-  rejected: "bg-destructive/10 text-destructive",
+const STATUS_CLASS: Record<PhotoStatus, string> = {
+  [PHOTO_STATUS.PENDING]: "bg-muted text-muted-foreground",
+  [PHOTO_STATUS.APPROVED]: "bg-primary/10 text-primary",
+  [PHOTO_STATUS.REJECTED]: "bg-destructive/10 text-destructive",
 };
 
 interface MyPhotosProps {
@@ -98,7 +99,7 @@ export function MyPhotos({ initialItems }: MyPhotosProps) {
       (current) => current?.filter((item) => item.id !== id),
       { revalidate: false },
     );
-    if (deletedItem?.status === "pending") {
+    if (deletedItem?.status === PHOTO_STATUS.PENDING) {
       mutate<number>(
         PENDING_PHOTOS_COUNT_KEY,
         (current) => Math.max((current ?? 1) - 1, 0),
@@ -180,7 +181,7 @@ export function MyPhotos({ initialItems }: MyPhotosProps) {
               {" · "}
               {new Date(item.createdAt).toLocaleDateString("lt-LT")}
             </div>
-            {item.status === "rejected" && item.rejectionReason && (
+            {item.status === PHOTO_STATUS.REJECTED && item.rejectionReason && (
               <p className="text-xs text-muted-foreground italic">
                 Priežastis: {item.rejectionReason}
               </p>

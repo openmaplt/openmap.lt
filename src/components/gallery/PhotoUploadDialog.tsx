@@ -28,6 +28,7 @@ import {
   PHOTO_LICENSES,
   type PhotoLicense,
 } from "@/config/photoLicenses";
+import { PHOTO_STATUS } from "@/domain/photoStatus";
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -136,7 +137,9 @@ export function PhotoUploadDialog({
     }
 
     if (result.uploaded.length > 0) {
-      const anyPending = result.uploaded.some((p) => p.status === "pending");
+      const anyPending = result.uploaded.some(
+        (p) => p.status === PHOTO_STATUS.PENDING,
+      );
       const anyResized = result.uploaded.some((p) => p.wasResized);
       let message =
         result.uploaded.length === 1
