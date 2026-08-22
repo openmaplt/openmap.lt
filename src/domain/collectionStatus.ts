@@ -21,3 +21,28 @@ export const POI_COLLECTION_UNVISITED = "unvisited";
 export type PoiCollectionStatusOption =
   | typeof POI_COLLECTION_UNVISITED
   | PoiCollectionStatusValue;
+
+// Map legend filter — which subset of collected-type POIs to show on the
+// map. Separate from PoiCollectionStatusOption above (that one has no "all"
+// value — "all" only makes sense for a map view, not a single POI's
+// status). Reuses the same underlying strings, never re-typed.
+export const POI_COLLECTION_MAP_FILTER = {
+  ALL: "all",
+  UNVISITED: POI_COLLECTION_UNVISITED,
+  VISITED: POI_COLLECTION_STATUS.VISITED,
+  NOT_INTERESTING: POI_COLLECTION_STATUS.NOT_INTERESTING,
+} as const;
+
+export type PoiCollectionMapFilter =
+  (typeof POI_COLLECTION_MAP_FILTER)[keyof typeof POI_COLLECTION_MAP_FILTER];
+
+// places.list (sql/places_list.sql) expects a single-letter code for every
+// non-"all" filter value.
+export const POI_COLLECTION_MAP_FILTER_CODE: Record<
+  Exclude<PoiCollectionMapFilter, typeof POI_COLLECTION_MAP_FILTER.ALL>,
+  "n" | "a" | "i"
+> = {
+  [POI_COLLECTION_MAP_FILTER.UNVISITED]: "n",
+  [POI_COLLECTION_MAP_FILTER.VISITED]: "a",
+  [POI_COLLECTION_MAP_FILTER.NOT_INTERESTING]: "i",
+};

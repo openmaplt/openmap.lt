@@ -4,23 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { type FilterCategory, PLACES_FILTERS } from "@/config/places-filters";
+import {
+  POI_COLLECTION_MAP_FILTER,
+  type PoiCollectionMapFilter,
+} from "@/domain/collectionStatus";
+import { useMyCollectionTypeCodes } from "@/hooks/use-my-collection-type-codes";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
+const MAP_FILTER_OPTIONS: { value: PoiCollectionMapFilter; label: string }[] = [
+  { value: POI_COLLECTION_MAP_FILTER.ALL, label: "Visi objektai" },
+  { value: POI_COLLECTION_MAP_FILTER.UNVISITED, label: "Neaplankyti" },
+  { value: POI_COLLECTION_MAP_FILTER.VISITED, label: "Aplankyti" },
+  { value: POI_COLLECTION_MAP_FILTER.NOT_INTERESTING, label: "Neįdomūs" },
+];
+
 interface PlacesFilterProps {
   selectedTypes: string;
   onTypesChange: (types: string) => void;
+  statusFilter: PoiCollectionMapFilter;
+  onStatusFilterChange: (filter: PoiCollectionMapFilter) => void;
   className?: string;
 }
 
 export function PlacesFilter({
   selectedTypes,
   onTypesChange,
+  statusFilter,
+  onStatusFilterChange,
   className,
 }: PlacesFilterProps) {
   const { mobileActiveMode } = useMapConfig();
   const { setMobileActiveMode } = useMapActions();
+  const { hasCollection } = useMyCollectionTypeCodes();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     PLACES_FILTERS.map((c) => c.id),
@@ -95,7 +112,14 @@ export function PlacesFilter({
       ref={containerRef}
       className={cn(
         "transition-all duration-300 ease-in-out flex flex-col gap-2 absolute top-3 right-3 z-10",
-        isOpen && "bottom-3",
+        // Without an explicit width, absolute positioning with only `right`
+        // set falls back to shrink-to-fit sizing, which measures content as
+        // if it were never wrapped — the 4-button status filter row (added
+        // for #65) is wide enough unwrapped that this stretched the whole
+        // panel across the viewport on mobile, overlapping MapMenu.tsx's
+        // bottom-left button. Fixing the width forces buttons to actually
+        // wrap within it instead.
+        isOpen && "bottom-3 w-[300px] max-w-[calc(100vw-1.5rem)]",
         className,
       )}
     >
@@ -137,6 +161,25 @@ export function PlacesFilter({
               Išvalyti visus
             </Button>
           </div>
+
+          {hasCollection && (
+            <div className="p-2 border-b grid grid-cols-2 gap-1.5">
+              {MAP_FILTER_OPTIONS.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  size="sm"
+                  className="w-full"
+                  variant={
+                    statusFilter === option.value ? "default" : "outline"
+                  }
+                  onClick={() => onStatusFilterChange(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          )}
 
           <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
             {PLACES_FILTERS.map((category) => {

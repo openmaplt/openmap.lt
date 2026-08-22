@@ -1,6 +1,12 @@
 "use server";
 
 import type { FeatureCollection } from "geojson";
+import {
+  POI_COLLECTION_MAP_FILTER,
+  POI_COLLECTION_MAP_FILTER_CODE,
+  type PoiCollectionMapFilter,
+} from "@/domain/collectionStatus";
+import { getCurrentUser } from "@/lib/auth";
 import { queryResult } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rateLimit";
 
@@ -12,6 +18,7 @@ const EMPTY_FEATURE_COLLECTION: FeatureCollection = {
 export async function getPoiList(
   bbox: number[],
   types: string,
+  statusFilter: PoiCollectionMapFilter = POI_COLLECTION_MAP_FILTER.ALL,
 ): Promise<FeatureCollection> {
   if (await checkRateLimit("getPoiList", "frequent")) {
     return EMPTY_FEATURE_COLLECTION;
@@ -24,10 +31,27 @@ export async function getPoiList(
     return EMPTY_FEATURE_COLLECTION;
   }
 
+  const params: {
+    bbox: number[];
+    types: string;
+    usr_id?: number;
+    filter?: string;
+  } = {
+    bbox,
+    types,
+  };
+  if (statusFilter !== POI_COLLECTION_MAP_FILTER.ALL) {
+    const user = await getCurrentUser();
+    if (user) {
+      params.usr_id = user.id;
+      params.filter = POI_COLLECTION_MAP_FILTER_CODE[statusFilter];
+    }
+  }
+
   try {
     const result = await queryResult(
       "SELECT places.list($1::jsonb) as result",
-      [JSON.stringify({ bbox, types })],
+      [JSON.stringify(params)],
     );
 
     if (result) {

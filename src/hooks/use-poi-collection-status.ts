@@ -5,13 +5,9 @@ import {
   getPoiCollectionStatusAction,
   setPoiCollectionStatusAction,
 } from "@/actions/collectionStatus";
-import { getMyCollectionTypeCodesAction } from "@/actions/collections";
 import type { PoiCollectionStatusValue } from "@/domain/collectionStatus";
-import {
-  MY_COLLECTION_TYPE_CODES_KEY,
-  POI_COLLECTION_STATUS_KEY,
-} from "@/lib/swrKeys";
-import { useAuth } from "@/providers/AuthProvider";
+import { useMyCollectionTypeCodes } from "@/hooks/use-my-collection-type-codes";
+import { POI_COLLECTION_STATUS_KEY } from "@/lib/swrKeys";
 import { useMapConfig, useMapSelection } from "@/providers/MapProvider";
 
 // Whether the currently selected POI is eligible for a visited/not-interesting
@@ -20,14 +16,9 @@ import { useMapConfig, useMapSelection } from "@/providers/MapProvider";
 // PoiDetails.tsx can decide up front whether to render the shared control bar
 // (alongside the "Maršrutas" button) at all.
 export function usePoiCollectionStatus() {
-  const { user } = useAuth();
+  const { user, typeCodes: myTypeCodes } = useMyCollectionTypeCodes();
   const { selectedFeature: feature, selectedPoiId } = useMapSelection();
   const { activeMapProfile } = useMapConfig();
-
-  const typeCodesKey = user ? MY_COLLECTION_TYPE_CODES_KEY : null;
-  const { data: myTypeCodes } = useSWR(typeCodesKey, () =>
-    getMyCollectionTypeCodesAction(),
-  );
 
   const mapProfileId = activeMapProfile.id;
   const filterCode = feature?.properties?.FILTER_CODE as string | undefined;

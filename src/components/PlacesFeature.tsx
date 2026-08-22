@@ -6,6 +6,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Layer, Source } from "react-map-gl/maplibre";
 import { PlacesFilter } from "@/components/PlacesFilter";
 import { PLACE_ICONS } from "@/config/places-icons";
+import {
+  POI_COLLECTION_MAP_FILTER,
+  type PoiCollectionMapFilter,
+} from "@/domain/collectionStatus";
 import { useMapIcons } from "@/hooks/use-map-icons";
 import { usePlaces } from "@/hooks/use-places";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
@@ -41,11 +45,19 @@ export function PlacesFeature({ initialFilterType }: PlacesFeatureProps) {
     localStorage.setItem("placesFilterTypes", filterTypes);
   }, [filterTypes]);
 
+  // Collection status filter (unvisited/visited/uninteresting) — not
+  // persisted to localStorage like filterTypes: it should always reset to
+  // "all" for a fresh session, so a forgotten "only unvisited" selection
+  // doesn't make objects seem to have disappeared on a later visit.
+  const [statusFilter, setStatusFilter] = useState<PoiCollectionMapFilter>(
+    POI_COLLECTION_MAP_FILTER.ALL,
+  );
+
   // Register icons
   useMapIcons();
 
-  // Fetch places based on bbox and filter types
-  const { places } = usePlaces(bbox, filterTypes);
+  // Fetch places based on bbox, filter types, and collection status filter
+  const { places } = usePlaces(bbox, filterTypes, statusFilter);
   const { enrichFeature } = usePoiEnrichment(mapType);
 
   // Handle map events for the layer
@@ -105,6 +117,8 @@ export function PlacesFeature({ initialFilterType }: PlacesFeatureProps) {
       <PlacesFilter
         selectedTypes={filterTypes}
         onTypesChange={setFilterTypes}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
       />
       <Source id="places-source" type="geojson" data={places}>
         <Layer
