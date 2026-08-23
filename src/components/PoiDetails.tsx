@@ -159,10 +159,11 @@ export function PoiDetails() {
                         {
                           url: osmImageUrl,
                           name: feature.properties?.name,
-                          // Not a license claim, just crediting the source —
-                          // the OSM `image` tag is a bare URL with no
-                          // per-photo author/license data of its own.
-                          attribution: { source: "OpenStreetMap" },
+                          // The OSM `image` tag is a bare URL — we don't
+                          // know the real source/author (could be OSM,
+                          // could be some other host the tag points to),
+                          // so we show no attribution rather than guess.
+                          attribution: { source: null },
                         },
                       ]
                     : []
