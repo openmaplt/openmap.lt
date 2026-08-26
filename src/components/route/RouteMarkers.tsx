@@ -10,12 +10,22 @@ export function RouteMarkers() {
   const {
     routeStart,
     routeEnd,
+    waypoints,
     navigationMode,
     highlightedRoutePoint,
     setRouteStart,
     setRouteEnd,
   } = useRoute();
   const { position } = useNavigationProgress();
+
+  // Only number markers for a multi-stop (AI-generated) route — a plain
+  // manual 2-point route keeps its original unnumbered green/red dots.
+  // Numbers here must match the chat reply's numbered list exactly (see
+  // buildRouteReplySystemPrompt, src/lib/aiSearchClient.ts): stops[0] (this
+  // start marker) is "1", stops[last] (the end marker) is stops.length —
+  // waypoints is stops.slice(1, -1), so waypoints[i] is stop i+2, not i+1.
+  const hasNumberedStops = waypoints.length > 0;
+  const endNumber = waypoints.length + 2;
 
   const handleStartDragEnd = (e: MarkerDragEvent) => {
     const { lng, lat } = e.lngLat;
@@ -52,7 +62,13 @@ export function RouteMarkers() {
             draggable
             onDragEnd={handleStartDragEnd}
           >
-            <div className="w-4 h-4 rounded-full bg-white border-4 border-green-600 shadow-md cursor-move" />
+            {hasNumberedStops ? (
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-600 border-2 border-white shadow-md text-[11px] font-bold text-white cursor-move">
+                1
+              </div>
+            ) : (
+              <div className="w-4 h-4 rounded-full bg-white border-4 border-green-600 shadow-md cursor-move" />
+            )}
           </Marker>
         )
       )}
@@ -65,9 +81,31 @@ export function RouteMarkers() {
           draggable
           onDragEnd={handleEndDragEnd}
         >
-          <div className="w-4 h-4 rounded-full bg-white border-4 border-red-600 shadow-md cursor-move" />
+          {hasNumberedStops ? (
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 border-2 border-white shadow-md text-[11px] font-bold text-white cursor-move">
+              {endNumber}
+            </div>
+          ) : (
+            <div className="w-4 h-4 rounded-full bg-white border-4 border-red-600 shadow-md cursor-move" />
+          )}
         </Marker>
       )}
+
+      {waypoints.map((wp, i) => {
+        const coords = (wp.geometry as Point).coordinates;
+        return (
+          <Marker
+            key={`${coords[0]}-${coords[1]}`}
+            longitude={coords[0]}
+            latitude={coords[1]}
+            anchor="center"
+          >
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 border-2 border-white shadow-md text-[11px] font-bold text-white">
+              {i + 2}
+            </div>
+          </Marker>
+        );
+      })}
 
       {highlightedRoutePoint && (
         <Marker

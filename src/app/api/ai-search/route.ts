@@ -1,7 +1,9 @@
 import type { UIMessage } from "ai";
 import { searchPlacesForAi } from "@/data/aiSearch";
 import {
+  buildAiSearchRoute,
   classifySearchQuery,
+  fetchAiSearchRouteSummary,
   streamSearchResponse,
   toPoiSummaries,
 } from "@/lib/aiSearchClient";
@@ -60,6 +62,14 @@ export async function POST(request: Request) {
   const groups = sanitizePlan(plan);
   const dbResult = await searchPlacesForAi(groups, pos as [number, number]);
   const poiList = toPoiSummaries(dbResult.features);
+  const route = plan.route.requested
+    ? buildAiSearchRoute(
+        dbResult.features,
+        pos as [number, number],
+        plan.route.profile,
+      )
+    : null;
+  const routeSummary = route ? await fetchAiSearchRouteSummary(route) : null;
 
-  return streamSearchResponse(messages, poiList);
+  return streamSearchResponse(messages, poiList, route, routeSummary);
 }

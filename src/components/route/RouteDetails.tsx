@@ -26,8 +26,10 @@ export function RouteDetails() {
   const {
     routingMode,
     navigationMode,
+    waypoints,
     setRouteStart,
     setRouteEnd,
+    setWaypoints,
     setRoutingMode,
     setNavigationMode,
     setHighlightedRoutePoint,
@@ -45,6 +47,7 @@ export function RouteDetails() {
       setIsExpanded(false);
       setRouteStart(null);
       setRouteEnd(null);
+      setWaypoints([]);
       setRoutingMode(false);
       setNavigationMode(false);
       setHighlightedRoutePoint(null);
@@ -88,7 +91,7 @@ export function RouteDetails() {
             </Button>
           </div>
 
-          <RoutingInputs />
+          <RoutingInputs hideEndpoints={waypoints.length > 0} />
 
           {navigationMode && progress.arrived && (
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-lg px-3 py-2">

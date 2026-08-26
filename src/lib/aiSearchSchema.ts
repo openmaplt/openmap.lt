@@ -35,6 +35,17 @@ export const AiSearchPlanSchema = z.object({
   // Groups are OR'd together (compound queries, e.g. "itališko maisto ir
   // lietuviško craft alaus" = two groups). Capped at 4.
   groups: z.array(AiSearchGroupSchema).min(1).max(4),
+
+  // Route intent — never reaches SQL (unlike groups/places.ai_search); used
+  // only in TS to decide whether to build a GraphHopper route through the
+  // matched POIs (see src/app/api/ai-search/route.ts) and which profile to
+  // request.
+  route: z
+    .object({
+      requested: z.boolean().default(false),
+      profile: z.enum(["foot", "bike", "car"]).default("foot"),
+    })
+    .default({ requested: false, profile: "foot" }),
 });
 
 export type AiSearchPlan = z.infer<typeof AiSearchPlanSchema>;

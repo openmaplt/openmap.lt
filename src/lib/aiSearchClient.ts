@@ -13,7 +13,7 @@ import {
   toUIMessageStream,
   type UIMessage,
 } from "ai";
-import type { Feature } from "geojson";
+import type { Feature, Point } from "geojson";
 import { AI_MODEL_ID } from "@/config/aiModel";
 import { DEFAULT_ICON, PLACE_ICONS } from "@/config/places-icons";
 import {
@@ -21,6 +21,7 @@ import {
   buildTagFilterCatalogPrompt,
 } from "@/lib/aiSearchCatalog";
 import { type AiSearchPlan, AiSearchPlanSchema } from "@/lib/aiSearchSchema";
+import { fetchGraphHopperRoute, orderNearestNeighbor } from "@/lib/geo";
 
 // The bare `google`/`mistral` defaults (createGoogleGenerativeAI(),
 // createMistral()) read their own provider-specific env vars
@@ -74,7 +75,13 @@ TEISINGAI: {"groups": [{"types": ["r"], "tagFilterIds": ["real_ale=*"], "keyword
 NETEISINGAI: {"groups": [{"types": ["r"], ...}, {"tagFilterIds": ["real_ale=*"], ...}]} — dvi atskiros grupės tai pačiai minčiai grąžintų VISUS barus, ne tik craftinius.
 NETEISINGAI: {"groups": [{"types": ["r"], "tagFilterIds": ["real_ale=*"], "keywords": ["craftinis alus", "amatininkų alus"]}]} — "keywords" čia PERTEKLINIS ir KLAIDINGAS (8 taisyklė): susiaurina paiešką iki pavadinimų, turinčių tuos žodžius pažodžiui, ir grąžina 0 rezultatų, nors "types"+"tagFilterIds" jau tiksliai atitinka.
 
-Jei vartotojas klausia apie BENDRĄ KATEGORIJĄ (ne konkretų pavadinimą), naudok tipą/tag PIRMENYBĖS TVARKA prieš keywords — jis tikslesnis. Jei vartotojas paminėjo KONKRETŲ PAVADINIMĄ, žr. IŠIMTĮ prie "keywords" aukščiau. Visada grąžink bent vieną grupę.`;
+Jei vartotojas klausia apie BENDRĄ KATEGORIJĄ (ne konkretų pavadinimą), naudok tipą/tag PIRMENYBĖS TVARKA prieš keywords — jis tikslesnis. Jei vartotojas paminėjo KONKRETŲ PAVADINIMĄ, žr. IŠIMTĮ prie "keywords" aukščiau. Visada grąžink bent vieną grupę.
+
+TAISYKLĖS DĖL "route" LAUKO (SVARBU):
+9. "route.requested" = true TIK TADA, kai vartotojas AIŠKIAI prašo SUDARYTI MARŠRUTĄ/KELIONĘ per KELIAS vietas (žodžiai/frazės: "sudaryk maršrutą", "sudaryk kelionę", "nuvesk mane per", "aplankyti", "apvažiuoti", "aplankysiu" ir pan.). NIEKADA nestatyk true, jei vartotojas tiesiog ieško/klausia apie vietas ("kur yra", "pasiūlyk", "kur galiu") be prašymo sudaryti maršrutą — tokiu atveju "route.requested" = false.
+10. "route.profile" spėk iš užklausos formuluotės: paminėta "pėsčiomis"/"pasivaikščioti" → "foot"; "važiuoti"/"mašina"/"automobiliu" → "car"; "dviračiu"/"dviratis" → "bike". Jei niekas nepaminėta, palik "foot" (numatytoji).
+
+PAVYZDYS: "Sudaryk maršrutą per Vilniaus bažnyčias" → "route": {"requested": true, "profile": "foot"}. Užklausa "kur Vilniuje yra bažnyčių?" → "route": {"requested": false, "profile": "foot"} (tai paprasta paieška, ne maršruto prašymas).`;
 }
 
 export type AiSearchPoiSummary = {
@@ -104,6 +111,116 @@ export function toPoiSummaries(features: Feature[]): AiSearchPoiSummary[] {
         : null,
     description: (f.properties?.description as string | undefined) ?? null,
   }));
+}
+
+export type AiSearchRouteProfile = "foot" | "bike" | "car";
+
+export type AiSearchRoutePayload = {
+  profile: AiSearchRouteProfile;
+  // stops[0] IS the route start, stops[last] IS the end — see buildAiSearchRoute.
+  stops: { id: string; name: string; lng: number; lat: number }[];
+};
+
+// A walking/driving route through more than a handful of POIs stops being a
+// practical route (and GraphHopper's /route has no route-optimization mode
+// beyond visiting points in the given order — see orderNearestNeighbor in
+// src/lib/geo.ts) — cap well below the 25 places.ai_search can return.
+const MAX_ROUTE_STOPS = 8;
+
+// Built only when classifySearchQuery detected a route request (plan.route,
+// see AiSearchPlanSchema). Reuses the DB match set's own geometry — already
+// sorted nearest-to-pos by places.ai_search — instead of a second DB
+// roundtrip per POI (e.g. getPoiInfo). Returns null when there's nothing (or
+// only a single point) to route through (buildSecondCallSystemPrompt already
+// explains "not found").
+//
+// No dedicated "start" point at pos: we don't actually know the user's real
+// position (pos is just the map center), so treating it as a literal route
+// start would be a guess — e.g. a guided tour might bus people to the first
+// stop and only walk from there. Simplest honest model: the route starts at
+// whichever matched POI is nearest to pos (stops[0] after ordering), not at
+// pos itself.
+export function buildAiSearchRoute(
+  features: Feature[],
+  pos: [number, number],
+  profile: AiSearchRouteProfile,
+): AiSearchRoutePayload | null {
+  const candidates = features
+    .slice(0, MAX_ROUTE_STOPS)
+    .filter((f): f is Feature<Point> => f.geometry?.type === "Point")
+    .map((f) => ({
+      id: String(f.id),
+      name: (f.properties?.name as string | undefined) ?? "Be pavadinimo",
+      lng: f.geometry.coordinates[0],
+      lat: f.geometry.coordinates[1],
+    }));
+
+  // Need at least a start and an end to form a route.
+  if (candidates.length < 2) return null;
+
+  return {
+    profile,
+    stops: orderNearestNeighbor(pos, candidates),
+  };
+}
+
+export type AiSearchRouteSummary = { distanceM: number; timeMs: number };
+
+// Calls GraphHopper server-side (the client will call it again itself once
+// the route is actually shown, via useRouting — this earlier call is only
+// so the reply text below can mention real totals). Best-effort: a route
+// reply without distance/time is still useful, so failures here (GraphHopper
+// down, no path between these particular points) don't fail the request.
+export async function fetchAiSearchRouteSummary(
+  route: AiSearchRoutePayload,
+): Promise<AiSearchRouteSummary | null> {
+  try {
+    const points: [number, number][] = route.stops.map((s) => [s.lng, s.lat]);
+    const path = await fetchGraphHopperRoute(points, route.profile);
+    return { distanceM: path.distance, timeMs: path.time };
+  } catch (error) {
+    console.error("AI search — fetchAiSearchRouteSummary error:", error);
+    return null;
+  }
+}
+
+function formatRouteDistance(meters: number): string {
+  return `${(meters / 1000).toFixed(1)} km`;
+}
+
+function formatRouteTime(ms: number): string {
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h} val. ${m} min` : `${h} val.`;
+}
+
+// Route mode gets a dedicated prompt instead of the general search one
+// below: it must describe EXACTLY route.stops, in the order they're
+// actually visited (see orderNearestNeighbor, src/lib/geo.ts) — not the
+// broader "3-8 most fitting from up to 25" selection the general prompt
+// asks for, which doesn't match what the map/step list will show.
+function buildRouteReplySystemPrompt(
+  route: AiSearchRoutePayload,
+  summary: AiSearchRouteSummary | null,
+): string {
+  const stopsText = route.stops
+    .map((s, i) => `${i + 1}. [${s.name}](poi:${s.id})`)
+    .join("\n");
+
+  const statsLine = summary
+    ? `\nBendras maršruto ilgis: ${formatRouteDistance(summary.distanceM)}, trukmė: ${formatRouteTime(summary.timeMs)}. Paminėk šiuos skaičius atsakyme.`
+    : "";
+
+  return `Tu esi openmap.lt paieškos asistentas. Vartotojui KAIP TIK sudarytas maršrutas per žemiau išvardintus objektus, jau surikiuotus TA TVARKA, kuria realiai bus einama/važiuojama nuo vartotojo dabartinės vietos. Tai gali būti tolesnė žinutė pokalbyje, NE pirma — NIEKADA nepradėk atsakymo sveikinimu ("Sveiki", "Labas" ir pan.), atsakyk tiesiai į temą.
+
+Parašyk trumpą, draugišką lietuvišką atsakymą, IŠVARDINDAMAS VISUS žemiau esančius sustojimus BŪTENT ŠIA NUMERUOTA TVARKA (1., 2., 3. ...) — NIEKADA nekeisk tvarkos, nepraleisk nė vieno, nepridėk naujų. Kiekvieną PRIVALAI pateikti kaip markdown nuorodą tiksliai šia forma: [Pavadinimas](poi:<id>), naudojant TIK žemiau nurodytus id — niekada nesugalvok naujo.${statsLine}
+
+NIEKADA nerašyk papildomų "faktų" (istorija, statybos data, architektūra ir pan.) IŠ SAVO BENDRŲ ŽINIŲ/ATMINTIES, net jei tai žinai — mūsų duombazėje jie nepatvirtinti. Jei nori pakomentuoti sustojimą, naudok TIK bendrus, neutralius žodžius.
+
+Sustojimai (maršruto tvarka):
+${stopsText}`;
 }
 
 function buildSecondCallSystemPrompt(poiList: AiSearchPoiSummary[]): string {
@@ -162,11 +279,15 @@ export async function classifySearchQuery(
 export async function streamSearchResponse(
   messages: UIMessage[],
   poiList: AiSearchPoiSummary[],
+  route: AiSearchRoutePayload | null,
+  routeSummary: AiSearchRouteSummary | null,
 ): Promise<Response> {
   const modelMessages = await convertToModelMessages(messages);
   const result = streamText({
     model: getModel(),
-    instructions: buildSecondCallSystemPrompt(poiList),
+    instructions: route
+      ? buildRouteReplySystemPrompt(route, routeSummary)
+      : buildSecondCallSystemPrompt(poiList),
     messages: modelMessages,
     onError: ({ error }) => {
       // Fires mid-stream (Response already sent) — nothing to return as an
@@ -187,6 +308,13 @@ export async function streamSearchResponse(
         data: poiList.map((p) => p.id),
         transient: true,
       });
+      if (route) {
+        writer.write({
+          type: "data-aiSearchRoute",
+          data: route,
+          transient: true,
+        });
+      }
       // toUIMessageStreamResponse() on the result is deprecated in ai@7 in
       // favor of these standalone helpers.
       writer.merge(toUIMessageStream({ stream: result.stream }));

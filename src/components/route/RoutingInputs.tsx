@@ -19,7 +19,16 @@ import { useMapConfig, useMapTransform } from "@/providers/MapProvider";
 import { useRoute } from "@/providers/RouteProvider";
 import { VehicleSelector } from "./VehicleSelector";
 
-export function RoutingInputs({ className }: { className?: string }) {
+export function RoutingInputs({
+  className,
+  hideEndpoints = false,
+}: {
+  className?: string;
+  // AI-generated routes (waypoints > 0) can't be edited through these two
+  // fields anyway — they only handle a start/end pair — so showing them
+  // would just be misleading. VehicleSelector still renders either way.
+  hideEndpoints?: boolean;
+}) {
   const { viewState } = useMapTransform();
   const { activeMapProfile } = useMapConfig();
   const { routeStart, routeEnd, setRouteStart, setRouteEnd } = useRoute();
@@ -260,83 +269,85 @@ export function RoutingInputs({ className }: { className?: string }) {
     <div ref={containerRef} className={cn("flex flex-col gap-3", className)}>
       <VehicleSelector className="w-full" />
 
-      <div className="flex gap-2 relative">
-        <div className="flex flex-col gap-2 flex-1 relative">
-          <div className="relative">
-            <InputGroup className="bg-gray-50/80 border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all rounded-lg">
-              <InputGroupAddon>
-                <div className="w-2 h-2 rounded-full bg-green-500 ml-1" />
-              </InputGroupAddon>
-              <InputGroupInput
-                placeholder="Iš kur..."
-                value={startQuery}
-                className="bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
-                onChange={(e) => {
-                  setStartQuery(e.target.value);
-                  if (routeStart) setRouteStart(null);
-                }}
-                onFocus={() => setActiveInput("start")}
-              />
-              {startQuery && (
-                <InputGroupAddon align="inline-end">
-                  <InputGroupButton
-                    onClick={() => {
-                      setStartQuery("");
-                      setRouteStart(null);
-                    }}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </InputGroupButton>
+      {!hideEndpoints && (
+        <div className="flex gap-2 relative">
+          <div className="flex flex-col gap-2 flex-1 relative">
+            <div className="relative">
+              <InputGroup className="bg-gray-50/80 border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all rounded-lg">
+                <InputGroupAddon>
+                  <div className="w-2 h-2 rounded-full bg-green-500 ml-1" />
                 </InputGroupAddon>
-              )}
-            </InputGroup>
-            {renderResults("start")}
+                <InputGroupInput
+                  placeholder="Iš kur..."
+                  value={startQuery}
+                  className="bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
+                  onChange={(e) => {
+                    setStartQuery(e.target.value);
+                    if (routeStart) setRouteStart(null);
+                  }}
+                  onFocus={() => setActiveInput("start")}
+                />
+                {startQuery && (
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      onClick={() => {
+                        setStartQuery("");
+                        setRouteStart(null);
+                      }}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                )}
+              </InputGroup>
+              {renderResults("start")}
+            </div>
+
+            <div className="relative">
+              <InputGroup className="bg-gray-50/80 border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all rounded-lg">
+                <InputGroupAddon>
+                  <div className="w-2 h-2 rounded-full bg-red-500 ml-1" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  placeholder="Į kur..."
+                  value={endQuery}
+                  className="bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
+                  onChange={(e) => {
+                    setEndQuery(e.target.value);
+                    if (routeEnd) setRouteEnd(null);
+                  }}
+                  onFocus={() => setActiveInput("end")}
+                />
+                {endQuery && (
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      onClick={() => {
+                        setEndQuery("");
+                        setRouteEnd(null);
+                      }}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                )}
+              </InputGroup>
+              {renderResults("end")}
+            </div>
           </div>
 
-          <div className="relative">
-            <InputGroup className="bg-gray-50/80 border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all rounded-lg">
-              <InputGroupAddon>
-                <div className="w-2 h-2 rounded-full bg-red-500 ml-1" />
-              </InputGroupAddon>
-              <InputGroupInput
-                placeholder="Į kur..."
-                value={endQuery}
-                className="bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
-                onChange={(e) => {
-                  setEndQuery(e.target.value);
-                  if (routeEnd) setRouteEnd(null);
-                }}
-                onFocus={() => setActiveInput("end")}
-              />
-              {endQuery && (
-                <InputGroupAddon align="inline-end">
-                  <InputGroupButton
-                    onClick={() => {
-                      setEndQuery("");
-                      setRouteEnd(null);
-                    }}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </InputGroupButton>
-                </InputGroupAddon>
-              )}
-            </InputGroup>
-            {renderResults("end")}
+          <div className="flex flex-col justify-center">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 text-gray-400 hover:text-blue-600 border-gray-200 hover:border-blue-200 bg-white shadow-sm transition-all"
+              onClick={swapEndpoints}
+              title="Sukeisti kryptis"
+            >
+              <ArrowLeftRight className="h-4 w-4 rotate-90" />
+            </Button>
           </div>
         </div>
-
-        <div className="flex flex-col justify-center">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 text-gray-400 hover:text-blue-600 border-gray-200 hover:border-blue-200 bg-white shadow-sm transition-all"
-            onClick={swapEndpoints}
-            title="Sukeisti kryptis"
-          >
-            <ArrowLeftRight className="h-4 w-4 rotate-90" />
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

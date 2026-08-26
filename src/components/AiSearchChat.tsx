@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Send, Sparkles, Trash2 } from "lucide-react";
+import { Navigation, Send, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown, {
   type Components,
@@ -16,6 +16,17 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { useIsMobile } from "@/hooks/useIsMobile";
+
+// Mirrors AiSearchRoutePayload (src/lib/aiSearchClient.ts) — the shape of
+// the "data-aiSearchRoute" transient part written by streamSearchResponse.
+// Redeclared here (not imported) the same way data-aiSearchResultIds below
+// is just cast to string[] — aiSearchClient.ts is "server-only".
+export type AiSearchRoutePayload = {
+  profile: "foot" | "bike" | "car";
+  // stops[0] IS the route start, stops[last] IS the end.
+  stops: { id: string; name: string; lng: number; lat: number }[];
+};
 
 interface AiSearchChatProps {
   open: boolean;
@@ -26,6 +37,9 @@ interface AiSearchChatProps {
   // in src/lib/aiSearchClient.ts) so the map can highlight them, and with
   // [] to clear the highlight (chat closed or cleared).
   onHighlightIds: (ids: string[]) => void;
+  // Called when the user confirms building the route the model proposed
+  // (see the "data-aiSearchRoute" transient part above).
+  onShowRoute: (route: AiSearchRoutePayload) => void;
 }
 
 function extractMessageText(parts: { type: string; text?: string }[]): string {
@@ -41,8 +55,16 @@ export function AiSearchChat({
   pos,
   onSelectPoiId,
   onHighlightIds,
+  onShowRoute,
 }: AiSearchChatProps) {
   const [input, setInput] = useState("");
+
+  // The most recent route the model proposed (if any) — surfaced as a
+  // "Rodyti maršrutą" button below the reply. Only one at a time: a new
+  // question replaces it, whether or not the previous one was shown.
+  const [pendingRoute, setPendingRoute] = useState<AiSearchRoutePayload | null>(
+    null,
+  );
 
   // Every id ever returned by an actual DB search this session (union
   // across turns, see onData below) — the response-synthesis model is
@@ -77,6 +99,9 @@ export function AiSearchChat({
         onHighlightIds(ids);
         setKnownPoiIds((prev) => new Set([...prev, ...ids]));
       }
+      if (dataPart.type === "data-aiSearchRoute") {
+        setPendingRoute(dataPart.data as AiSearchRoutePayload);
+      }
     },
   });
 
@@ -85,14 +110,31 @@ export function AiSearchChat({
     if (!open) onHighlightIds([]);
   }, [open, onHighlightIds]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const handleShowRoute = () => {
+    if (!pendingRoute) return;
+    onShowRoute(pendingRoute);
+  };
 
-  // The input now sits at the top (see below), so new messages grow
-  // downward, out of view, unless we scroll to them ourselves.
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
+
+  // Input sits at the bottom (see below), so a new message can grow out of
+  // view above it — scroll the message list to its end whenever it changes.
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-runs on every message/status change, though it only reads the ref
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: "end" });
   }, [messages, status]);
+
+  // Desktop only: autofocus means you can start typing the moment the panel
+  // opens without hunting for the input. Not on mobile — forcing the
+  // on-screen keyboard open on panel-open (rather than on an explicit tap)
+  // is intrusive, some browsers suppress it anyway, and this app has hit a
+  // real Chrome viewport-resize glitch before when the keyboard covered a
+  // bottom input — unresolved, tracked separately.
+  useEffect(() => {
+    if (open && isMobile === false) textareaRef.current?.focus();
+  }, [open, isMobile]);
 
   // `poi:<id>` links (see buildSecondCallSystemPrompt in
   // src/app/api/ai-search/route.ts) are intercepted here and call
@@ -124,6 +166,21 @@ export function AiSearchChat({
         </a>
       );
     },
+    // Tailwind's preflight strips <ol>/<ul> of list-style and padding by
+    // default (normally restored by the @tailwindcss/typography plugin via
+    // a "prose" class — not installed in this project, so it must be done
+    // explicitly here) — without this, a numbered route reply rendered as
+    // plain stacked lines with no visible "1./2./3." at all, indistinguishable
+    // from each other once a long name wrapped to a second line.
+    ol: ({ children }) => (
+      <ol className="list-decimal list-outside pl-5 space-y-1 marker:font-semibold marker:text-purple-600">
+        {children}
+      </ol>
+    ),
+    ul: ({ children }) => (
+      <ul className="list-disc list-outside pl-5 space-y-1">{children}</ul>
+    ),
+    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
   };
 
   // react-markdown sanitizes link hrefs via defaultUrlTransform, which only
@@ -137,9 +194,84 @@ export function AiSearchChat({
   const handleSend = () => {
     const text = input.trim();
     if (!text) return;
+    setPendingRoute(null);
     sendMessage({ text });
     setInput("");
   };
+
+  const inputBlock = (
+    <div className="p-4 border-t flex gap-2">
+      <Textarea
+        ref={textareaRef}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
+        placeholder="Kas tave domina?"
+        className="min-h-10 resize-none"
+        rows={1}
+      />
+      <Button
+        size="icon"
+        onClick={handleSend}
+        disabled={status === "submitted" || status === "streaming"}
+      >
+        <Send className="size-4" />
+      </Button>
+    </div>
+  );
+
+  const messagesBlock = (
+    <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
+      {messages.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          Paklauskite, pvz. „kur galiu suvalgyti cepelinų netoliese?“ arba
+          „pasiūlyk piliakalnius aplinkui“.
+        </p>
+      )}
+      {messages.map((message) => (
+        <div
+          key={message.id}
+          className={
+            message.role === "user"
+              ? "self-end bg-purple-100 rounded-lg px-3 py-2 text-sm max-w-[85%]"
+              : "self-start bg-gray-100 rounded-lg px-3 py-2 text-sm max-w-[90%]"
+          }
+        >
+          <ReactMarkdown
+            components={markdownComponents}
+            urlTransform={markdownUrlTransform}
+          >
+            {extractMessageText(message.parts)}
+          </ReactMarkdown>
+        </div>
+      ))}
+      {pendingRoute && status !== "submitted" && status !== "streaming" && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="self-start gap-2"
+          onClick={handleShowRoute}
+        >
+          <Navigation className="size-4" />
+          Rodyti maršrutą
+        </Button>
+      )}
+      {(status === "submitted" || status === "streaming") && (
+        <p className="text-sm text-muted-foreground self-start">Ieškoma...</p>
+      )}
+      {status === "error" && (
+        <p className="text-sm text-destructive self-start">
+          {error?.message || "Kilo klaida, pabandykite vėliau."}
+        </p>
+      )}
+      <div ref={messagesEndRef} />
+    </div>
+  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
@@ -168,6 +300,7 @@ export function AiSearchChat({
                 setMessages([]);
                 onHighlightIds([]);
                 setKnownPoiIds(new Set());
+                setPendingRoute(null);
               }}
             >
               <Trash2 className="size-4" />
@@ -175,65 +308,8 @@ export function AiSearchChat({
           )}
         </SheetHeader>
 
-        <div className="p-4 border-b flex gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder="Klauskite apie vietas..."
-            className="min-h-10 resize-none"
-            rows={1}
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={status === "submitted" || status === "streaming"}
-          >
-            <Send className="size-4" />
-          </Button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
-          {messages.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Paklauskite, pvz. „kur galiu suvalgyti cepelinų netoliese?“ arba
-              „pasiūlyk piliakalnius aplinkui“.
-            </p>
-          )}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={
-                message.role === "user"
-                  ? "self-end bg-purple-100 rounded-lg px-3 py-2 text-sm max-w-[85%]"
-                  : "self-start bg-gray-100 rounded-lg px-3 py-2 text-sm max-w-[90%] prose prose-sm"
-              }
-            >
-              <ReactMarkdown
-                components={markdownComponents}
-                urlTransform={markdownUrlTransform}
-              >
-                {extractMessageText(message.parts)}
-              </ReactMarkdown>
-            </div>
-          ))}
-          {(status === "submitted" || status === "streaming") && (
-            <p className="text-sm text-muted-foreground self-start">
-              Ieškoma...
-            </p>
-          )}
-          {status === "error" && (
-            <p className="text-sm text-destructive self-start">
-              {error?.message || "Kilo klaida, pabandykite vėliau."}
-            </p>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+        {messagesBlock}
+        {inputBlock}
       </SheetContent>
     </Sheet>
   );

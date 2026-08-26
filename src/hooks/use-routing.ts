@@ -2,6 +2,11 @@ import { lineString } from "@turf/helpers";
 import type { Feature, LineString } from "geojson";
 import useSWR from "swr";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import {
+  DEFAULT_ROUTING_URL,
+  fetchGraphHopperRoute,
+  RouteNotFoundError,
+} from "@/lib/geo";
 import { decodePolyline } from "@/lib/polyline";
 
 export const RouteSign = {
@@ -63,49 +68,40 @@ function getCoordinates(feature: Feature): [number, number] | null {
 }
 
 async function fetchRoute(
-  startLng: number,
-  startLat: number,
-  endLng: number,
-  endLat: number,
+  points: [number, number][],
   routingProfile: string,
   routingUrl: string,
 ): Promise<RouteData> {
-  const url = new URL(routingUrl);
-  // GraphHopper Routing API requires points as lat,lng
-  url.searchParams.append("point", `${startLat},${startLng}`);
-  url.searchParams.append("point", `${endLat},${endLng}`);
-  url.searchParams.append("profile", routingProfile);
-  url.searchParams.append("elevation", "false");
-  url.searchParams.append("locale", "lt");
-  url.searchParams.append("points_encoded", "true");
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const path = data.paths?.[0];
-  if (!path) {
-    throw new Error(ROUTE_NOT_FOUND);
+  let path: Awaited<ReturnType<typeof fetchGraphHopperRoute>>;
+  try {
+    path = await fetchGraphHopperRoute(points, routingProfile, routingUrl);
+  } catch (error) {
+    if (error instanceof RouteNotFoundError) {
+      throw new Error(ROUTE_NOT_FOUND);
+    }
+    throw error;
   }
 
   return {
     routeLine: lineString(decodePolyline(path.points, false)),
     distance: path.distance,
     time: path.time,
-    instructions: path.instructions ?? [],
+    instructions: (path.instructions ?? []) as RouteInstruction[],
   };
 }
 
 export function useRouting(
   startFeature: Feature | null,
   endFeature: Feature | null,
+  waypointFeatures: Feature[] = [],
   routingProfile: string = "car",
-  routingUrl: string = "https://api.openmap.lt/route/route",
+  routingUrl: string = DEFAULT_ROUTING_URL,
 ): RouteResult {
   const startCoords = startFeature ? getCoordinates(startFeature) : null;
   const endCoords = endFeature ? getCoordinates(endFeature) : null;
+  const waypointCoords = waypointFeatures
+    .map(getCoordinates)
+    .filter((c): c is [number, number] => c !== null);
 
   // Debounce the primitive coordinates (not the Feature objects, which get a
   // new identity every render) so a stable, serializable SWR key emerges.
@@ -130,12 +126,17 @@ export function useRouting(
           debouncedStartLat,
           debouncedEndLng,
           debouncedEndLat,
+          // Waypoints (currently only set programmatically, e.g. by
+          // AI-generated routes — never dragged/typed interactively) don't
+          // need their own debounce; SWR deep-compares array keys by
+          // content, so this is a stable key on its own.
+          waypointCoords,
           debouncedProfile,
           debouncedUrl,
         ]
       : null,
-    ([, sLng, sLat, eLng, eLat, profile, url]) =>
-      fetchRoute(sLng, sLat, eLng, eLat, profile, url),
+    ([, sLng, sLat, eLng, eLat, waypoints, profile, url]) =>
+      fetchRoute([[sLng, sLat], ...waypoints, [eLng, eLat]], profile, url),
     {
       // Keep showing the previous route while a new one (e.g. a dragged
       // endpoint) is loading, instead of flashing the line off the map.
@@ -155,11 +156,15 @@ export function useRouting(
       : "Klaida nustatant maršrutizavimą."
     : null;
 
+  // keepPreviousData keeps `data` around across a key transition, INCLUDING
+  // the transition to `null` (both endpoints intentionally cleared) — gate
+  // on hasDebouncedCoords so closing the route actually clears the map
+  // instead of leaving the last-fetched line/stats displayed forever.
   return {
-    routeLine: data?.routeLine ?? null,
-    distance: data?.distance ?? null,
-    time: data?.time ?? null,
-    instructions: data?.instructions ?? [],
+    routeLine: hasDebouncedCoords ? (data?.routeLine ?? null) : null,
+    distance: hasDebouncedCoords ? (data?.distance ?? null) : null,
+    time: hasDebouncedCoords ? (data?.time ?? null) : null,
+    instructions: hasDebouncedCoords ? (data?.instructions ?? []) : [],
     loading: isLoading,
     error: coordinateError ?? fetchError,
   };

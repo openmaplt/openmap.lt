@@ -16,8 +16,13 @@ export function RouteStepsList({
   onInstructionClick,
   onStartEndClick,
 }: RouteStepsListProps) {
-  const { navigationMode, selectedRouteProfile, routeStart, routeEnd } =
-    useRoute();
+  const {
+    navigationMode,
+    selectedRouteProfile,
+    routeStart,
+    routeEnd,
+    waypoints,
+  } = useRoute();
   const { routeLine, instructions } = useRouteResult();
   const { currentIndex, liveDistanceToNext } = useActiveInstruction(
     instructions,
@@ -25,7 +30,24 @@ export function RouteStepsList({
   );
   const actionWord = getActionWord(selectedRouteProfile);
 
-  const steps = instructions.filter((step) => step.sign !== RouteSign.Finish);
+  // GraphHopper's own via-point instruction text is generic ("Sustojimas
+  // N") — it has no idea these are named POIs. Swap in the matching
+  // waypoint's name (same order GraphHopper was given them in, see
+  // useRouting), keeping GraphHopper's text as a fallback for a future
+  // via-point with no known name. Done over the FULL steps array, before
+  // slicing to activeIdx below, so the counter stays aligned even once
+  // already-passed via-points get cut off during navigation.
+  let viaPointCounter = 0;
+  const steps = instructions
+    .filter((step) => step.sign !== RouteSign.Finish)
+    .map((step) => {
+      if (step.sign !== RouteSign.ViaPoint) return step;
+      const name = waypoints[viaPointCounter]?.properties?.name as
+        | string
+        | undefined;
+      viaPointCounter++;
+      return name ? { ...step, text: name } : step;
+    });
   const activeIdx = getActiveInstructionIndex(
     steps,
     navigationMode ? currentIndex : null,

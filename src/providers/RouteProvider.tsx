@@ -31,12 +31,18 @@ interface RouteContextType {
   navigationMode: boolean;
   routeStart: Feature | null;
   routeEnd: Feature | null;
+  // Via-points visited in order between routeStart and routeEnd — currently
+  // only populated programmatically (e.g. an AI-generated route through
+  // several POIs), never through RoutingInputs. Deliberately not part of
+  // routeStateForUrl/urlHash — no share-route support for these yet.
+  waypoints: Feature[];
   selectedRouteProfile: RouteProfile | null;
   highlightedRoutePoint: [number, number] | null;
   setRoutingMode: (mode: boolean) => void;
   setNavigationMode: (mode: boolean) => void;
   setRouteStart: (feature: Feature | null) => void;
   setRouteEnd: (feature: Feature | null) => void;
+  setWaypoints: (waypoints: Feature[]) => void;
   setSelectedRouteProfile: (profile: RouteProfile | null) => void;
   setHighlightedRoutePoint: (point: [number, number] | null) => void;
 }
@@ -117,6 +123,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
         })
       : null,
   );
+  const [waypoints, setWaypoints] = useState<Feature[]>([]);
   const [selectedRouteProfile, setSelectedRouteProfile] =
     useState<RouteProfile | null>(
       () =>
@@ -134,6 +141,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
     prevProfileRef.current = activeMapProfile;
     setRouteStart(null);
     setRouteEnd(null);
+    setWaypoints([]);
     setRoutingMode(false);
     setNavigationMode(false);
     setHighlightedRoutePoint(null);
@@ -166,6 +174,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
   const rawRouteResult = useRouting(
     routeStart,
     routeEnd,
+    waypoints,
     vehicle,
     activeMapProfile.routingUrl,
   );
@@ -250,12 +259,14 @@ export function RouteProvider({ children }: { children: ReactNode }) {
       navigationMode,
       routeStart,
       routeEnd,
+      waypoints,
       selectedRouteProfile,
       highlightedRoutePoint,
       setRoutingMode,
       setNavigationMode,
       setRouteStart,
       setRouteEnd,
+      setWaypoints,
       setSelectedRouteProfile,
       setHighlightedRoutePoint,
     }),
@@ -265,6 +276,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
       navigationMode,
       routeStart,
       routeEnd,
+      waypoints,
       selectedRouteProfile,
       highlightedRoutePoint,
     ],
