@@ -20,7 +20,7 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM=${SMTP_FROM}
       - MODERATION_DIGEST_HOUR=${MODERATION_DIGEST_HOUR}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AI_MODEL_API_KEY=${AI_MODEL_API_KEY}
     # Bind mount (not a named volume) on purpose: it's a plain host directory
     # that the deploy script never touches, so user-uploaded photos survive
     # every `docker compose down && up` across releases. See docs/DEPLOYMENT.md

@@ -96,7 +96,7 @@ jobs:
             echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
             echo "SMTP_FROM=${{ secrets.SMTP_FROM }}" >> .env
             echo "MODERATION_DIGEST_HOUR=${{ secrets.MODERATION_DIGEST_HOUR || '8' }}" >> .env
-            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+            echo "AI_MODEL_API_KEY=${{ secrets.AI_MODEL_API_KEY }}" >> .env
 
             # Pull latest docker-compose.prod.yml
             curl -o docker-compose.prod.yml "https://raw.githubusercontent.com/${{ github.repository }}/$REPO_REF/docker-compose.prod.yml"

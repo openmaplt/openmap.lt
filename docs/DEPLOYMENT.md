@@ -64,8 +64,8 @@ GitHub repository Settings → Secrets and variables → Actions, pridėkite ši
 - `OSM_CLIENT_ID` / `OSM_CLIENT_SECRET` - registruojama https://www.openstreetmap.org/oauth2/applications (redirect URI: `https://openmap.lt/auth/osm/callback`, scope: `read_prefs`)
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - registruojama https://console.cloud.google.com/apis/credentials (redirect URI: `https://openmap.lt/auth/google/callback`, scope: `openid email profile`)
 
-#### AI paieška (Gemini, žr. `src/app/api/ai-search/route.ts`):
-- `GEMINI_API_KEY` - registruojama https://aistudio.google.com/apikey; nenustačius, admin-only AI paieškos funkcija tiesiog neveikia (grąžina klaidą paspaudus)
+#### AI paieška (šiuo metu Mistral, žr. `src/app/api/ai-search/route.ts` ir `src/config/aiModel.ts`):
+- `AI_MODEL_API_KEY` - vieno aktyvaus AI modelio raktas (kurio provider'io - žr. `AI_MODEL_ID` `src/config/aiModel.ts`); šiuo metu Mistral, registruojama https://console.mistral.ai/api-keys; nenustačius, admin-only AI paieškos funkcija tiesiog neveikia (grąžina klaidą paspaudus)
 
 ### 5. SSH Private Key generavimas
 

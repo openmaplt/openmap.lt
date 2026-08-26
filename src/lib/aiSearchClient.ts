@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createMistral } from "@ai-sdk/mistral";
 import {
   convertToModelMessages,
   createProviderRegistry,
@@ -21,11 +22,16 @@ import {
 } from "@/lib/aiSearchCatalog";
 import { type AiSearchPlan, AiSearchPlanSchema } from "@/lib/aiSearchSchema";
 
-// The bare `google`/default createGoogleGenerativeAI() reads
-// GOOGLE_GENERATIVE_AI_API_KEY — pass apiKey explicitly, or this breaks
-// silently in production with a differently-named env var.
+// The bare `google`/`mistral` defaults (createGoogleGenerativeAI(),
+// createMistral()) read their own provider-specific env vars
+// (GOOGLE_GENERATIVE_AI_API_KEY / MISTRAL_API_KEY) — pass apiKey explicitly
+// from the one generic AI_MODEL_API_KEY instead, or this breaks silently in
+// production. Only the provider selected by AI_MODEL_ID (src/config/
+// aiModel.ts) is ever actually called, so both entries sharing the same key
+// is fine — the unused one is just never exercised.
 const registry = createProviderRegistry({
-  google: createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY }),
+  google: createGoogleGenerativeAI({ apiKey: process.env.AI_MODEL_API_KEY }),
+  mistral: createMistral({ apiKey: process.env.AI_MODEL_API_KEY }),
 });
 
 function getModel() {

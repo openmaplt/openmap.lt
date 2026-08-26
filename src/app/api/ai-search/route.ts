@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     return new Response(null, { status: 429 });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.AI_MODEL_API_KEY) {
     return new Response("AI paieška nesukonfigūruota.", { status: 503 });
   }
 
