@@ -44,6 +44,16 @@ export function AiSearchChat({
 }: AiSearchChatProps) {
   const [input, setInput] = useState("");
 
+  // Every id ever returned by an actual DB search this session (union
+  // across turns, see onData below) — the response-synthesis model is
+  // instructed to only mention ids from the list it's given, but a weaker
+  // model doesn't reliably follow that: it has invented plausible-sounding
+  // place names attached to real ids of unrelated POIs it was never given
+  // (e.g. answering about Palanga with Kaunas fort ids, confidently wrong).
+  // The prompt is not a security boundary — this set is: a "poi:<id>" link
+  // only becomes clickable navigation if id is actually in it.
+  const [knownPoiIds, setKnownPoiIds] = useState<Set<string>>(new Set());
+
   // Recreating the transport on every pos change doesn't itself send a
   // request — it only sets what gets attached to the NEXT sendMessage call,
   // so no debouncing needed.
@@ -63,7 +73,9 @@ export function AiSearchChat({
     // not just the ids the model happened to mention in its reply.
     onData: (dataPart) => {
       if (dataPart.type === "data-aiSearchResultIds") {
-        onHighlightIds(dataPart.data as string[]);
+        const ids = dataPart.data as string[];
+        onHighlightIds(ids);
+        setKnownPoiIds((prev) => new Set([...prev, ...ids]));
       }
     },
   });
@@ -89,11 +101,18 @@ export function AiSearchChat({
   const markdownComponents: Components = {
     a: ({ href, children }) => {
       if (href?.startsWith("poi:")) {
+        const id = href.slice(4);
+        // Not a real search result id — the model invented it (see
+        // knownPoiIds above). Render as inert text, not a link: better an
+        // unclickable mention than navigation to a wrong, unrelated place.
+        if (!knownPoiIds.has(id)) {
+          return <span>{children}</span>;
+        }
         return (
           <button
             type="button"
             className="text-purple-600 underline hover:text-purple-800 cursor-pointer text-left"
-            onClick={() => onSelectPoiId(href.slice(4))}
+            onClick={() => onSelectPoiId(id)}
           >
             {children}
           </button>
@@ -148,6 +167,7 @@ export function AiSearchChat({
               onClick={() => {
                 setMessages([]);
                 onHighlightIds([]);
+                setKnownPoiIds(new Set());
               }}
             >
               <Trash2 className="size-4" />

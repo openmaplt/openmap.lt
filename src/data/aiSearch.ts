@@ -9,33 +9,22 @@ const EMPTY_RESULT: FeatureCollection = {
   features: [],
 };
 
-// A group with both a structural filter (types/tagFilters) and keywords
-// ANDs them together in sql/ai_search.sql — correct when keywords narrow
-// to one named place (e.g. type "r" + keyword "Špunka"), but the model
-// (see buildFirstCallSystemPrompt rule 8 in aiSearchClient.ts) sometimes
-// pairs an exact types/tagFilters match with generic synonym keywords it
-// should have left empty (e.g. "craftinis alus" next to types=["r"] +
-// tagFilterIds=["real_ale=*"]) — those words never appear literally in a
-// place's name/description, so the AND turns an otherwise-exact match into
-// zero results.
-function hasStructuralWithKeywords(groups: SanitizedAiSearchGroup[]): boolean {
-  return groups.some(
-    (g) => (g.types || g.tagFilters.length > 0) && g.keywords.length > 0,
-  );
-}
-
-function dropKeywordsFromStructuralGroups(
-  groups: SanitizedAiSearchGroup[],
-): SanitizedAiSearchGroup[] {
-  return groups.map((g) =>
-    g.types || g.tagFilters.length > 0 ? { ...g, keywords: [] } : g,
-  );
-}
-
-async function runAiSearch(
+// Tried a fallback here that dropped keywords from groups that also had a
+// structural filter (types/tagFilters) whenever the exact query came back
+// empty, meant to recover from the model pairing an exact tag match with a
+// redundant synonym keyword (see buildFirstCallSystemPrompt rule 8 in
+// aiSearchClient.ts). Reverted: it can't be told apart from a keyword that
+// IS the query's only location anchor (e.g. "kas įdomaus Palangoje" asked
+// while the map is centered on Kaunas — types=["a"] + keywords=["Palanga"]
+// legitimately finds nothing near Kaunas). Dropping the keyword there
+// silently substitutes an unrelated city's results for a real "nothing
+// found here" answer — worse than the empty result it was meant to fix.
+export async function searchPlacesForAi(
   groups: SanitizedAiSearchGroup[],
   pos: [number, number],
 ): Promise<FeatureCollection> {
+  if (groups.length === 0) return EMPTY_RESULT;
+
   const result = await queryResult<AiSearchDbResult>(
     "SELECT places.ai_search($1::jsonb) as result",
     [JSON.stringify({ groups, pos })],
@@ -47,24 +36,4 @@ async function runAiSearch(
   }
 
   return result ?? EMPTY_RESULT;
-}
-
-export async function searchPlacesForAi(
-  groups: SanitizedAiSearchGroup[],
-  pos: [number, number],
-): Promise<FeatureCollection> {
-  if (groups.length === 0) return EMPTY_RESULT;
-
-  const result = await runAiSearch(groups, pos);
-
-  // Exact query came back empty and at least one group could have been
-  // over-narrowed by keywords — retry once with keywords dropped from
-  // groups that already have a structural filter (groups relying on
-  // keywords alone are left untouched, since dropping their only filter
-  // would just return unrelated places).
-  if (result.features.length === 0 && hasStructuralWithKeywords(groups)) {
-    return runAiSearch(dropKeywordsFromStructuralGroups(groups), pos);
-  }
-
-  return result;
 }
