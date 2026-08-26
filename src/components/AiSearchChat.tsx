@@ -92,7 +92,7 @@ export function AiSearchChat({
         return (
           <button
             type="button"
-            className="text-purple-600 underline hover:text-purple-800 cursor-pointer"
+            className="text-purple-600 underline hover:text-purple-800 cursor-pointer text-left"
             onClick={() => onSelectPoiId(href.slice(4))}
           >
             {children}

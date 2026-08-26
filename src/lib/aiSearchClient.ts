@@ -67,10 +67,12 @@ TAISYKLĖS DĖL GRUPIŲ IR "tagFilterIds" (SVARBU, LAIKYKIS TIKSLIAI):
 5. Jei "types" IR "tagFilterIds" abu tinka TAI PAČIAI vartotojo minčiai (pvz. "craftinio alaus baras" = tipas "r" + tag "real_ale=*"), abu įrašyk Į TĄ PAČIĄ grupę (tas pats grupės objektas, abu laukai užpildyti kartu). NIEKADA nekurk atskiros grupės vien su "types" IR dar vienos atskiros grupės vien su "tagFilterIds" tai pačiai minčiai — grupės jungiamos "ARBA", tad atskira "types" grupė be tag filtro grąžins VISUS to tipo objektus ir taip prarasi susiaurinimą.
 6. Kelias ATSKIRAS grupes kurk TIK kai vartotojas nori kelių NESUSIJUSIŲ dalykų (pvz. "itališko maisto IR craft alaus" — viena grupė itališkam maistui per keywords, kita grupė craft alui su types+tagFilterIds kartu, kaip 5 taisyklėje).
 7. Jei "tagFilterIds" sąrašo aprašyme parašyta "PRIVALOMA" ir užklausoje yra tą aprašymą atitinkantis žodis, VISADA įtrauk tą tagFilterId — net jei atitinkamas "types" kodas atrodo pakankamas be jo. Vien "types" BE "tagFilterIds" tokiu atveju yra KLAIDINGAS atsakymas.
+8. "keywords" IR "types"/"tagFilterIds" TOJE PAČIOJE grupėje jungiami DUOMENŲ BAZĖJE PER "IR" (ne "arba") — jei "types"/"tagFilterIds" jau TIKSLIAI atitinka vartotojo mintį (kaip 5 taisyklėje), NIEKADA nepridėk PRIE JŲ dar bendrinių sinonimų kaip "keywords": tie žodžiai ("craftinis", "amatininkų", "tikras" ir pan.) NIEKADA pažodžiui nepasirodys vietos pavadinime/aprašyme duomenų bazėje, tad DB PAIEŠKA GRĄŽINS NULĮ REZULTATŲ, nors tinkamų vietų yra. "keywords" pildyk KARTU su "types"/"tagFilterIds" TIK KONKRETAUS PAVADINIMO IŠIMČIai (žr. aukščiau, pvz. "Špunka") — niekada bendriniam sinonimui.
 
 PAVYZDYS: užklausa "kur galiu paragauti craftinio alaus?" →
-TEISINGAI: {"groups": [{"types": ["r"], "tagFilterIds": ["real_ale=*"], "keywords": []}]} — VIENA grupė, abu laukai kartu.
+TEISINGAI: {"groups": [{"types": ["r"], "tagFilterIds": ["real_ale=*"], "keywords": []}]} — VIENA grupė, abu laukai kartu, "keywords" TUŠČIAS.
 NETEISINGAI: {"groups": [{"types": ["r"], ...}, {"tagFilterIds": ["real_ale=*"], ...}]} — dvi atskiros grupės tai pačiai minčiai grąžintų VISUS barus, ne tik craftinius.
+NETEISINGAI: {"groups": [{"types": ["r"], "tagFilterIds": ["real_ale=*"], "keywords": ["craftinis alus", "amatininkų alus"]}]} — "keywords" čia PERTEKLINIS ir KLAIDINGAS (8 taisyklė): susiaurina paiešką iki pavadinimų, turinčių tuos žodžius pažodžiui, ir grąžina 0 rezultatų, nors "types"+"tagFilterIds" jau tiksliai atitinka.
 
 Jei vartotojas klausia apie BENDRĄ KATEGORIJĄ (ne konkretų pavadinimą), naudok tipą/tag PIRMENYBĖS TVARKA prieš keywords — jis tikslesnis. Jei vartotojas paminėjo KONKRETŲ PAVADINIMĄ, žr. IŠIMTĮ prie "keywords" aukščiau. Visada grąžink bent vieną grupę.`;
 }
@@ -106,10 +108,17 @@ export function toPoiSummaries(features: Feature[]): AiSearchPoiSummary[] {
 
 function buildSecondCallSystemPrompt(poiList: AiSearchPoiSummary[]): string {
   if (poiList.length === 0) {
-    // State explicitly that the location IS known (search ran in the
-    // current map view) — otherwise the model sometimes invents a wrong
-    // excuse ("I can't see where you are") instead of "no matches here".
-    return `Tu esi openmap.lt paieškos asistentas. Paieška TIKRAI ĮVYKO dabartiniame žemėlapio matomame lange (ŽINOME, kur vartotojas žiūri žemėlapyje) — tiesiog toje konkrečioje vietoje nerasta nė vieno atitikmens. NIEKADA nesakyk, kad "nematai" ar "nežinai", kurioje vietoje vartotojas yra — tiesiog toje vietoje nėra tinkamo rezultato. Tai gali būti tolesnė žinutė pokalbyje, NE pirma — NIEKADA nepradėk atsakymo sveikinimu ("Sveiki", "Labas" ir pan.), atsakyk tiesiai į temą. Atsakyk lietuviškai, trumpai, draugiškai — pasakyk, kad ŠIOJE ŽEMĖLAPIO VIETOJE rezultatų nerasta, ir pasiūlyk pabandyti kitaip (paslinkti/pritraukti žemėlapį į kitą vietą, arba pabandyti kitą raktažodį).`;
+    // State explicitly that the location IS known (search ran from the
+    // current map center) — otherwise the model sometimes invents a wrong
+    // excuse ("I can't see where you are") instead of "no matches at all".
+    // Also explicitly forbid suggesting to pan/zoom the map: places.ai_search
+    // (sql/ai_search.sql) is NOT bbox-limited — it ranks by distance from
+    // pos but returns the nearest matches regardless of how far they are,
+    // so a zero-result plan means no row anywhere in the DB satisfies the
+    // criteria; moving/zooming the map cannot change that outcome, and
+    // suggesting it used to be true before bbox filtering was removed from
+    // the SQL — telling the user to do it now is a misleading dead end.
+    return `Tu esi openmap.lt paieškos asistentas. Paieška TIKRAI ĮVYKO — ji apima VISĄ šalį, ne tik dabartinį žemėlapio matomą langą, ir grąžina artimiausius atitikmenis nuo vartotojo vietos NEPRIKLAUSOMAI nuo atstumo — bet šįkart DUOMENŲ BAZĖJE nerasta NĖ VIENO tinkamo objekto pagal šiuos kriterijus. NIEKADA nesakyk, kad "nematai" ar "nežinai", kurioje vietoje vartotojas yra. NIEKADA nesiūlyk paslinkti, pritraukti ar atitraukti žemėlapį — paieška NEPRIKLAUSO nuo matomo lango ar mastelio, tad tai NIEKADA nepadėtų rasti daugiau rezultatų. Tai gali būti tolesnė žinutė pokalbyje, NE pirma — NIEKADA nepradėk atsakymo sveikinimu ("Sveiki", "Labas" ir pan.), atsakyk tiesiai į temą. Atsakyk lietuviškai, trumpai, draugiškai — pasakyk, kad tokių vietų duomenų bazėje nerasta, ir pasiūlyk pabandyti kitokią užklausą ar raktažodį.`;
   }
 
   const listText = poiList
