@@ -282,9 +282,16 @@ export function AiSearchChat({
         // user clicks X (SheetPrimitive.Close — a separate, explicit
         // mechanism, not outside-detection).
         preventOutsideClose
-        side="right"
+        // On mobile, side="right" rendered as a near-full-width panel
+        // stacked awkwardly over the rest of the UI (issue #69). Bottom,
+        // truly full-height instead (100dvh, unlike PoiDetails.tsx/
+        // RouteDetails.tsx's 95dvh "expanded" state) — the chat never shows
+        // map content, so leaving a sliver of map visible above it serves no
+        // purpose and there's no collapsed state to peek through it for.
+        side={isMobile ? "bottom" : "right"}
         showOverlay={false}
         className="flex flex-col"
+        style={isMobile ? { height: "100dvh" } : undefined}
       >
         <SheetHeader className="flex-row items-center justify-between pr-12">
           <SheetTitle className="flex items-center gap-2">

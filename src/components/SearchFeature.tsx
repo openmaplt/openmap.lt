@@ -8,7 +8,6 @@ import {
 import { SearchBox } from "@/components/SearchBox";
 import { getPoiInfo } from "@/data/poiInfo";
 import { usePoiEnrichment } from "@/hooks/use-poi-enrichment";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAuth } from "@/providers/AuthProvider";
 import {
   useMapActions,
@@ -30,6 +29,7 @@ export function SearchFeature() {
   const { selectedFeature } = useMapSelection();
   const { user } = useAuth();
   const {
+    routingMode,
     setRouteStart,
     setRouteEnd,
     setWaypoints,
@@ -37,7 +37,6 @@ export function SearchFeature() {
     setRoutingMode,
   } = useRoute();
   const { enrichFeature } = usePoiEnrichment(activeMapProfile.mapType);
-  const isMobile = useIsMobile();
   const mapType = activeMapProfile.mapType;
 
   const [aiChatOpen, setAiChatOpen] = useState(false);
@@ -47,14 +46,18 @@ export function SearchFeature() {
   // wipe its conversation) the moment "Rodyti maršrutą" opened the route
   // panel. Living here means it survives that.
   //
-  // On mobile, the AI chat (side="right", nearly full width) covers the POI
-  // details sheet (side="bottom") opened by a `poi:` link click — the user
-  // can no longer see the marker on the map. `aiChatOpen` stays the user's
-  // INTENT (true until they click X); `showAiChat` is the actual
-  // visibility — auto-hidden on mobile while POI details are showing, and
+  // AiSearchChat would otherwise stack on top of the POI details sheet
+  // opened by a `poi:` link click, or the route panel opened by "Rodyti
+  // maršrutą" / a long-press on the map. On mobile both are full-screen
+  // bottom sheets; on desktop/tablet each is a side panel capped at 384px
+  // (Tailwind's sm:max-w-sm) — two of those side by side already leave
+  // barely any map visible well above the 768px mobile breakpoint, so this
+  // isn't just a mobile concern and isn't gated on isMobile. `aiChatOpen`
+  // stays the user's INTENT (true until they click X); `showAiChat` is the
+  // actual visibility — auto-hidden while either of those is showing, and
   // restored once they close, with no loss of chat state (AiSearchChat
-  // never unmounts).
-  const showAiChat = aiChatOpen && !(isMobile && selectedFeature);
+  // never unmounts, so the conversation is never wiped).
+  const showAiChat = aiChatOpen && !(selectedFeature || routingMode);
 
   const handleSearchResultSelect = async (feature: Feature) => {
     const enriched = await enrichFeature(feature);
