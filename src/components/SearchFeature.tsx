@@ -1,6 +1,6 @@
 import { point } from "@turf/helpers";
 import type { Feature } from "geojson";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AiSearchChat,
   type AiSearchRoutePayload,
@@ -89,10 +89,51 @@ export function SearchFeature() {
     });
   };
 
+  // The ids the map should actually dim/brighten around are computed, not
+  // imperatively set-and-later-cleared: two independent inputs — the AI
+  // search result set, and (while a route built from chat is showing) that
+  // route's stops — each live in their own piece of state, and a single
+  // effect below pushes whichever one currently applies into
+  // MapProvider's highlightedPoiIds. This used to be two separate effects
+  // each manually setting AND clearing setHighlightedPoiIds with a
+  // hand-rolled "is a route highlight active" flag; if that flag ever
+  // desynced from the actual highlight (e.g. a route closing without its
+  // effect's dependency array having changed on that exact render), the
+  // route's stop ids would stay stuck in highlightedPoiIds indefinitely —
+  // dimming every POI on the map, including ones that had nothing to do
+  // with that route, once the user went back to the chat. A pure derivation
+  // can't desync like that: there's nothing to forget to clear.
+  const [aiSearchHighlightIds, setAiSearchHighlightIds] = useState<
+    string[] | null
+  >(null);
+  const [routeStopIds, setRouteStopIds] = useState<string[] | null>(null);
+
   const handleAiHighlight = useCallback(
-    (ids: string[]) => setHighlightedPoiIds(ids.length > 0 ? ids : null),
-    [setHighlightedPoiIds],
+    (ids: string[]) => setAiSearchHighlightIds(ids.length > 0 ? ids : null),
+    [],
   );
+
+  // A route built from chat only stays "current" while its panel is open —
+  // once routingMode goes false (RouteDetails' close button), forget its
+  // stops so the derivation below falls back to the AI search highlight.
+  useEffect(() => {
+    if (!routingMode) setRouteStopIds(null);
+  }, [routingMode]);
+
+  // While chat intent is open, its last search highlight applies; closing
+  // it (not just auto-hiding it — see showAiChat above) hides the
+  // highlight too, but doesn't forget it: reopening the chat later brings
+  // it right back, same as the conversation itself never gets wiped.
+  const highlightedPoiIds =
+    routingMode && routeStopIds
+      ? routeStopIds
+      : aiChatOpen
+        ? aiSearchHighlightIds
+        : null;
+
+  useEffect(() => {
+    setHighlightedPoiIds(highlightedPoiIds);
+  }, [highlightedPoiIds, setHighlightedPoiIds]);
 
   const handleShowRoute = (route: AiSearchRoutePayload) => {
     if (route.stops.length < 2) return;
@@ -107,6 +148,10 @@ export function SearchFeature() {
     setRouteEnd(stopFeatures[stopFeatures.length - 1]);
     setSelectedRouteProfile(route.profile);
     setRoutingMode(true);
+    // Same dimming mechanism PlacesFeature.tsx already applies for AI search
+    // result lists (icon-opacity keyed on highlightedPoiIds) — here it makes
+    // the route's own stops stand out against every other POI on the map.
+    setRouteStopIds(route.stops.map((s) => s.id));
   };
 
   return (

@@ -105,11 +105,6 @@ export function AiSearchChat({
     },
   });
 
-  // Clear the map highlight once the chat is closed.
-  useEffect(() => {
-    if (!open) onHighlightIds([]);
-  }, [open, onHighlightIds]);
-
   const handleShowRoute = () => {
     if (!pendingRoute) return;
     onShowRoute(pendingRoute);
