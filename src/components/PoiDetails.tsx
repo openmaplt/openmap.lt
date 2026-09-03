@@ -9,6 +9,7 @@ import { CommentsSection } from "@/components/comments/CommentsSection";
 import { PoiPhotoGallery } from "@/components/gallery/PoiPhotoGallery";
 import { PoiContent } from "@/components/PoiContent";
 import { ProtectedPhotos } from "@/components/ProtectedPhotos";
+import { PoiRating } from "@/components/ratings/PoiRating";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { PLACE_ICONS } from "@/config/places-icons";
 import { usePoiCollectionStatus } from "@/hooks/use-poi-collection-status";
+import { usePoiRating } from "@/hooks/use-poi-rating";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { extractPoiData } from "@/lib/poiData";
 import { toSafeHttpUrl } from "@/lib/utils";
@@ -35,6 +37,7 @@ export function PoiDetails() {
   const { routingEnabled, routingMode, setRouteEnd, setRoutingMode } =
     useRoute();
   const { isEligible: isCollectionEligible } = usePoiCollectionStatus();
+  const { isEligible: isRatingEligible } = usePoiRating();
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -170,6 +173,11 @@ export function PoiDetails() {
                 }
               />
             )
+          )}
+          {isRatingEligible && (
+            <div className="border-t border-border px-4 py-3">
+              <PoiRating />
+            </div>
           )}
           <CommentsSection />
         </div>

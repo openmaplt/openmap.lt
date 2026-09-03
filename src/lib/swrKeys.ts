@@ -33,3 +33,8 @@ export const MY_COLLECTION_TYPE_CODES_KEY = "collections:myTypeCodes";
 // every other per-argument SWR key in this codebase (e.g. use-search.ts's
 // ["search", query, ...]).
 export const POI_COLLECTION_STATUS_KEY = "collections:poiStatus";
+
+// Per-POI own 1-5 star rating (src/hooks/use-poi-rating.ts) — combined with
+// the objectRef into an array key at the call site, same pattern as
+// POI_COLLECTION_STATUS_KEY above.
+export const POI_RATING_KEY = "ratings:poiRating";
