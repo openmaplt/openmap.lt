@@ -6,6 +6,7 @@
 export const PERMISSIONS = {
   COMMENTS_MODERATE: "comments.moderate",
   PHOTOS_MODERATE: "photos.moderate",
+  PLACES_DESCRIPTION_EDIT: "places.description.edit",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

@@ -38,3 +38,8 @@ export const POI_COLLECTION_STATUS_KEY = "collections:poiStatus";
 // the objectRef into an array key at the call site, same pattern as
 // POI_COLLECTION_STATUS_KEY above.
 export const POI_RATING_KEY = "ratings:poiRating";
+
+// Per-POI shared description (src/hooks/use-poi-description.ts) — combined
+// with the objectRef into an array key at the call site, same pattern as
+// POI_COLLECTION_STATUS_KEY above.
+export const POI_DESCRIPTION_KEY = "descriptions:poiDescription";

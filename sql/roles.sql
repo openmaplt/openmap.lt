@@ -24,7 +24,8 @@ create index if not exists user_permissions_user_id_idx on openmap.user_permissi
 
 insert into openmap.permissions (slug, description) values
   ('comments.moderate', 'Gali matyti komentarų moderavimo eilę ir patvirtinti/atmesti komentarus'),
-  ('photos.moderate', 'Gali matyti nuotraukų moderavimo eilę ir patvirtinti/atmesti nuotraukas')
+  ('photos.moderate', 'Gali matyti nuotraukų moderavimo eilę ir patvirtinti/atmesti nuotraukas'),
+  ('places.description.edit', 'Gali redaguoti "places" profilio objektų papildomą aprašymą')
 on conflict (slug) do nothing;
 
 -- Pirmas administratorius / moderatorius priskiriami rankiniu SQL, pvz.:

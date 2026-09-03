@@ -6,6 +6,7 @@ import { Navigation } from "lucide-react";
 import { useState } from "react";
 import { PoiCollectionStatus } from "@/components/collections/PoiCollectionStatus";
 import { CommentsSection } from "@/components/comments/CommentsSection";
+import { PoiDescription } from "@/components/descriptions/PoiDescription";
 import { PoiPhotoGallery } from "@/components/gallery/PoiPhotoGallery";
 import { PoiContent } from "@/components/PoiContent";
 import { ProtectedPhotos } from "@/components/ProtectedPhotos";
@@ -148,6 +149,7 @@ export function PoiDetails() {
         )}
         <div className="flex-1 overflow-y-auto pt-4">
           <PoiContent data={poiData} />
+          <PoiDescription />
           {PoiPanelExtra ? (
             <PoiPanelExtra feature={feature} />
           ) : (
