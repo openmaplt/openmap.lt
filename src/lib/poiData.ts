@@ -2,6 +2,8 @@
  * POI utilities for extracting and structuring POI data
  */
 
+import { CUISINE_LABELS } from "@/config/cuisine";
+
 export interface PoiProperties {
   id?: number | string;
   __type__?: string;
@@ -35,6 +37,7 @@ export interface PoiProperties {
   image?: string;
   maxspeed?: string;
   operator?: string;
+  cuisine?: string;
   [key: string]: string | number | undefined;
 }
 
@@ -57,7 +60,8 @@ export interface PoiAttribute {
     | "beer_styles"
     | "maxspeed"
     | "description"
-    | "operator";
+    | "operator"
+    | "cuisine";
   icon?: string;
   label?: string;
 }
@@ -85,6 +89,7 @@ const SHOW_ATTRIBUTES = [
   "height",
   "fee",
   "beer_styles",
+  "cuisine",
   "image",
   "maxspeed",
   "description",
@@ -104,6 +109,7 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   maxspeed: "Maksimalus greitis",
   description: "Aprašymas",
   operator: "Valdytojas",
+  cuisine: "Virtuvė",
 };
 
 // Lucide React icon names for attributes
@@ -120,6 +126,7 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
   maxspeed: "Gauge",
   description: "BookOpen",
   operator: "Building",
+  cuisine: "Utensils",
 };
 
 /**
@@ -159,6 +166,25 @@ export function formatBeerStyles(properties: PoiProperties) {
   }
 
   return styles.join(", ");
+}
+
+/**
+ * Translate a semicolon-separated `cuisine` tag value to Lithuanian.
+ * Unknown values are shown as-is (raw OSM value) rather than dropped.
+ * Deduped since e.g. "regional;local" both translate to the same "lietuviška".
+ */
+export function formatCuisine(properties: PoiProperties): string {
+  if (!properties.cuisine) {
+    return "";
+  }
+
+  const labels = String(properties.cuisine)
+    .split(";")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((value) => CUISINE_LABELS[value] ?? value);
+
+  return [...new Set(labels)].join(", ");
 }
 
 /**
@@ -211,6 +237,8 @@ function getAttributeType(key: string): PoiAttribute["type"] {
       return "fee";
     case "beer_styles":
       return "beer_styles";
+    case "cuisine":
+      return "cuisine";
     case "maxspeed":
       return "maxspeed";
     case "description":
@@ -227,6 +255,10 @@ function getAttributeValue(
 ) {
   if (type === "beer_styles") {
     return formatBeerStyles(properties);
+  }
+
+  if (type === "cuisine") {
+    return formatCuisine(properties);
   }
 
   // Address is composed from several keys, so it can't rely on properties[key]
