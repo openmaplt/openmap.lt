@@ -1,7 +1,7 @@
 "use client";
 
 import type { Feature } from "geojson";
-import type { LngLatBoundsLike } from "maplibre-gl";
+import { type LngLatBoundsLike, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { usePathname } from "next/navigation";
 import {
@@ -30,6 +30,19 @@ import { MapConfig } from "@/config/config";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
 import { getMapState } from "@/lib/urlHash";
 import { findMapsByType } from "@/lib/utils";
+
+// maplibre-gl v6 no longer auto-configures its worker under a bundler. The files
+// come from /public (scripts/copy-maplibre-worker.mjs), not from a bundled
+// `new URL(..., import.meta.url)`: Turbopack hashes that and breaks the
+// worker's relative import of its sibling module.
+if (typeof window !== "undefined") {
+  setWorkerUrl(
+    new URL(
+      "/maplibre/maplibre-gl-worker.mjs",
+      window.location.origin,
+    ).toString(),
+  );
+}
 
 interface MapTransformContextType {
   viewState: MapProps["initialViewState"];

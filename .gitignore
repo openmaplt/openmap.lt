@@ -20,6 +20,9 @@
 # production
 /build
 
+# maplibre worker, copied from node_modules by scripts/copy-maplibre-worker.mjs
+/public/maplibre
+
 # nuotraukų įkėlimai (lokaliame dev — production naudoja bind mount, žr. docs/DEPLOYMENT.md)
 /uploads
 
