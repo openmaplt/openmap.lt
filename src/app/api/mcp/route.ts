@@ -46,7 +46,7 @@ function registerTools(server: McpServer) {
     {
       title: "Find settlement coordinates",
       description:
-        "Resolves a Lithuanian city, town, district or village name to coordinates (any inflection, with or without diacritics, e.g. 'Kaune', 'Klaipedoje'). Returns up to 5 candidates best-first; same-named places exist, so check `kind` and `population`. Use lat/lng with the other tools.",
+        "Resolves the name of a Lithuanian city, town, district or village (a SETTLEMENT — not a hill, castle, museum, bar or any other named place) to coordinates (any inflection, with or without diacritics, e.g. 'Kaune', 'Klaipedoje'). Returns up to 5 candidates best-first; same-named settlements exist, so check `kind` and `population`. For a specific named place (e.g. 'Birutės kalnas', 'Trakų pilis', 'Špunka') use search_places_by_name instead — a settlement can share its name (there is a Birutės kalnas district in Kaunas as well as the hill in Palanga). Use lat/lng with the other tools.",
       inputSchema: z.object({ name: z.string().min(2).max(100) }),
       annotations: { readOnlyHint: true },
     },
@@ -106,7 +106,7 @@ function registerTools(server: McpServer) {
     {
       title: "Search places by name",
       description:
-        "Finds a specific place when you know (part of) its NAME or address, e.g. 'Trakų salos pilis'. Ranked by name match quality, then distance. Do NOT use it to look for a kind of place (bakeries, craft beer) — names rarely contain the category; use find_places or find_places_nearby.",
+        "Finds a specific place — a hill, castle, museum, bar, shop — when you know (part of) its NAME or address, e.g. 'Trakų salos pilis'. Also use it to locate a named destination before get_route. Ranked by name match quality, then distance. Do NOT use it to look for a kind of place (bakeries, craft beer) — names rarely contain the category; use find_places or find_places_nearby.",
       inputSchema: z.object({
         text: z.string().min(2).max(200),
         lat,
