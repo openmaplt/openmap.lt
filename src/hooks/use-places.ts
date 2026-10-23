@@ -36,5 +36,11 @@ export function usePlaces(
     { keepPreviousData: true },
   );
 
+  // A null key (no types selected) makes `keepPreviousData` keep returning the
+  // last fetched markers, so an empty selection must be answered explicitly
+  // with an empty collection instead of falling through to stale `data`. Check
+  // the raw `types`, not the debounced copy, so markers clear immediately.
+  if (!types) return { places: EMPTY_FEATURE_COLLECTION, loading: false };
+
   return { places: data ?? EMPTY_FEATURE_COLLECTION, loading: isLoading };
 }
