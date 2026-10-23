@@ -7,6 +7,11 @@ import { query, queryOne, queryOneOrThrow } from "@/lib/db";
 import type { Provider } from "@/lib/oauth/providers";
 import { PG_UNIQUE_VIOLATION } from "@/lib/pgErrorCodes";
 import { hash } from "@/lib/serverUtils";
+import {
+  parseUserSettings,
+  type StoredUserSettings,
+  type UserSettings,
+} from "@/lib/userSettings";
 import { ROLES, type Role } from "@/lib/users";
 
 const SESSION_COOKIE_NAME = "om_session";
@@ -22,6 +27,7 @@ export type PublicUser = {
   // trigger button (src/components/SearchBox.tsx). The actual authorization
   // boundary is always the server-side check in the API route, not this.
   isAdmin: boolean;
+  settings: UserSettings;
 };
 
 export type ProviderProfile = {
@@ -38,6 +44,7 @@ function toPublicUser(row: {
   name: string | null;
   avatar_url: string | null;
   role: Role | null;
+  settings: StoredUserSettings | null;
 }): PublicUser {
   return {
     id: row.id,
@@ -45,6 +52,7 @@ function toPublicUser(row: {
     name: row.name,
     avatarUrl: row.avatar_url,
     isAdmin: row.role === ROLES.ADMIN,
+    settings: parseUserSettings(row.settings),
   };
 }
 
@@ -59,10 +67,12 @@ export async function getCurrentUser(): Promise<PublicUser | null> {
     name: string | null;
     avatar_url: string | null;
     role: Role | null;
+    settings: StoredUserSettings | null;
   }>(
-    `select u.id, u.username, u.name, u.avatar_url, u.role
+    `select u.id, u.username, u.name, u.avatar_url, u.role, us.settings
      from openmap.sessions s
      join openmap.users u on u.id = s.user_id
+     left join openmap.user_settings us on us.user_id = u.id
      where s.token_hash = $1 and s.expires_at > now()`,
     [hash(token)],
   );

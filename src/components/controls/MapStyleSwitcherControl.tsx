@@ -4,12 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/providers/AuthProvider";
 import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 
 export function MapStyleSwitcherControl() {
   const { mapRef, handleOnChangeMapProfile: onChangeMapProfile } =
     useMapActions();
   const { activeMapProfile } = useMapConfig();
+  const { user } = useAuth();
+  const hiddenProfileIds = user?.settings.hiddenProfileIds ?? [];
+  // The active profile stays listed even if disabled (opened via a direct
+  // link), so the switcher always shows where the user currently is.
+  const visibleProfiles = MAP_PROFILES.filter(
+    (profile) =>
+      profile.id === activeMapProfile.id ||
+      !hiddenProfileIds.includes(profile.id),
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [mapStyleIndex, setMapStyleIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +73,7 @@ export function MapStyleSwitcherControl() {
             : "opacity-0 scale-95 translate-x-4 absolute bottom-full right-0 w-0",
         )}
       >
-        {MAP_PROFILES.map((profile) => (
+        {visibleProfiles.map((profile) => (
           <Button
             key={profile.id}
             onClick={() => handleChangeMapProfile(profile)}

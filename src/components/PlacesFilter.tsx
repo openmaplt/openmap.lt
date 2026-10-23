@@ -225,7 +225,13 @@ export function PlacesFilter({
                       </span>
                     </Button>
                     <Checkbox
-                      checked={selectionState === "all"}
+                      checked={
+                        selectionState === "all"
+                          ? true
+                          : selectionState === "some"
+                            ? "indeterminate"
+                            : false
+                      }
                       title={
                         selectionState === "all"
                           ? "Atžymėti visus"

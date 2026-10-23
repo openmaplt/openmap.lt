@@ -1,6 +1,7 @@
 import {
   BookmarkCheck,
   ImageIcon,
+  Layers,
   LayoutDashboard,
   Link2,
   type LucideIcon,
@@ -41,6 +42,7 @@ export const DASHBOARD_MENU_ITEMS: DashboardNavItem[] = [
     label: "Kolekcionavimas",
     icon: BookmarkCheck,
   },
+  { href: "/paskyra/profiliai", label: "Profiliai", icon: Layers },
   { href: "/paskyra/prisijungimai", label: "Prisijungimo būdai", icon: Link2 },
   {
     href: "/paskyra/komentarai/tvirtinimas",
