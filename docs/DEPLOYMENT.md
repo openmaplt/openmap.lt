@@ -67,6 +67,10 @@ GitHub repository Settings → Secrets and variables → Actions, pridėkite ši
 #### AI paieška (šiuo metu Mistral, žr. `src/app/api/ai-search/route.ts` ir `src/config/aiModel.ts`):
 - `AI_MODEL_API_KEY` - vieno aktyvaus AI modelio raktas (kurio provider'io - žr. `AI_MODEL_ID` `src/config/aiModel.ts`); šiuo metu Mistral, registruojama https://console.mistral.ai/api-keys; nenustačius, admin-only AI paieškos funkcija tiesiog neveikia (grąžina klaidą paspaudus)
 
+#### Naudotojų profiliai ir Maputnik redaktorius (žr. `src/lib/profileEditToken.ts`, `src/app/api/profile-styles/`):
+- `PROFILE_EDIT_SECRET` - bent 32 simbolių atsitiktinė eilutė, kuria pasirašomi trumpalaikiai redagavimo žetonai (pvz. `openssl rand -base64 48`); nenustačius, profilių redaktorius neveikia (mygtukas „Keisti“ grąžina klaidą), likusi aplikacija veikia normaliai
+- `PROFILE_EDITOR_ORIGIN` - Maputnik redaktoriaus origin'as (numatyta `https://editor.openmap.lt`); tik jam leidžiami CORS užklausimai į `/api/profile-styles/*`
+
 ### 5. SSH Private Key generavimas
 
 Jei neturite SSH key, sugeneruokite:
