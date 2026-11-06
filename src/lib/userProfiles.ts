@@ -7,9 +7,9 @@ import {
   MAX_PROFILES_PER_USER,
   PROFILE_TEMPLATE_STYLE_FILE,
 } from "@/config/custom-profiles";
-import type {
+import {
   PROFILE_BASE_STATUS,
-  ProfileBaseStatus,
+  type ProfileBaseStatus,
 } from "@/domain/profileBaseStatus";
 import {
   PROFILE_VISIBILITY,
@@ -173,22 +173,46 @@ export async function listApprovedProfiles(): Promise<UserProfile[]> {
   return (result.rows as ProfileRow[]).map(toProfile);
 }
 
-export type RequestedProfile = UserProfile & { ownerName: string | null };
+// A profile together with who owns it, for the admin lists. `ownerEmail` is
+// what an admin writes to when a base profile needs a word with its author
+// (it is null for sign-ins that provide none, e.g. OpenStreetMap).
+export type ProfileWithOwner = UserProfile & {
+  ownerName: string | null;
+  ownerEmail: string | null;
+};
 
-// Admin queue: profiles whose owner asked for them to become base profiles.
-export async function listRequestedProfiles(): Promise<RequestedProfile[]> {
+async function listProfilesWithOwner(
+  baseStatus: ProfileBaseStatus,
+): Promise<ProfileWithOwner[]> {
   const result = await query(
     `select ${PROFILE_COLUMN_LIST.map((column) => `p.${column}`).join(", ")},
-            coalesce(u.name, u.username) as owner_name
+            coalesce(u.name, u.username) as owner_name, u.email as owner_email
      from openmap.user_profiles p
      join openmap.users u on u.id = p.user_id
-     where p.base_status = 'requested'
+     where p.base_status = $1::openmap.profile_base_status
      order by p.created_at`,
+    [baseStatus],
   );
-  return (result.rows as (ProfileRow & { owner_name: string | null })[]).map(
-    (row) => ({ ...toProfile(row), ownerName: row.owner_name }),
-  );
+  return (
+    result.rows as (ProfileRow & {
+      owner_name: string | null;
+      owner_email: string | null;
+    })[]
+  ).map((row) => ({
+    ...toProfile(row),
+    ownerName: row.owner_name,
+    ownerEmail: row.owner_email,
+  }));
 }
+
+// Admin queue: profiles whose owner asked for them to become base profiles.
+export const listRequestedProfiles = () =>
+  listProfilesWithOwner(PROFILE_BASE_STATUS.REQUESTED);
+
+// Admin list of the current base profiles, so one that drifts from what was
+// approved can be taken off the list again.
+export const listApprovedProfilesWithOwner = () =>
+  listProfilesWithOwner(PROFILE_BASE_STATUS.APPROVED);
 
 // The style JSON lives apart from the other columns so it is only read when it
 // is actually served.
