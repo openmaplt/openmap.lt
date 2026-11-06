@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Link2,
   type LucideIcon,
+  Map as MapIcon,
   MessageSquare,
   ShieldCheck,
 } from "lucide-react";
@@ -42,7 +43,8 @@ export const DASHBOARD_MENU_ITEMS: DashboardNavItem[] = [
     label: "Kolekcionavimas",
     icon: BookmarkCheck,
   },
-  { href: "/paskyra/profiliai", label: "Profiliai", icon: Layers },
+  { href: "/paskyra/profiliai", label: "Rodomi profiliai", icon: Layers },
+  { href: "/paskyra/mano-profiliai", label: "Mano profiliai", icon: MapIcon },
   { href: "/paskyra/prisijungimai", label: "Prisijungimo būdai", icon: Link2 },
   {
     href: "/paskyra/komentarai/tvirtinimas",
@@ -58,6 +60,13 @@ export const DASHBOARD_MENU_ITEMS: DashboardNavItem[] = [
     icon: ShieldCheck,
     requiredPermission: PERMISSIONS.PHOTOS_MODERATE,
     pendingCountKey: "photos",
+    section: "admin",
+  },
+  {
+    href: "/paskyra/profiliai/tvirtinimas",
+    label: "Profilių tvirtinimas",
+    icon: ShieldCheck,
+    requiredPermission: PERMISSIONS.PROFILES_MODERATE,
     section: "admin",
   },
 ];

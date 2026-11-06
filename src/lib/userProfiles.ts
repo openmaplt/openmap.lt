@@ -140,6 +140,18 @@ export async function getOwnedProfile(
   return row ? toProfile(row) : null;
 }
 
+export async function getOwnedProfileBySlug(
+  userId: number,
+  slug: string,
+): Promise<UserProfile | null> {
+  const row = await queryOne<ProfileRow>(
+    `select ${PROFILE_COLUMNS} from openmap.user_profiles
+     where slug = $1 and user_id = $2`,
+    [slug.toLowerCase(), userId],
+  );
+  return row ? toProfile(row) : null;
+}
+
 export async function listUserProfiles(userId: number): Promise<UserProfile[]> {
   const result = await query(
     `select ${PROFILE_COLUMNS} from openmap.user_profiles

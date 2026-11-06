@@ -5,6 +5,7 @@ import {
   PROFILE_EDITOR_ORIGIN,
   PROFILE_NAME_MAX_LENGTH,
 } from "@/config/custom-profiles";
+import { PERMISSIONS } from "@/config/permissions";
 import { PROFILE_BASE_STATUS } from "@/domain/profileBaseStatus";
 import {
   PROFILE_VISIBILITY,
@@ -12,6 +13,7 @@ import {
   type ProfileVisibility,
 } from "@/domain/profileVisibility";
 import { getCurrentUser } from "@/lib/auth";
+import { userHasPermission } from "@/lib/permissions";
 import { createEditToken } from "@/lib/profileEditToken";
 import { checkRateLimit, checkUserRateLimit } from "@/lib/rateLimit";
 import {
@@ -28,9 +30,8 @@ import {
   type UserProfile,
   withdrawBaseRequest,
 } from "@/lib/userProfiles";
-import { getUserRole, ROLES } from "@/lib/users";
 
-// Server actions behind /paskyra/profiliai for user-created map profiles.
+// Server actions behind /paskyra/mano-profiliai for user-created map profiles.
 // Every action is gated on a session and rate limited, and only ever touches
 // profiles the caller owns (the admin decision is the one exception).
 
@@ -168,7 +169,7 @@ export async function withdrawBaseRequestAction(
   return resultFor(await withdrawBaseRequest(gate.userId, id));
 }
 
-// Admin only: approve a requested profile as a base profile, or reject /
+// Needs profiles.moderate (admins always have it): approve a requested profile as a base profile, or reject /
 // revoke it (`none`).
 export async function setBaseProfileStatusAction(
   id: string,
@@ -177,7 +178,7 @@ export async function setBaseProfileStatusAction(
   const gate = await guard("customProfileAdmin");
   if (!gate.ok) return gate;
 
-  if ((await getUserRole(gate.userId)) !== ROLES.ADMIN) {
+  if (!(await userHasPermission(gate.userId, PERMISSIONS.PROFILES_MODERATE))) {
     return { ok: false, error: "forbidden" };
   }
   if (
@@ -221,7 +222,7 @@ export async function startProfileEditAction(
   const query = new URLSearchParams({
     style: `${BASE_URL}/api/profile-styles/${profile.slug}`,
     token,
-    return: `${BASE_URL}/paskyra/profiliai`,
+    return: `${BASE_URL}/paskyra/mano-profiliai/${profile.slug}`,
   });
   return { ok: true, url: `${PROFILE_EDITOR_ORIGIN}/?${query}` };
 }
