@@ -5,33 +5,33 @@ import { setBaseProfileStatusAction } from "@/actions/customProfiles";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { PROFILE_BASE_STATUS } from "@/domain/profileBaseStatus";
-
-export type AdminProfileRow = {
-  id: string;
-  slug: string;
-  name: string;
-  ownerName: string | null;
-  ownerEmail: string | null;
-  // `updated_at` of the style (ISO), to notice a base profile that changed.
-  updatedAt: string;
-};
+import { type AdminProfileRow, sortApprovedRows } from "./adminProfileRows";
 
 interface BaseProfilesAdminProps {
   initialRequests: AdminProfileRow[];
   initialApproved: AdminProfileRow[];
 }
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("lt-LT", {
+const formatDateTime = (iso: string) =>
+  new Date(iso).toLocaleString("lt-LT", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
 function ProfileInfo({ row }: { row: AdminProfileRow }) {
   return (
     <div className="min-w-0 space-y-0.5">
-      <p className="truncate text-sm font-medium">{row.name}</p>
+      <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+        <span className="truncate">{row.name}</span>
+        {row.changedSinceApproval && (
+          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
+            Pakeista po patvirtinimo
+          </span>
+        )}
+      </p>
       <p className="text-xs text-muted-foreground">
         <a
           href={`/m/${row.slug}`}
@@ -39,7 +39,24 @@ function ProfileInfo({ row }: { row: AdminProfileRow }) {
         >
           /m/{row.slug}
         </a>
-        {" · "}stilius pakeistas {formatDate(row.updatedAt)}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        {row.approvedAt && (
+          <>
+            Patvirtinta {formatDateTime(row.approvedAt)}
+            {" · "}
+          </>
+        )}
+        <span
+          data-changed={row.changedSinceApproval}
+          className={
+            row.changedSinceApproval
+              ? "font-semibold text-red-600 dark:text-red-400"
+              : undefined
+          }
+        >
+          Pakeista {formatDateTime(row.updatedAt)}
+        </span>
       </p>
       <p className="break-all text-xs text-muted-foreground">
         {row.ownerName ?? "Nežinomas autorius"}
@@ -59,7 +76,9 @@ export function BaseProfilesAdmin({
   initialApproved,
 }: BaseProfilesAdminProps) {
   const [requests, setRequests] = useState(initialRequests);
-  const [approved, setApproved] = useState(initialApproved);
+  const [approved, setApproved] = useState(() =>
+    sortApprovedRows(initialApproved),
+  );
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
 
@@ -81,23 +100,42 @@ export function BaseProfilesAdmin({
       );
       return;
     }
+    // What the server just did, mirrored here: a profile that was approved or
+    // re-approved is stamped "now" and no longer counts as changed.
+    const stamped: AdminProfileRow = {
+      ...row,
+      approvedAt: new Date().toISOString(),
+      changedSinceApproval: false,
+    };
     if (from === "requests") {
       setRequests((prev) => prev.filter((item) => item.id !== row.id));
       if (status === PROFILE_BASE_STATUS.APPROVED) {
-        setApproved((prev) => [...prev, row]);
+        setApproved((prev) => sortApprovedRows([...prev, stamped]));
       }
+    } else if (status === PROFILE_BASE_STATUS.APPROVED) {
+      setApproved((prev) =>
+        sortApprovedRows(
+          prev.map((item) => (item.id === row.id ? stamped : item)),
+        ),
+      );
     } else {
       setApproved((prev) => prev.filter((item) => item.id !== row.id));
     }
     setConfirmRevokeId(null);
     toast.success(
       from === "approved"
-        ? "Bazinis statusas atšauktas."
+        ? status === PROFILE_BASE_STATUS.APPROVED
+          ? "Pakeitimai patvirtinti."
+          : "Bazinis statusas atšauktas."
         : status === PROFILE_BASE_STATUS.APPROVED
           ? "Profilis patvirtintas."
           : "Prašymas atmestas.",
     );
   };
+
+  const changedCount = approved.filter(
+    (row) => row.changedSinceApproval,
+  ).length;
 
   return (
     <div className="space-y-8">
@@ -148,8 +186,15 @@ export function BaseProfilesAdmin({
         <h2 className="text-xl font-bold tracking-tight">
           Bazinių profilių sąrašas ({approved.length})
         </h2>
+        {changedCount > 0 && (
+          <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+            {changedCount} pakeisti po patvirtinimo
+          </p>
+        )}
         <p className="max-w-2xl text-sm text-muted-foreground">
           Patvirtinti profiliai nėra tikrinami po kiekvieno autoriaus pakeitimo.
+          Pakeisti po patvirtinimo pažymėti raudonai ir rodomi pirmi:
+          atidarykite ir jei viskas gerai, paspauskite „Patvirtinti pakeitimus“.
           Jei profilis nukrypo nuo to, kas buvo patvirtinta, susisiekite su
           autoriumi ir atšaukite bazinį statusą: ištaisęs jį autorius galės
           pasiūlyti iš naujo.
@@ -187,13 +232,26 @@ export function BaseProfilesAdmin({
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setConfirmRevokeId(row.id)}
-                  >
-                    Atšaukti bazinį statusą
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {row.changedSinceApproval && (
+                      <Button
+                        size="sm"
+                        disabled={busyId === row.id}
+                        onClick={() =>
+                          decide(row, PROFILE_BASE_STATUS.APPROVED, "approved")
+                        }
+                      >
+                        Patvirtinti pakeitimus
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setConfirmRevokeId(row.id)}
+                    >
+                      Atšaukti bazinį statusą
+                    </Button>
+                  </div>
                 )}
               </li>
             ))}

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import {
   type AdminProfileRow,
-  BaseProfilesAdmin,
-} from "@/components/dashboard/BaseProfileRequests";
+  hasChangedSinceApproval,
+  sortApprovedRows,
+} from "@/components/dashboard/adminProfileRows";
+import { BaseProfilesAdmin } from "@/components/dashboard/BaseProfileRequests";
 import { currentUserHasPermission, PERMISSIONS } from "@/lib/permissions";
 import {
   listApprovedProfilesWithOwner,
@@ -23,6 +25,11 @@ const toRow = (profile: ProfileWithOwner): AdminProfileRow => ({
   ownerName: profile.ownerName,
   ownerEmail: profile.ownerEmail,
   updatedAt: profile.updatedAt.toISOString(),
+  approvedAt: profile.baseApprovedAt?.toISOString() ?? null,
+  changedSinceApproval: hasChangedSinceApproval(
+    profile.updatedAt,
+    profile.baseApprovedAt,
+  ),
 });
 
 export default async function Page() {
@@ -49,7 +56,7 @@ export default async function Page() {
       </p>
       <BaseProfilesAdmin
         initialRequests={requested.map(toRow)}
-        initialApproved={approved.map(toRow)}
+        initialApproved={sortApprovedRows(approved.map(toRow))}
       />
     </div>
   );

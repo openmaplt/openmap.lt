@@ -32,6 +32,7 @@ type ProfileRow = {
   share_key: string | null;
   expires_at: Date | null;
   updated_at: Date;
+  base_approved_at: Date | null;
 };
 
 // Never `select *`: `style` can be hundreds of KB and most callers only list
@@ -46,6 +47,7 @@ const PROFILE_COLUMN_LIST = [
   "share_key",
   "expires_at",
   "updated_at",
+  "base_approved_at",
 ];
 const PROFILE_COLUMNS = PROFILE_COLUMN_LIST.join(", ");
 
@@ -59,7 +61,11 @@ export type UserProfile = {
   // Secret: only ever handed to the owner.
   shareKey: string | null;
   expiresAt: Date | null;
+  // Last change of the content (style or name). Also the style's ETag.
   updatedAt: Date;
+  // When an admin last approved it as a base profile (or approved its later
+  // changes); null unless approved. `updatedAt` after it means it changed since.
+  baseApprovedAt: Date | null;
 };
 
 function toProfile(row: ProfileRow): UserProfile {
@@ -73,6 +79,7 @@ function toProfile(row: ProfileRow): UserProfile {
     shareKey: row.share_key,
     expiresAt: row.expires_at,
     updatedAt: row.updated_at,
+    baseApprovedAt: row.base_approved_at,
   };
 }
 
@@ -313,7 +320,7 @@ export async function renameProfile(
     return null;
   }
   const row = await queryOne<ProfileRow>(
-    `update openmap.user_profiles set name = $3
+    `update openmap.user_profiles set name = $3, updated_at = now()
      where id = $1 and user_id = $2
      returning ${PROFILE_COLUMNS}`,
     [id, userId, name],
@@ -360,6 +367,8 @@ export async function setProfileVisibility(
                            then $5::timestamptz else null end
         ,base_status = case when $3::openmap.profile_visibility = 'public'
                             then base_status else 'none' end
+        ,base_approved_at = case when $3::openmap.profile_visibility = 'public'
+                                 then base_approved_at else null end
      where id = $1 and user_id = $2
      returning ${PROFILE_COLUMNS}`,
     [
@@ -429,6 +438,8 @@ export async function withdrawBaseRequest(
 
 // Admin decision. `approved` needs a public profile that was requested (or is
 // already approved); `none` rejects a request or revokes an approval.
+// Approving an already approved profile re-stamps `base_approved_at`: "I looked
+// at its changes, they are fine".
 export async function setBaseStatusAsAdmin(
   id: string,
   status: typeof PROFILE_BASE_STATUS.APPROVED | typeof PROFILE_BASE_STATUS.NONE,
@@ -439,6 +450,8 @@ export async function setBaseStatusAsAdmin(
   const row = await queryOne<ProfileRow>(
     `update openmap.user_profiles
      set base_status = $2::openmap.profile_base_status
+        ,base_approved_at = case when $2::openmap.profile_base_status = 'approved'
+                                 then now() else null end
      where id = $1
        and ($2::openmap.profile_base_status = 'none'
             or (visibility = 'public' and base_status in ('requested', 'approved')))
