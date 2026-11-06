@@ -28,6 +28,7 @@ import {
 } from "react-map-gl/maplibre";
 import { MapConfig } from "@/config/config";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
+import { parseMapPathSegments } from "@/lib/mapPath";
 import { getMapState } from "@/lib/urlHash";
 import { findMapsByType } from "@/lib/utils";
 
@@ -74,6 +75,9 @@ interface MapSelectionContextType {
 
 interface MapConfigContextType {
   activeMapProfile: MapProfile;
+  // Built-in profiles plus the user-created ones this visitor may see
+  // (src/lib/viewerProfiles.ts), in switcher order.
+  profiles: MapProfile[];
   mobileActiveMode: "search" | "filter" | "routing" | null;
 }
 
@@ -132,6 +136,7 @@ export const useMapActions = () => {
 
 interface MapProviderProps {
   children: ReactNode;
+  extraProfiles: MapProfile[];
   initialPoiData:
     | (Feature & {
         extent: LngLatBoundsLike;
@@ -144,9 +149,19 @@ const TypedMapLibreMap = MapLibreMap as ForwardRefExoticComponent<
   MapProps & RefAttributes<MapRef>
 >;
 
-export function MapProvider({ children, initialPoiData }: MapProviderProps) {
+export function MapProvider({
+  children,
+  initialPoiData,
+  extraProfiles,
+}: MapProviderProps) {
   const pathname = usePathname();
-  const [, mapTypeInUrl, poiSlug] = pathname.split("/");
+  const { mapType: mapTypeInUrl, poiSlug } = parseMapPathSegments(
+    pathname.split("/").slice(1),
+  );
+  const profiles = useMemo(
+    () => [...MAP_PROFILES, ...extraProfiles],
+    [extraProfiles],
+  );
   const poiIdFromUrl = poiSlug !== "map" ? poiSlug?.split("-")[0] : undefined;
 
   const mapRef = useRef<MapRef>(null);
@@ -177,7 +192,7 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
   const [activeMapProfile, setActiveMapProfile] = useState<MapProfile>(() => {
     const state = getMapState();
     return (
-      findMapsByType(mapTypeInUrl?.length > 0 ? mapTypeInUrl : state.mapType) ??
+      findMapsByType(mapTypeInUrl ? mapTypeInUrl : state.mapType, profiles) ??
       MAP_PROFILES[0]
     );
   });
@@ -235,8 +250,8 @@ export function MapProvider({ children, initialPoiData }: MapProviderProps) {
     [selectedFeature, selectedPoiId, highlightedPoiIds],
   );
   const configValue = useMemo(
-    () => ({ activeMapProfile, mobileActiveMode }),
-    [activeMapProfile, mobileActiveMode],
+    () => ({ activeMapProfile, profiles, mobileActiveMode }),
+    [activeMapProfile, profiles, mobileActiveMode],
   );
   const actionsValue = useMemo(
     () => ({

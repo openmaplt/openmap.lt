@@ -6,8 +6,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function findMapsByType(mapType: string): MapProfile | undefined {
-  return MAP_PROFILES.find((profile) => profile.mapType === mapType);
+// `profiles` defaults to the built-in ones; pass the viewer's full list (see
+// MapProvider) to also resolve user-created profiles.
+export function findMapsByType(
+  mapType: string,
+  profiles: MapProfile[] = MAP_PROFILES,
+): MapProfile | undefined {
+  return profiles.find((profile) => profile.mapType === mapType);
 }
 
 // Only allow http(s) URLs, rejecting e.g. javascript: URIs from untrusted (OSM) data

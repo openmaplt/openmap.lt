@@ -36,8 +36,18 @@ type ProfileRow = {
 
 // Never `select *`: `style` can be hundreds of KB and most callers only list
 // profiles.
-const PROFILE_COLUMNS =
-  "id, user_id, slug, name, visibility, base_status, share_key, expires_at, updated_at";
+const PROFILE_COLUMN_LIST = [
+  "id",
+  "user_id",
+  "slug",
+  "name",
+  "visibility",
+  "base_status",
+  "share_key",
+  "expires_at",
+  "updated_at",
+];
+const PROFILE_COLUMNS = PROFILE_COLUMN_LIST.join(", ");
 
 export type UserProfile = {
   id: string;
@@ -63,6 +73,32 @@ function toProfile(row: ProfileRow): UserProfile {
     shareKey: row.share_key,
     expiresAt: row.expires_at,
     updatedAt: row.updated_at,
+  };
+}
+
+// What the client gets: dates as ISO strings. `shareKey` is the owner's secret,
+// so only ever build this for the owner (or an admin queue, which omits it).
+export type CustomProfileView = {
+  id: string;
+  slug: string;
+  name: string;
+  visibility: ProfileVisibility;
+  baseStatus: ProfileBaseStatus;
+  shareKey: string | null;
+  expiresAt: string | null;
+  updatedAt: string;
+};
+
+export function toProfileView(profile: UserProfile): CustomProfileView {
+  return {
+    id: profile.id,
+    slug: profile.slug,
+    name: profile.name,
+    visibility: profile.visibility,
+    baseStatus: profile.baseStatus,
+    shareKey: profile.shareKey,
+    expiresAt: profile.expiresAt?.toISOString() ?? null,
+    updatedAt: profile.updatedAt.toISOString(),
   };
 }
 
@@ -112,6 +148,34 @@ export async function listUserProfiles(userId: number): Promise<UserProfile[]> {
     [userId],
   );
   return (result.rows as ProfileRow[]).map(toProfile);
+}
+
+// Profiles an admin approved as base profiles: shown to every visitor in the
+// profile switcher. `base_status = 'approved'` implies `public` (table check).
+export async function listApprovedProfiles(): Promise<UserProfile[]> {
+  const result = await query(
+    `select ${PROFILE_COLUMNS} from openmap.user_profiles
+     where base_status = 'approved'
+     order by name`,
+  );
+  return (result.rows as ProfileRow[]).map(toProfile);
+}
+
+export type RequestedProfile = UserProfile & { ownerName: string | null };
+
+// Admin queue: profiles whose owner asked for them to become base profiles.
+export async function listRequestedProfiles(): Promise<RequestedProfile[]> {
+  const result = await query(
+    `select ${PROFILE_COLUMN_LIST.map((column) => `p.${column}`).join(", ")},
+            coalesce(u.name, u.username) as owner_name
+     from openmap.user_profiles p
+     join openmap.users u on u.id = p.user_id
+     where p.base_status = 'requested'
+     order by p.created_at`,
+  );
+  return (result.rows as (ProfileRow & { owner_name: string | null })[]).map(
+    (row) => ({ ...toProfile(row), ownerName: row.owner_name }),
+  );
 }
 
 // The style JSON lives apart from the other columns so it is only read when it

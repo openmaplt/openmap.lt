@@ -54,6 +54,22 @@ export function useMapSync(
     const url = new URL(window.location.href);
     url.pathname = `/${activeMapProfile.mapType}/${poiSlugWithName ?? "map"}`;
     url.search = formatSearchParams(mapStateData, route);
+
+    // A shared `link` map needs its secret `?k=` to survive the URL rewrite
+    // above, or a reload (or copying the address bar) would 404. Only the key
+    // of the profile that is open: it sits in that profile's style URL (see
+    // toMapProfile), so it can't leak onto another profile's URL.
+    const profileKey = activeMapProfile.isCustom
+      ? new URL(
+          activeMapProfile.mapStyles[0].style,
+          window.location.origin,
+        ).searchParams.get("k")
+      : null;
+    if (profileKey) {
+      const params = new URLSearchParams(url.search);
+      params.set("k", profileKey);
+      url.search = params.toString();
+    }
     url.hash = "";
 
     window.history.replaceState(null, "", url);

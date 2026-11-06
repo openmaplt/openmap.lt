@@ -5,10 +5,7 @@ import {
   PROFILE_EDITOR_ORIGIN,
   PROFILE_NAME_MAX_LENGTH,
 } from "@/config/custom-profiles";
-import {
-  PROFILE_BASE_STATUS,
-  type ProfileBaseStatus,
-} from "@/domain/profileBaseStatus";
+import { PROFILE_BASE_STATUS } from "@/domain/profileBaseStatus";
 import {
   PROFILE_VISIBILITY,
   PROFILE_VISIBILITY_VALUES,
@@ -18,6 +15,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createEditToken } from "@/lib/profileEditToken";
 import { checkRateLimit, checkUserRateLimit } from "@/lib/rateLimit";
 import {
+  type CustomProfileView,
   createProfile,
   deleteProfile,
   getOwnedProfile,
@@ -26,6 +24,7 @@ import {
   requestBaseStatus,
   setBaseStatusAsAdmin,
   setProfileVisibility,
+  toProfileView,
   type UserProfile,
   withdrawBaseRequest,
 } from "@/lib/userProfiles";
@@ -34,32 +33,6 @@ import { getUserRole, ROLES } from "@/lib/users";
 // Server actions behind /paskyra/profiliai for user-created map profiles.
 // Every action is gated on a session and rate limited, and only ever touches
 // profiles the caller owns (the admin decision is the one exception).
-
-// What the client gets: dates as ISO strings, `shareKey` only because the
-// caller is the owner.
-export type CustomProfileView = {
-  id: string;
-  slug: string;
-  name: string;
-  visibility: ProfileVisibility;
-  baseStatus: ProfileBaseStatus;
-  shareKey: string | null;
-  expiresAt: string | null;
-  updatedAt: string;
-};
-
-function toView(profile: UserProfile): CustomProfileView {
-  return {
-    id: profile.id,
-    slug: profile.slug,
-    name: profile.name,
-    visibility: profile.visibility,
-    baseStatus: profile.baseStatus,
-    shareKey: profile.shareKey,
-    expiresAt: profile.expiresAt?.toISOString() ?? null,
-    updatedAt: profile.updatedAt.toISOString(),
-  };
-}
 
 type GuardError = "rate_limited" | "no_session";
 
@@ -92,7 +65,7 @@ function cleanName(input: string): string | null {
 
 function resultFor(profile: UserProfile | null): ProfileActionResult {
   return profile
-    ? { ok: true, profile: toView(profile) }
+    ? { ok: true, profile: toProfileView(profile) }
     : { ok: false, error: "not_found" };
 }
 
@@ -109,7 +82,7 @@ export async function createCustomProfileAction(
 
   const result = await createProfile(gate.userId, cleaned);
   return result.ok
-    ? { ok: true, profile: toView(result.profile) }
+    ? { ok: true, profile: toProfileView(result.profile) }
     : { ok: false, error: result.error };
 }
 
