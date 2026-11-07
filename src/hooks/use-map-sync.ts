@@ -54,6 +54,7 @@ export function useMapSync(
     const url = new URL(window.location.href);
     url.pathname = `/${activeMapProfile.mapType}/${poiSlugWithName ?? "map"}`;
     url.search = formatSearchParams(mapStateData, route);
+
     url.hash = "";
 
     window.history.replaceState(null, "", url);

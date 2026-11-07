@@ -6,8 +6,7 @@ import { EDIT_TOKEN_TTL_SECONDS } from "@/config/custom-profiles";
 // Short-lived bearer token handed to the Maputnik editor (a different origin,
 // so it can't use the `om_session` cookie). It grants read + write access to
 // exactly one profile of one user — nothing else — and expires on its own.
-// Not to be confused with the profile's `share_key` (`?k=`), which gives
-// read-only access to viewers of a `link` profile.
+// Visitors need no token at all: user-created profiles are public.
 
 export type EditTokenPayload = {
   userId: number;

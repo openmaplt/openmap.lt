@@ -11,44 +11,55 @@ import type {
   PROFILE_BASE_STATUS,
   ProfileBaseStatus,
 } from "@/domain/profileBaseStatus";
-import {
-  PROFILE_VISIBILITY,
-  type ProfileVisibility,
-} from "@/domain/profileVisibility";
+import type { ProfileModeration } from "@/domain/profileModeration";
 import { query, queryOne, queryOneOrThrow } from "@/lib/db";
 import { slugify } from "@/lib/utils";
 
 // User-created map profiles (openmap.user_profiles, sql/user_profiles.sql).
-// `updated_at` is the version of the *style* only (it is the style's ETag and
-// cache-busting value), so renaming or changing visibility does not touch it.
+// They are public by default. `updated_at` is the last content change (style or
+// name), also the style's ETag and cache-busting value; moderation and base
+// status changes do not touch it.
 
 type ProfileRow = {
   id: string;
   user_id: number;
   slug: string;
   name: string;
-  visibility: ProfileVisibility;
   base_status: ProfileBaseStatus;
-  share_key: string | null;
-  expires_at: Date | null;
+  base_approved_at: Date | null;
+  moderation_status: ProfileModeration;
+  moderation_note: string | null;
   updated_at: Date;
 };
 
 // Never `select *`: `style` can be hundreds of KB and most callers only list
 // profiles.
-const PROFILE_COLUMNS =
-  "id, user_id, slug, name, visibility, base_status, share_key, expires_at, updated_at";
+const PROFILE_COLUMN_LIST = [
+  "id",
+  "user_id",
+  "slug",
+  "name",
+  "base_status",
+  "base_approved_at",
+  "moderation_status",
+  "moderation_note",
+  "updated_at",
+];
+const PROFILE_COLUMNS = PROFILE_COLUMN_LIST.join(", ");
 
 export type UserProfile = {
   id: string;
   userId: number;
   slug: string;
   name: string;
-  visibility: ProfileVisibility;
   baseStatus: ProfileBaseStatus;
-  // Secret: only ever handed to the owner.
-  shareKey: string | null;
-  expiresAt: Date | null;
+  // When an admin last approved it as a base profile (or approved its later
+  // changes); null unless approved. `updatedAt` after it means it changed since.
+  baseApprovedAt: Date | null;
+  moderationStatus: ProfileModeration;
+  // Why an admin hid it; shown to the author. Null while visible.
+  moderationNote: string | null;
+  // Last change of the content (style or name). Also the style's ETag.
   updatedAt: Date;
 };
 
@@ -58,11 +69,34 @@ function toProfile(row: ProfileRow): UserProfile {
     userId: row.user_id,
     slug: row.slug,
     name: row.name,
-    visibility: row.visibility,
     baseStatus: row.base_status,
-    shareKey: row.share_key,
-    expiresAt: row.expires_at,
+    baseApprovedAt: row.base_approved_at,
+    moderationStatus: row.moderation_status,
+    moderationNote: row.moderation_note,
     updatedAt: row.updated_at,
+  };
+}
+
+// What the author's pages get: dates as ISO strings.
+export type CustomProfileView = {
+  id: string;
+  slug: string;
+  name: string;
+  baseStatus: ProfileBaseStatus;
+  moderationStatus: ProfileModeration;
+  moderationNote: string | null;
+  updatedAt: string;
+};
+
+export function toProfileView(profile: UserProfile): CustomProfileView {
+  return {
+    id: profile.id,
+    slug: profile.slug,
+    name: profile.name,
+    baseStatus: profile.baseStatus,
+    moderationStatus: profile.moderationStatus,
+    moderationNote: profile.moderationNote,
+    updatedAt: profile.updatedAt.toISOString(),
   };
 }
 
@@ -73,10 +107,6 @@ const UUID_PATTERN =
 // uuid cast instead of simply finding nothing.
 export function isProfileId(value: string): boolean {
   return UUID_PATTERN.test(value);
-}
-
-export function generateShareKey(): string {
-  return randomBytes(16).toString("base64url");
 }
 
 export async function getProfileBySlug(
@@ -104,6 +134,18 @@ export async function getOwnedProfile(
   return row ? toProfile(row) : null;
 }
 
+export async function getOwnedProfileBySlug(
+  userId: number,
+  slug: string,
+): Promise<UserProfile | null> {
+  const row = await queryOne<ProfileRow>(
+    `select ${PROFILE_COLUMNS} from openmap.user_profiles
+     where slug = $1 and user_id = $2`,
+    [slug.toLowerCase(), userId],
+  );
+  return row ? toProfile(row) : null;
+}
+
 export async function listUserProfiles(userId: number): Promise<UserProfile[]> {
   const result = await query(
     `select ${PROFILE_COLUMNS} from openmap.user_profiles
@@ -112,6 +154,59 @@ export async function listUserProfiles(userId: number): Promise<UserProfile[]> {
     [userId],
   );
   return (result.rows as ProfileRow[]).map(toProfile);
+}
+
+// Profiles an admin approved as base profiles: shown to every visitor in the
+// profile switcher. `base_status = 'approved'` implies visible (table check).
+export async function listApprovedProfiles(): Promise<UserProfile[]> {
+  const result = await query(
+    `select ${PROFILE_COLUMNS} from openmap.user_profiles
+     where base_status = 'approved'
+     order by name`,
+  );
+  return (result.rows as ProfileRow[]).map(toProfile);
+}
+
+// A profile together with who owns it, for the admin list. `ownerEmail` is what
+// an admin writes to when a profile needs a word with its author (it is null
+// for sign-ins that provide none, e.g. OpenStreetMap).
+export type ProfileWithOwner = UserProfile & {
+  ownerName: string | null;
+  ownerEmail: string | null;
+};
+
+// Every profile, for the admin list. Fine while there are few; add paging
+// before there are thousands.
+export async function listAllProfilesWithOwner(): Promise<ProfileWithOwner[]> {
+  const result = await query(
+    `select ${PROFILE_COLUMN_LIST.map((column) => `p.${column}`).join(", ")},
+            coalesce(u.name, u.username) as owner_name, u.email as owner_email
+     from openmap.user_profiles p
+     join openmap.users u on u.id = p.user_id
+     order by p.created_at`,
+  );
+  return (
+    result.rows as (ProfileRow & {
+      owner_name: string | null;
+      owner_email: string | null;
+    })[]
+  ).map((row) => ({
+    ...toProfile(row),
+    ownerName: row.owner_name,
+    ownerEmail: row.owner_email,
+  }));
+}
+
+// How many profiles wait for an admin: base proposals, authors asking for
+// another look, and base profiles changed since they were approved.
+export async function countProfilesNeedingAttention(): Promise<number> {
+  const { count } = await queryOneOrThrow<{ count: string }>(
+    `select count(*) as count from openmap.user_profiles
+     where base_status = 'requested'
+        or moderation_status = 'review_requested'
+        or (base_status = 'approved' and updated_at > base_approved_at)`,
+  );
+  return Number.parseInt(count, 10);
 }
 
 // The style JSON lives apart from the other columns so it is only read when it
@@ -213,7 +308,7 @@ export async function renameProfile(
     return null;
   }
   const row = await queryOne<ProfileRow>(
-    `update openmap.user_profiles set name = $3
+    `update openmap.user_profiles set name = $3, updated_at = now()
      where id = $1 and user_id = $2
      returning ${PROFILE_COLUMNS}`,
     [id, userId, name],
@@ -237,60 +332,8 @@ export async function deleteProfile(
   return row !== null;
 }
 
-// Rules enforced here (and by table checks): a `link` profile always has a
-// share key (a fresh one when switching to `link`), leaving `link` drops the
-// key so old links die for good, and anything but `public` loses its base
-// status so a hidden map can't stay in everyone's profile switcher.
-export async function setProfileVisibility(
-  userId: number,
-  id: string,
-  visibility: ProfileVisibility,
-  expiresAt: Date | null,
-): Promise<UserProfile | null> {
-  if (!isProfileId(id)) {
-    return null;
-  }
-  const isLink = visibility === PROFILE_VISIBILITY.LINK;
-  const row = await queryOne<ProfileRow>(
-    `update openmap.user_profiles
-     set visibility = $3::openmap.profile_visibility
-        ,share_key = case when $3::openmap.profile_visibility = 'link'
-                          then coalesce(share_key, $4) else null end
-        ,expires_at = case when $3::openmap.profile_visibility = 'link'
-                           then $5::timestamptz else null end
-        ,base_status = case when $3::openmap.profile_visibility = 'public'
-                            then base_status else 'none' end
-     where id = $1 and user_id = $2
-     returning ${PROFILE_COLUMNS}`,
-    [
-      id,
-      userId,
-      visibility,
-      isLink ? generateShareKey() : null,
-      isLink ? expiresAt : null,
-    ],
-  );
-  return row ? toProfile(row) : null;
-}
-
-export async function regenerateShareKey(
-  userId: number,
-  id: string,
-): Promise<UserProfile | null> {
-  if (!isProfileId(id)) {
-    return null;
-  }
-  const row = await queryOne<ProfileRow>(
-    `update openmap.user_profiles set share_key = $3
-     where id = $1 and user_id = $2 and visibility = 'link'
-     returning ${PROFILE_COLUMNS}`,
-    [id, userId, generateShareKey()],
-  );
-  return row ? toProfile(row) : null;
-}
-
-// Owner asks for the profile to become a base profile. Only public profiles
-// qualify, since a base profile is shown to everyone.
+// Owner asks for the profile to become a base profile. Only profiles that are
+// visible qualify, since a base profile is shown to everyone.
 export async function requestBaseStatus(
   userId: number,
   id: string,
@@ -301,7 +344,7 @@ export async function requestBaseStatus(
   const row = await queryOne<ProfileRow>(
     `update openmap.user_profiles set base_status = 'requested'
      where id = $1 and user_id = $2
-       and visibility = 'public' and base_status = 'none'
+       and moderation_status = 'visible' and base_status = 'none'
      returning ${PROFILE_COLUMNS}`,
     [id, userId],
   );
@@ -309,8 +352,7 @@ export async function requestBaseStatus(
 }
 
 // Owner takes a pending request back. An approved profile can't be withdrawn
-// here; the owner has to make it non-public (which clears it), or an admin
-// revokes it.
+// here; an admin revokes it.
 export async function withdrawBaseRequest(
   userId: number,
   id: string,
@@ -327,8 +369,10 @@ export async function withdrawBaseRequest(
   return row ? toProfile(row) : null;
 }
 
-// Admin decision. `approved` needs a public profile that was requested (or is
-// already approved); `none` rejects a request or revokes an approval.
+// Admin decision. `approved` needs a visible profile (the admin may also pick
+// one nobody proposed); `none` rejects a request or revokes an approval.
+// Approving an already approved profile re-stamps `base_approved_at`: "I looked
+// at its changes, they are fine".
 export async function setBaseStatusAsAdmin(
   id: string,
   status: typeof PROFILE_BASE_STATUS.APPROVED | typeof PROFILE_BASE_STATUS.NONE,
@@ -339,11 +383,69 @@ export async function setBaseStatusAsAdmin(
   const row = await queryOne<ProfileRow>(
     `update openmap.user_profiles
      set base_status = $2::openmap.profile_base_status
+        ,base_approved_at = case when $2::openmap.profile_base_status = 'approved'
+                                 then now() else null end
      where id = $1
        and ($2::openmap.profile_base_status = 'none'
-            or (visibility = 'public' and base_status in ('requested', 'approved')))
+            or moderation_status = 'visible')
      returning ${PROFILE_COLUMNS}`,
     [id, status],
+  );
+  return row ? toProfile(row) : null;
+}
+
+// Admin hides a profile and tells its author why. A hidden profile is also no
+// longer a base profile, so it can't stay in everyone's switcher. Hiding one
+// that is already hidden (or awaiting another look) just replaces the comment.
+export async function hideProfileAsAdmin(
+  id: string,
+  note: string,
+): Promise<UserProfile | null> {
+  if (!isProfileId(id)) {
+    return null;
+  }
+  const row = await queryOne<ProfileRow>(
+    `update openmap.user_profiles
+     set moderation_status = 'hidden', moderation_note = $2
+        ,base_status = 'none', base_approved_at = null
+     where id = $1
+     returning ${PROFILE_COLUMNS}`,
+    [id, note],
+  );
+  return row ? toProfile(row) : null;
+}
+
+// Admin makes a hidden profile public again (and drops the comment). It does
+// not become a base profile again by itself; the author can propose it anew.
+export async function publishProfileAsAdmin(
+  id: string,
+): Promise<UserProfile | null> {
+  if (!isProfileId(id)) {
+    return null;
+  }
+  const row = await queryOne<ProfileRow>(
+    `update openmap.user_profiles
+     set moderation_status = 'visible', moderation_note = null
+     where id = $1 and moderation_status <> 'visible'
+     returning ${PROFILE_COLUMNS}`,
+    [id],
+  );
+  return row ? toProfile(row) : null;
+}
+
+// Author says a hidden profile is fixed and asks for another look.
+export async function requestReview(
+  userId: number,
+  id: string,
+): Promise<UserProfile | null> {
+  if (!isProfileId(id)) {
+    return null;
+  }
+  const row = await queryOne<ProfileRow>(
+    `update openmap.user_profiles set moderation_status = 'review_requested'
+     where id = $1 and user_id = $2 and moderation_status = 'hidden'
+     returning ${PROFILE_COLUMNS}`,
+    [id, userId],
   );
   return row ? toProfile(row) : null;
 }
