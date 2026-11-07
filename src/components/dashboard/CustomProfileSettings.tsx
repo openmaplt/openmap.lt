@@ -18,7 +18,7 @@ import { PROFILE_NAME_MAX_LENGTH } from "@/config/custom-profiles";
 import { PROFILE_BASE_STATUS } from "@/domain/profileBaseStatus";
 import { PROFILE_MODERATION } from "@/domain/profileModeration";
 import type { CustomProfileView } from "@/lib/userProfiles";
-import { errorMessage, shareUrl } from "./customProfileUi";
+import { errorMessage } from "./customProfileUi";
 
 // One block of the profile page. New settings (data sources, map center,
 // enabled features, ...) are added as further sections.
@@ -95,15 +95,6 @@ export function CustomProfileSettings({
       return;
     }
     window.location.assign(result.url);
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl(profile));
-      toast.success("Nuoroda nukopijuota.");
-    } catch {
-      toast.error("Nepavyko nukopijuoti nuorodos.");
-    }
   };
 
   const handleDelete = async () => {
@@ -206,26 +197,6 @@ export function CustomProfileSettings({
             <a href={`/m/${profile.slug}`}>Atidaryti žemėlapyje</a>
           </Button>
         </div>
-      </Section>
-
-      <Section
-        title="Dalijimasis"
-        description={
-          isVisible
-            ? "Žemėlapį gali atidaryti kiekvienas, žinantis adresą. Paieškos sistemos jo neindeksuoja, kol administratorius nepatvirtina jo kaip bazinio."
-            : "Kol profilis paslėptas, adresas kitiems neveikia."
-        }
-      >
-        {isVisible && (
-          <div className="flex flex-wrap items-center gap-2">
-            <code className="rounded bg-muted px-2 py-1 text-sm">
-              /m/{profile.slug}
-            </code>
-            <Button variant="outline" onClick={handleCopy}>
-              Kopijuoti nuorodą
-            </Button>
-          </div>
-        )}
       </Section>
 
       <Section

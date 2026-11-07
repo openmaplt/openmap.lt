@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CustomProfileSettings } from "@/components/dashboard/CustomProfileSettings";
+import { ProfileAddress } from "@/components/dashboard/ProfileAddress";
 import { ProfilePreview } from "@/components/dashboard/ProfilePreview";
+import { PROFILE_MODERATION } from "@/domain/profileModeration";
 import { requireUser } from "@/lib/auth";
 import { getOwnedProfileBySlug, toProfileView } from "@/lib/userProfiles";
 
@@ -26,7 +28,10 @@ export default async function Page({
         <h1 className="text-3xl font-extrabold tracking-tight">
           {profile.name}
         </h1>
-        <p className="text-sm text-muted-foreground">/m/{profile.slug}</p>
+        <ProfileAddress
+          slug={profile.slug}
+          shareable={profile.moderationStatus === PROFILE_MODERATION.VISIBLE}
+        />
       </div>
       {/* Below xl the preview sits on top (collapsed on phones); from xl up it
           is a sticky column next to the settings. */}
