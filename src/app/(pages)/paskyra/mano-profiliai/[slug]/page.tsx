@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CustomProfileSettings } from "@/components/dashboard/CustomProfileSettings";
 import { ProfileAddress } from "@/components/dashboard/ProfileAddress";
@@ -24,6 +25,12 @@ export default async function Page({
 
   return (
     <div className="space-y-4">
+      <Link
+        href="/paskyra/mano-profiliai"
+        className="inline-block text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        ← Visi mano profiliai
+      </Link>
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight">
           {profile.name}

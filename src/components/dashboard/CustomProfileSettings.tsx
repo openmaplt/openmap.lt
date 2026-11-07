@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import {
@@ -275,10 +274,6 @@ export function CustomProfileSettings({
           </Button>
         )}
       </Section>
-
-      <Button variant="link" asChild className="px-0">
-        <Link href="/paskyra/mano-profiliai">← Visi mano profiliai</Link>
-      </Button>
     </div>
   );
 }
