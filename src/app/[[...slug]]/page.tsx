@@ -15,18 +15,10 @@ import {
 import MapPage from "./_components/MapPage";
 import { PoiSeoContent } from "./_components/PoiSeoContent";
 
-// `?k=` share key of a `link` profile (see src/lib/profileAccess.ts).
-function shareKeyFrom(searchParams: { k?: string | string[] }): string | null {
-  const value = searchParams.k;
-  return typeof value === "string" && value ? value : null;
-}
-
 export async function generateMetadata({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug?: string[] }>;
-  searchParams: Promise<{ k?: string | string[] }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const { mapType, poiSlug, poiId, nameFromSlug } = parsePoiSlug(slug);
@@ -34,13 +26,9 @@ export async function generateMetadata({
   const customSlug = customSlugOf(mapType);
   if (customSlug) {
     const viewer = await getViewer();
-    const opened = await getOpenedProfile(
-      customSlug,
-      viewer?.id ?? null,
-      shareKeyFrom(await searchParams),
-    );
-    // A map the visitor may not see is a 404 (the page renders notFound());
-    // nothing about it may leak into the metadata either.
+    const opened = await getOpenedProfile(customSlug, viewer?.id ?? null);
+    // A hidden map the visitor may not see is a 404 (the page renders
+    // notFound()); nothing about it may leak into the metadata either.
     if (!opened) {
       return { robots: { index: false, follow: false } };
     }
@@ -94,20 +82,16 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({
-  params,
-  searchParams,
-}: PageProps<"/[[...slug]]">) {
+export default async function Page({ params }: PageProps<"/[[...slug]]">) {
   const { slug } = await params;
   const { mapType, poiSlug, poiId } = parsePoiSlug(slug);
 
-  // User-created profiles: whoever the map is shared with sees it plus the base
-  // profiles; anyone else gets a plain 404.
+  // User-created profiles are public, so anyone with the address sees the map
+  // plus the base profiles; only a hidden one (or a missing slug) is a 404.
   const viewer = await getViewer();
-  const shareKey = shareKeyFrom(await searchParams);
   const customSlug = customSlugOf(mapType);
   const opened = customSlug
-    ? await getOpenedProfile(customSlug, viewer?.id ?? null, shareKey)
+    ? await getOpenedProfile(customSlug, viewer?.id ?? null)
     : null;
   if (customSlug && !opened) {
     notFound();
@@ -115,7 +99,6 @@ export default async function Page({
   const extraProfiles = await getViewerProfiles(
     viewer?.id ?? null,
     opened?.profile ?? null,
-    shareKey,
   );
 
   let poiData = null;

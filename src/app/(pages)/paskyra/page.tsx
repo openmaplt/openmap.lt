@@ -4,7 +4,10 @@ import { requireUser } from "@/lib/auth";
 import { countPendingComments, listOwnComments } from "@/lib/comments";
 import { currentUserHasPermission, PERMISSIONS } from "@/lib/permissions";
 import { countPendingPhotos, listOwnPhotos } from "@/lib/photos";
-import { listRequestedProfiles, listUserProfiles } from "@/lib/userProfiles";
+import {
+  countProfilesNeedingAttention,
+  listUserProfiles,
+} from "@/lib/userProfiles";
 
 export const metadata: Metadata = {
   title: "Apžvalga - Openmap.lt",
@@ -33,9 +36,7 @@ export default async function Page() {
     listOwnPhotos(user.id),
     canModeratePhotos ? countPendingPhotos() : Promise.resolve(0),
     listUserProfiles(user.id),
-    canModerateProfiles
-      ? listRequestedProfiles().then((requested) => requested.length)
-      : Promise.resolve(0),
+    canModerateProfiles ? countProfilesNeedingAttention() : Promise.resolve(0),
   ]);
 
   return (
@@ -73,8 +74,8 @@ export default async function Page() {
         />
         {canModerateProfiles && (
           <StatCard
-            href="/paskyra/profiliai/tvirtinimas"
-            label="Profiliai laukia patvirtinimo"
+            href="/paskyra/profiliai/valdymas?filter=attention"
+            label="Profiliai laukia sprendimo"
             count={profilesPendingCount}
           />
         )}

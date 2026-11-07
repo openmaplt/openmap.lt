@@ -2,16 +2,12 @@
 
 import { BASE_URL } from "@/config/config";
 import {
+  MODERATION_NOTE_MAX_LENGTH,
   PROFILE_EDITOR_ORIGIN,
   PROFILE_NAME_MAX_LENGTH,
 } from "@/config/custom-profiles";
 import { PERMISSIONS } from "@/config/permissions";
 import { PROFILE_BASE_STATUS } from "@/domain/profileBaseStatus";
-import {
-  PROFILE_VISIBILITY,
-  PROFILE_VISIBILITY_VALUES,
-  type ProfileVisibility,
-} from "@/domain/profileVisibility";
 import { getCurrentUser } from "@/lib/auth";
 import { userHasPermission } from "@/lib/permissions";
 import { createEditToken } from "@/lib/profileEditToken";
@@ -21,11 +17,12 @@ import {
   createProfile,
   deleteProfile,
   getOwnedProfile,
-  regenerateShareKey,
+  hideProfileAsAdmin,
+  publishProfileAsAdmin,
   renameProfile,
   requestBaseStatus,
+  requestReview,
   setBaseStatusAsAdmin,
-  setProfileVisibility,
   toProfileView,
   type UserProfile,
   withdrawBaseRequest,
@@ -116,41 +113,6 @@ export async function deleteCustomProfileAction(
     : { ok: false, error: "not_found" };
 }
 
-export async function setCustomProfileVisibilityAction(
-  id: string,
-  visibility: ProfileVisibility,
-  // ISO timestamp after which a `link` profile stops opening; null = never.
-  expiresAt: string | null,
-): Promise<ProfileActionResult<"invalid_visibility" | "invalid_expiry">> {
-  const gate = await guard("customProfileVisibility");
-  if (!gate.ok) return gate;
-
-  if (!PROFILE_VISIBILITY_VALUES.includes(visibility)) {
-    return { ok: false, error: "invalid_visibility" };
-  }
-
-  let expires: Date | null = null;
-  if (visibility === PROFILE_VISIBILITY.LINK && expiresAt !== null) {
-    expires = new Date(expiresAt);
-    if (Number.isNaN(expires.getTime()) || expires.getTime() <= Date.now()) {
-      return { ok: false, error: "invalid_expiry" };
-    }
-  }
-
-  return resultFor(
-    await setProfileVisibility(gate.userId, id, visibility, expires),
-  );
-}
-
-export async function regenerateShareKeyAction(
-  id: string,
-): Promise<ProfileActionResult> {
-  const gate = await guard("customProfileShareKey");
-  if (!gate.ok) return gate;
-
-  return resultFor(await regenerateShareKey(gate.userId, id));
-}
-
 export async function requestBaseProfileAction(
   id: string,
 ): Promise<ProfileActionResult> {
@@ -169,8 +131,19 @@ export async function withdrawBaseRequestAction(
   return resultFor(await withdrawBaseRequest(gate.userId, id));
 }
 
-// Needs profiles.moderate (admins always have it): approve a requested profile as a base profile, or reject /
-// revoke it (`none`).
+// Author says a hidden profile is fixed and asks an admin to look again.
+export async function requestReviewAction(
+  id: string,
+): Promise<ProfileActionResult> {
+  const gate = await guard("customProfileReview");
+  if (!gate.ok) return gate;
+
+  return resultFor(await requestReview(gate.userId, id));
+}
+
+// Needs profiles.moderate (admins always have it): approve a profile as a base
+// profile (one that was proposed or one the admin picked), or reject / revoke
+// it (`none`).
 export async function setBaseProfileStatusAction(
   id: string,
   status: typeof PROFILE_BASE_STATUS.APPROVED | typeof PROFILE_BASE_STATUS.NONE,
@@ -188,6 +161,36 @@ export async function setBaseProfileStatusAction(
     return { ok: false, error: "invalid_status" };
   }
   return resultFor(await setBaseStatusAsAdmin(id, status));
+}
+
+export async function hideProfileAction(
+  id: string,
+  note: string,
+): Promise<ProfileActionResult<"forbidden" | "invalid_note">> {
+  const gate = await guard("customProfileAdmin");
+  if (!gate.ok) return gate;
+
+  if (!(await userHasPermission(gate.userId, PERMISSIONS.PROFILES_MODERATE))) {
+    return { ok: false, error: "forbidden" };
+  }
+  // The author reads this to know what to fix, so it must say something.
+  const cleaned = note.trim();
+  if (cleaned.length < 3 || cleaned.length > MODERATION_NOTE_MAX_LENGTH) {
+    return { ok: false, error: "invalid_note" };
+  }
+  return resultFor(await hideProfileAsAdmin(id, cleaned));
+}
+
+export async function publishProfileAction(
+  id: string,
+): Promise<ProfileActionResult<"forbidden">> {
+  const gate = await guard("customProfileAdmin");
+  if (!gate.ok) return gate;
+
+  if (!(await userHasPermission(gate.userId, PERMISSIONS.PROFILES_MODERATE))) {
+    return { ok: false, error: "forbidden" };
+  }
+  return resultFor(await publishProfileAsAdmin(id));
 }
 
 export type StartEditResult =

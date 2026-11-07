@@ -63,8 +63,8 @@ export const DASHBOARD_MENU_ITEMS: DashboardNavItem[] = [
     section: "admin",
   },
   {
-    href: "/paskyra/profiliai/tvirtinimas",
-    label: "Profilių tvirtinimas",
+    href: "/paskyra/profiliai/valdymas",
+    label: "Naudotojų profiliai",
     icon: ShieldCheck,
     requiredPermission: PERMISSIONS.PROFILES_MODERATE,
     section: "admin",

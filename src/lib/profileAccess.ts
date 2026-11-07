@@ -1,59 +1,37 @@
-import { timingSafeEqual } from "node:crypto";
-import {
-  PROFILE_VISIBILITY,
-  type ProfileVisibility,
-} from "@/domain/profileVisibility";
+import "server-only";
 
-// Who is asking for a profile. Every field is optional proof of access; the
-// first one that matches wins.
+import { PERMISSIONS } from "@/config/permissions";
+import { PROFILE_MODERATION } from "@/domain/profileModeration";
+import { userHasPermission } from "@/lib/permissions";
+import type { UserProfile } from "@/lib/userProfiles";
+
+// Who is asking for a profile. Every field is optional proof of access.
 export type ProfileViewer = {
   // Logged-in user (session cookie).
   userId: number | null;
   // Profile id an editor token was issued for (already verified).
   editProfileId: string | null;
-  // `?k=` value from the URL.
-  shareKey: string | null;
 };
 
-export type AccessibleProfile = {
-  id: string;
-  userId: number;
-  visibility: ProfileVisibility;
-  shareKey: string | null;
-  expiresAt: Date | null;
-};
-
-function safeEqual(a: string, b: string): boolean {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  return left.length === right.length && timingSafeEqual(left, right);
-}
-
-// "Not allowed" and "does not exist" must look the same to the caller (both
-// are a 404), so a private map never reveals that it exists.
-export function canViewProfile(
-  profile: AccessibleProfile,
+// A profile is open to everyone, except while an admin has it hidden: then only
+// its author (and the editor acting for them) and moderators may open it, so
+// they can fix and review it. "Not allowed" and "does not exist" must look the
+// same to the caller (both are a 404).
+export async function canViewProfile(
+  profile: Pick<UserProfile, "id" | "userId" | "moderationStatus">,
   viewer: ProfileViewer,
-  now: Date = new Date(),
-): boolean {
-  if (viewer.userId !== null && viewer.userId === profile.userId) {
+): Promise<boolean> {
+  if (profile.moderationStatus === PROFILE_MODERATION.VISIBLE) {
     return true;
   }
   if (viewer.editProfileId === profile.id) {
     return true;
   }
-  if (profile.visibility === PROFILE_VISIBILITY.PUBLIC) {
+  if (viewer.userId === null) {
+    return false;
+  }
+  if (viewer.userId === profile.userId) {
     return true;
   }
-  if (profile.visibility === PROFILE_VISIBILITY.LINK) {
-    if (profile.expiresAt && profile.expiresAt <= now) {
-      return false;
-    }
-    return (
-      profile.shareKey !== null &&
-      viewer.shareKey !== null &&
-      safeEqual(profile.shareKey, viewer.shareKey)
-    );
-  }
-  return false;
+  return userHasPermission(viewer.userId, PERMISSIONS.PROFILES_MODERATE);
 }

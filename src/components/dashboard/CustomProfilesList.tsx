@@ -13,12 +13,7 @@ import {
   PROFILE_NAME_MAX_LENGTH,
 } from "@/config/custom-profiles";
 import type { CustomProfileView } from "@/lib/userProfiles";
-import {
-  baseStatusBadge,
-  errorMessage,
-  profilePath,
-  VISIBILITY_BADGE_LABELS,
-} from "./customProfileUi";
+import { errorMessage, profilePath, statusBadge } from "./customProfileUi";
 
 interface CustomProfilesListProps {
   profiles: CustomProfileView[];
@@ -80,7 +75,7 @@ export function CustomProfilesList({ profiles }: CustomProfilesListProps) {
       ) : (
         <ul className="max-w-xl divide-y rounded-md border">
           {profiles.map((profile) => {
-            const baseBadge = baseStatusBadge(profile);
+            const badge = statusBadge(profile);
             return (
               <li
                 key={profile.id}
@@ -91,16 +86,17 @@ export function CustomProfilesList({ profiles }: CustomProfilesListProps) {
                   <p className="truncate text-xs text-muted-foreground">
                     /m/{profile.slug}
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="rounded-full border px-2 py-0.5 text-xs">
-                      {VISIBILITY_BADGE_LABELS[profile.visibility]}
+                  {badge && (
+                    <span
+                      className={
+                        badge.tone === "alert"
+                          ? "inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300"
+                          : "inline-block rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                      }
+                    >
+                      {badge.label}
                     </span>
-                    {baseBadge && (
-                      <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-                        {baseBadge}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
                 <Button asChild size="sm" variant="outline">
                   <Link href={profilePath(profile)}>Tvarkyti</Link>

@@ -5,39 +5,20 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import {
   deleteCustomProfileAction,
-  regenerateShareKeyAction,
   renameCustomProfileAction,
   requestBaseProfileAction,
-  setCustomProfileVisibilityAction,
+  requestReviewAction,
   startProfileEditAction,
   withdrawBaseRequestAction,
 } from "@/actions/customProfiles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { PROFILE_NAME_MAX_LENGTH } from "@/config/custom-profiles";
 import { PROFILE_BASE_STATUS } from "@/domain/profileBaseStatus";
-import {
-  PROFILE_VISIBILITY,
-  type ProfileVisibility,
-} from "@/domain/profileVisibility";
+import { PROFILE_MODERATION } from "@/domain/profileModeration";
 import type { CustomProfileView } from "@/lib/userProfiles";
-import {
-  errorMessage,
-  fromDateInput,
-  shareUrl,
-  toDateInput,
-  VISIBILITY_HINTS,
-  VISIBILITY_OPTION_LABELS,
-} from "./customProfileUi";
+import { errorMessage, shareUrl } from "./customProfileUi";
 
 // One block of the profile page. New settings (data sources, map center,
 // enabled features, ...) are added as further sections.
@@ -80,8 +61,10 @@ export function CustomProfileSettings({
   const [busy, setBusy] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  const isPublic = profile.visibility === PROFILE_VISIBILITY.PUBLIC;
-  const isLink = profile.visibility === PROFILE_VISIBILITY.LINK;
+  const isVisible = profile.moderationStatus === PROFILE_MODERATION.VISIBLE;
+  const isHidden = profile.moderationStatus === PROFILE_MODERATION.HIDDEN;
+  const reviewRequested =
+    profile.moderationStatus === PROFILE_MODERATION.REVIEW_REQUESTED;
 
   // Runs an action that returns the updated profile and applies the result.
   const runAction = async (
@@ -137,6 +120,50 @@ export function CustomProfileSettings({
 
   return (
     <div className="max-w-2xl space-y-4">
+      {!isVisible && (
+        <div
+          role="alert"
+          className="space-y-3 rounded-md border border-red-300 bg-red-50 p-4 text-red-950 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100"
+        >
+          <p className="font-semibold">
+            Šį profilį paslėpė administratorius, kitiems jis nematomas.
+          </p>
+          {profile.moderationNote && (
+            <p className="whitespace-pre-wrap text-sm">
+              <span className="font-medium">
+                Administratoriaus komentaras:{" "}
+              </span>
+              {profile.moderationNote}
+            </p>
+          )}
+          {isHidden && (
+            <>
+              <p className="text-sm">
+                Galite jį atidaryti ir redaguoti kaip įprasta. Kai pataisysite,
+                pasiūlykite jį peržiūrai.
+              </p>
+              <Button
+                disabled={busy}
+                onClick={() =>
+                  runAction(
+                    () => requestReviewAction(profile.id),
+                    "Išsiųsta administratoriui peržiūrai.",
+                  )
+                }
+              >
+                Pataisiau, siūlyti peržiūrai
+              </Button>
+            </>
+          )}
+          {reviewRequested && (
+            <p className="text-sm">
+              Laukia administratoriaus peržiūros. Kol jis nepaskelbs profilio iš
+              naujo, kitiems jis lieka nematomas.
+            </p>
+          )}
+        </div>
+      )}
+
       <Section title="Pavadinimas">
         <form
           className="flex gap-2"
@@ -182,95 +209,28 @@ export function CustomProfileSettings({
       </Section>
 
       <Section
-        title="Matomumas ir dalijimasis"
-        description="Pasirinkite, kas gali atidaryti šį žemėlapį."
+        title="Dalijimasis"
+        description={
+          isVisible
+            ? "Žemėlapį gali atidaryti kiekvienas, žinantis adresą. Paieškos sistemos jo neindeksuoja, kol administratorius nepatvirtina jo kaip bazinio."
+            : "Kol profilis paslėptas, adresas kitiems neveikia."
+        }
       >
-        <div className="space-y-1.5">
-          <Label htmlFor="profile-visibility" className="text-sm">
-            Matomumas
-          </Label>
-          <Select
-            value={profile.visibility}
-            disabled={busy}
-            onValueChange={(value) =>
-              runAction(() =>
-                setCustomProfileVisibilityAction(
-                  profile.id,
-                  value as ProfileVisibility,
-                  null,
-                ),
-              )
-            }
-          >
-            <SelectTrigger id="profile-visibility">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(VISIBILITY_OPTION_LABELS).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">
-            {VISIBILITY_HINTS[profile.visibility]}
-          </p>
-        </div>
-
-        {isLink && (
-          <div className="space-y-1.5">
-            <Label htmlFor="profile-expires" className="text-sm">
-              Nuoroda galioja iki (nebūtina)
-            </Label>
-            <Input
-              id="profile-expires"
-              type="date"
-              className="max-w-48"
-              disabled={busy}
-              min={new Date().toLocaleDateString("sv-SE")}
-              value={toDateInput(profile.expiresAt)}
-              onChange={(event) =>
-                runAction(() =>
-                  setCustomProfileVisibilityAction(
-                    profile.id,
-                    PROFILE_VISIBILITY.LINK,
-                    fromDateInput(event.target.value),
-                  ),
-                )
-              }
-            />
-          </div>
-        )}
-
-        {(isPublic || isLink) && (
-          <div className="flex flex-wrap gap-2">
+        {isVisible && (
+          <div className="flex flex-wrap items-center gap-2">
+            <code className="rounded bg-muted px-2 py-1 text-sm">
+              /m/{profile.slug}
+            </code>
             <Button variant="outline" onClick={handleCopy}>
               Kopijuoti nuorodą
             </Button>
-            {isLink && (
-              <Button
-                variant="outline"
-                disabled={busy}
-                onClick={() =>
-                  runAction(
-                    () => regenerateShareKeyAction(profile.id),
-                    "Sukurta nauja nuoroda. Senos nebeveikia.",
-                  )
-                }
-              >
-                Nauja nuoroda
-              </Button>
-            )}
           </div>
         )}
       </Section>
 
       <Section
         title="Bazinis profilis"
-        description="Administratoriai gali patvirtinti viešą profilį, ir jį pamatys visi lankytojai profilių pasirinkimo valdiklyje."
+        description="Administratoriai gali patvirtinti profilį, ir jį pamatys visi lankytojai profilių pasirinkimo valdiklyje."
       >
         {profile.baseStatus === PROFILE_BASE_STATUS.APPROVED && (
           <p className="text-sm">
@@ -297,7 +257,7 @@ export function CustomProfileSettings({
           </>
         )}
         {profile.baseStatus === PROFILE_BASE_STATUS.NONE &&
-          (isPublic ? (
+          (isVisible ? (
             <Button
               variant="outline"
               disabled={busy}
@@ -312,8 +272,7 @@ export function CustomProfileSettings({
             </Button>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Kad galėtumėte pasiūlyti profilį kaip bazinį, jis turi būti
-              viešas.
+              Paslėpto profilio pasiūlyti kaip bazinio negalima.
             </p>
           ))}
       </Section>

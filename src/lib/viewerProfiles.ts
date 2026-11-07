@@ -2,7 +2,6 @@ import "server-only";
 
 import { cache } from "react";
 import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
-import { PROFILE_VISIBILITY } from "@/domain/profileVisibility";
 import { getCurrentUser } from "@/lib/auth";
 import { customMapType } from "@/lib/mapPath";
 import { canViewProfile } from "@/lib/profileAccess";
@@ -17,6 +16,7 @@ import {
 // one their URL points at. Anonymous visitors get the admin-approved base
 // profiles; logged-in ones also get their own; whoever opens `/m/<slug>` (and
 // is allowed to) also gets that one, which is how a shared map shows up.
+// Profiles are public by default, so a shared address is just `/m/<slug>`.
 
 // Several server components of one request (generateMetadata + the page) ask
 // for the same user; fetch the session once.
@@ -26,19 +26,11 @@ export const getViewer = cache(() => getCurrentUser());
 // profiles start as a copy of the topo template.
 const CUSTOM_PROFILE_IMAGE = "/maps/map_topo.png";
 
-// `suppliedKey` is the `?k=` the visitor arrived with. It is baked into the
-// style URL for that one profile so MapLibre can fetch a `link` style without
-// a session. A profile's own stored key is never put here.
-export function toMapProfile(
-  profile: UserProfile,
-  suppliedKey: string | null,
-): MapProfile {
+export function toMapProfile(profile: UserProfile): MapProfile {
+  // `v` busts the browser cache whenever the content changes.
   const params = new URLSearchParams({
     v: String(profile.updatedAt.getTime()),
   });
-  if (suppliedKey && profile.visibility === PROFILE_VISIBILITY.LINK) {
-    params.set("k", suppliedKey);
-  }
   return {
     id: `user-${profile.id}`,
     mapType: customMapType(profile.slug),
@@ -62,17 +54,17 @@ export type OpenedProfile = {
 };
 
 // The profile `/m/<slug>` points at, or null when it doesn't exist or the
-// visitor may not see it (deliberately indistinguishable: both are a 404).
+// visitor may not see it (a hidden one, see canViewProfile; deliberately
+// indistinguishable from a missing one: both are a 404).
 export const getOpenedProfile = cache(
   async (
     slug: string,
     userId: number | null,
-    shareKey: string | null,
   ): Promise<OpenedProfile | null> => {
     const profile = await getProfileBySlug(slug);
     if (
       !profile ||
-      !canViewProfile(profile, { userId, editProfileId: null, shareKey })
+      !(await canViewProfile(profile, { userId, editProfileId: null }))
     ) {
       return null;
     }
@@ -83,7 +75,6 @@ export const getOpenedProfile = cache(
 export async function getViewerProfiles(
   userId: number | null,
   opened: UserProfile | null,
-  shareKey: string | null,
 ): Promise<MapProfile[]> {
   const byId = new Map<string, MapProfile>();
 
@@ -95,14 +86,13 @@ export async function getViewerProfiles(
       userId === null ? Promise.resolve([]) : listUserProfiles(userId),
     ]);
     for (const profile of [...approved, ...own]) {
-      byId.set(profile.id, toMapProfile(profile, null));
+      byId.set(profile.id, toMapProfile(profile));
     }
   } catch (error) {
     console.error("[viewerProfiles] nepavyko gauti naudotojų profilių:", error);
   }
-  // The opened one last, so it carries the visitor's key and wins a duplicate.
   if (opened) {
-    byId.set(opened.id, toMapProfile(opened, shareKey));
+    byId.set(opened.id, toMapProfile(opened));
   }
   return [...byId.values()];
 }
@@ -112,5 +102,5 @@ export async function getViewerProfiles(
 export async function listSelectableProfiles(
   userId: number,
 ): Promise<MapProfile[]> {
-  return [...MAP_PROFILES, ...(await getViewerProfiles(userId, null, null))];
+  return [...MAP_PROFILES, ...(await getViewerProfiles(userId, null))];
 }
