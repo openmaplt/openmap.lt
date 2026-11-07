@@ -3,6 +3,7 @@
  * Format: #m/[zoom]/[latitude]/[longitude]/[bearing]/[pitch]
  */
 import { MapConfig } from "@/config/config";
+import { parseMapPathSegments } from "@/lib/mapPath";
 
 export interface RouteState {
   startLat: number;
@@ -72,7 +73,7 @@ export function parseHash(hash: string): MapState | null {
 
 export function parseUrl(query: string, pathname: string): MapState | null {
   const searchParams = new URLSearchParams(query);
-  const [, mapType] = pathname.split("/");
+  const { mapType = "" } = parseMapPathSegments(pathname.split("/").slice(1));
 
   const zoomStr = searchParams.get("z");
   const latStr = searchParams.get("lat");

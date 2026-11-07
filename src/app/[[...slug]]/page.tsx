@@ -4,8 +4,14 @@ import { MapMenu } from "@/components/MapMenu";
 import { BASE_URL } from "@/config/config";
 import { POI_INFO_PROFILES } from "@/config/map-profiles";
 import { getPoiInfo } from "@/data/poiInfo";
+import { customSlugOf } from "@/lib/mapPath";
 import { buildPoiDescription, parsePoiSlug } from "@/lib/poiHelpers";
 import { slugify } from "@/lib/utils";
+import {
+  getOpenedProfile,
+  getViewer,
+  getViewerProfiles,
+} from "@/lib/viewerProfiles";
 import MapPage from "./_components/MapPage";
 import { PoiSeoContent } from "./_components/PoiSeoContent";
 
@@ -16,6 +22,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const { mapType, poiSlug, poiId, nameFromSlug } = parsePoiSlug(slug);
+
+  const customSlug = customSlugOf(mapType);
+  if (customSlug) {
+    const viewer = await getViewer();
+    const opened = await getOpenedProfile(customSlug, viewer?.id ?? null);
+    // A hidden map the visitor may not see is a 404 (the page renders
+    // notFound()); nothing about it may leak into the metadata either.
+    if (!opened) {
+      return { robots: { index: false, follow: false } };
+    }
+    return {
+      title: opened.profile.name,
+      ...(opened.indexable
+        ? { alternates: { canonical: `${BASE_URL}/${mapType}` } }
+        : { robots: { index: false, follow: false } }),
+    };
+  }
 
   const canonical = poiSlug
     ? `${BASE_URL}/${mapType}/${poiSlug}`
@@ -63,6 +86,21 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
   const { slug } = await params;
   const { mapType, poiSlug, poiId } = parsePoiSlug(slug);
 
+  // User-created profiles are public, so anyone with the address sees the map
+  // plus the base profiles; only a hidden one (or a missing slug) is a 404.
+  const viewer = await getViewer();
+  const customSlug = customSlugOf(mapType);
+  const opened = customSlug
+    ? await getOpenedProfile(customSlug, viewer?.id ?? null)
+    : null;
+  if (customSlug && !opened) {
+    notFound();
+  }
+  const extraProfiles = await getViewerProfiles(
+    viewer?.id ?? null,
+    opened?.profile ?? null,
+  );
+
   let poiData = null;
   if (
     poiId &&
@@ -99,7 +137,10 @@ export default async function Page({ params }: PageProps<"/[[...slug]]">) {
           url={`${BASE_URL}/${mapType}/${poiSlug}`}
         />
       )}
-      <MapPage initialPoiData={hasPoiData ? poiData : null} />
+      <MapPage
+        initialPoiData={hasPoiData ? poiData : null}
+        extraProfiles={extraProfiles}
+      />
       <MapMenu />
     </>
   );

@@ -24,3 +24,6 @@ export const PROFILE_EDITOR_ORIGIN =
 export const ALLOWED_STYLE_HOSTS = ["openmap.lt"] as const;
 
 export const PROFILE_NAME_MAX_LENGTH = 80;
+
+// Longest comment an admin can leave when hiding a profile.
+export const MODERATION_NOTE_MAX_LENGTH = 500;

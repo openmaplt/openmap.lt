@@ -13,10 +13,12 @@ export default async function Layout({
 }) {
   await requireUser("/paskyra");
 
-  const [canModerateComments, canModeratePhotos] = await Promise.all([
-    currentUserHasPermission(PERMISSIONS.COMMENTS_MODERATE),
-    currentUserHasPermission(PERMISSIONS.PHOTOS_MODERATE),
-  ]);
+  const [canModerateComments, canModeratePhotos, canModerateProfiles] =
+    await Promise.all([
+      currentUserHasPermission(PERMISSIONS.COMMENTS_MODERATE),
+      currentUserHasPermission(PERMISSIONS.PHOTOS_MODERATE),
+      currentUserHasPermission(PERMISSIONS.PROFILES_MODERATE),
+    ]);
   const [commentsPendingCount, photosPendingCount] = await Promise.all([
     canModerateComments ? countPendingComments() : Promise.resolve(0),
     canModeratePhotos ? countPendingPhotos() : Promise.resolve(0),
@@ -25,6 +27,7 @@ export default async function Layout({
   const permissions: Permission[] = [
     ...(canModerateComments ? [PERMISSIONS.COMMENTS_MODERATE] : []),
     ...(canModeratePhotos ? [PERMISSIONS.PHOTOS_MODERATE] : []),
+    ...(canModerateProfiles ? [PERMISSIONS.PROFILES_MODERATE] : []),
   ];
 
   return (

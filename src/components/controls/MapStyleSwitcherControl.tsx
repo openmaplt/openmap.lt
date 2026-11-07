@@ -2,7 +2,7 @@ import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MAP_PROFILES, type MapProfile } from "@/config/map-profiles";
+import type { MapProfile } from "@/config/map-profiles";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMapActions, useMapConfig } from "@/providers/MapProvider";
@@ -10,12 +10,12 @@ import { useMapActions, useMapConfig } from "@/providers/MapProvider";
 export function MapStyleSwitcherControl() {
   const { mapRef, handleOnChangeMapProfile: onChangeMapProfile } =
     useMapActions();
-  const { activeMapProfile } = useMapConfig();
+  const { activeMapProfile, profiles } = useMapConfig();
   const { user } = useAuth();
   const hiddenProfileIds = user?.settings.hiddenProfileIds ?? [];
   // The active profile stays listed even if disabled (opened via a direct
   // link), so the switcher always shows where the user currently is.
-  const visibleProfiles = MAP_PROFILES.filter(
+  const visibleProfiles = profiles.filter(
     (profile) =>
       profile.id === activeMapProfile.id ||
       !hiddenProfileIds.includes(profile.id),

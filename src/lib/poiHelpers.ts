@@ -2,6 +2,7 @@ import type { FilterSpecification } from "@maplibre/maplibre-gl-style-spec";
 import type { Feature } from "geojson";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { MAP_PROFILES } from "@/config/map-profiles";
+import { parseMapPathSegments } from "@/lib/mapPath";
 
 /**
  * Turns an OSM `wikipedia` tag ("lt:Aknystėlių piliakalnis") into a link.
@@ -93,8 +94,7 @@ export function buildPhotosApiUrl(
 }
 
 export function parsePoiSlug(slug: string[] | undefined) {
-  const mapType = slug?.[0] ?? undefined;
-  const poiSlug = slug?.[1] ?? undefined;
+  const { mapType, poiSlug } = parseMapPathSegments(slug ?? []);
   const poiId =
     poiSlug && poiSlug !== "map" ? poiSlug.split("-")[0] : undefined;
   const nameFromSlug =

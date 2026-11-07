@@ -2,9 +2,9 @@ import {
   MAX_STYLE_BYTES,
   PROFILE_EDITOR_ORIGIN,
 } from "@/config/custom-profiles";
-import { PROFILE_VISIBILITY } from "@/domain/profileVisibility";
+import { PROFILE_MODERATION } from "@/domain/profileModeration";
 import { getCurrentUser } from "@/lib/auth";
-import { canViewProfile, type ProfileViewer } from "@/lib/profileAccess";
+import { canViewProfile } from "@/lib/profileAccess";
 import { type EditTokenPayload, verifyEditToken } from "@/lib/profileEditToken";
 import { validateProfileStyle } from "@/lib/profileStyle";
 import { checkRateLimit, checkUserRateLimit } from "@/lib/rateLimit";
@@ -16,10 +16,10 @@ import {
 
 // Serves and saves the style JSON of a user-created map profile.
 //
-// GET  — the map (same origin) and the Maputnik editor (cross origin, editor
-//        token) read the style here. Access follows the profile's visibility,
-//        see `canViewProfile`. A profile the caller may not see is a plain
-//        404, the same as one that doesn't exist.
+// GET  — the map (same origin), the profile preview and the Maputnik editor
+//        (cross origin, editor token) read the style here. Profiles are public;
+//        one an admin has hidden is a plain 404 for everyone but its author and
+//        moderators (see `canViewProfile`), the same as a missing one.
 // PUT  — only the editor saves here, always with an editor token for exactly
 //        this profile. The body is validated before it is stored.
 //
@@ -109,20 +109,19 @@ export async function GET(request: Request, { params }: RouteContext) {
   }
 
   const editor = readEditToken(request);
-  const viewer: ProfileViewer = {
-    userId: null,
-    editProfileId:
-      editor && editor.userId === profile.userId ? editor.profileId : null,
-    shareKey: new URL(request.url).searchParams.get("k"),
-  };
+  const editProfileId =
+    editor && editor.userId === profile.userId ? editor.profileId : null;
 
   // Cheap proofs first; only fall back to a session lookup when they fail, so
   // public maps never hit the sessions table.
-  let allowed = canViewProfile(profile, viewer);
+  let allowed = await canViewProfile(profile, { userId: null, editProfileId });
   if (!allowed) {
     const user = await getCurrentUser();
     if (user) {
-      allowed = canViewProfile(profile, { ...viewer, userId: user.id });
+      allowed = await canViewProfile(profile, {
+        userId: user.id,
+        editProfileId,
+      });
     }
   }
   if (!allowed) {
@@ -131,7 +130,7 @@ export async function GET(request: Request, { params }: RouteContext) {
 
   const etag = `W/"${profile.updatedAt.getTime()}"`;
   const cacheControl =
-    profile.visibility === PROFILE_VISIBILITY.PUBLIC
+    profile.moderationStatus === PROFILE_MODERATION.VISIBLE
       ? "public, max-age=60"
       : "private, no-cache";
 

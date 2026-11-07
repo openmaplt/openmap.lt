@@ -1,9 +1,9 @@
 "use server";
 
-import { MAP_PROFILES } from "@/config/map-profiles";
 import { getCurrentUser } from "@/lib/auth";
 import { checkRateLimit, checkUserRateLimit } from "@/lib/rateLimit";
 import { updateUserSettings } from "@/lib/userSettings";
+import { listSelectableProfiles } from "@/lib/viewerProfiles";
 
 export type SaveDisabledProfilesResult =
   | { ok: true }
@@ -32,7 +32,11 @@ export async function saveDisabledProfilesAction(
     return { ok: false, error: "rate_limited" };
   }
 
-  const validIds = new Set(MAP_PROFILES.map((profile) => profile.id));
+  // Built-in profiles plus the user-created ones this user can see in the
+  // switcher (admin-approved and their own).
+  const validIds = new Set(
+    (await listSelectableProfiles(user.id)).map((profile) => profile.id),
+  );
   const deduped = Array.from(new Set(disabledProfileIds));
   if (deduped.some((id) => !validIds.has(id))) {
     return { ok: false, error: "invalid_profiles" };

@@ -19,6 +19,10 @@ export type MapProfile = {
   routingProfiles?: RouteProfile[];
   routingUrl?: string;
   seoDescription?: string;
+  // A user-created profile (openmap.user_profiles). Its `mapType` is
+  // `m/<slug>` (see src/lib/mapPath.ts); it never has POI details, comments or
+  // photos — those are keyed on built-in profile ids.
+  isCustom?: boolean;
 };
 
 /**

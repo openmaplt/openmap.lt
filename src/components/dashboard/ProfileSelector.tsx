@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
-import { MAP_PROFILES } from "@/config/map-profiles";
 import { useAuth } from "@/providers/AuthProvider";
 
+export type SelectableProfile = { id: string; name: string };
+
 interface ProfileSelectorProps {
+  profiles: SelectableProfile[];
   initialDisabledIds: string[];
 }
 
@@ -20,7 +22,10 @@ const SAVE_ERROR_MESSAGES = {
   no_session: "Nepavyko išsaugoti pasirinkimo.",
 } as const;
 
-export function ProfileSelector({ initialDisabledIds }: ProfileSelectorProps) {
+export function ProfileSelector({
+  profiles,
+  initialDisabledIds,
+}: ProfileSelectorProps) {
   const { refresh } = useAuth();
   const [disabled, setDisabled] = useState<Set<string>>(
     () => new Set(initialDisabledIds),
@@ -38,15 +43,13 @@ export function ProfileSelector({ initialDisabledIds }: ProfileSelectorProps) {
     setIsDirty(true);
   };
 
-  const enabledCount = MAP_PROFILES.length - disabled.size;
-  const allEnabled = enabledCount === MAP_PROFILES.length;
+  const enabledCount = profiles.length - disabled.size;
+  const allEnabled = enabledCount === profiles.length;
   const noneEnabled = enabledCount === 0;
 
   const toggleAll = () => {
     setDisabled(
-      allEnabled
-        ? new Set(MAP_PROFILES.map((profile) => profile.id))
-        : new Set(),
+      allEnabled ? new Set(profiles.map((profile) => profile.id)) : new Set(),
     );
     setIsDirty(true);
   };
@@ -85,10 +88,10 @@ export function ProfileSelector({ initialDisabledIds }: ProfileSelectorProps) {
             Visi profiliai
           </Label>
           <span className="text-xs opacity-70 ml-auto">
-            {enabledCount}/{MAP_PROFILES.length}
+            {enabledCount}/{profiles.length}
           </span>
         </div>
-        {MAP_PROFILES.map((profile) => (
+        {profiles.map((profile) => (
           <div key={profile.id} className="flex items-center gap-3 p-3">
             <Checkbox
               id={`profile-${profile.id}`}
@@ -99,7 +102,7 @@ export function ProfileSelector({ initialDisabledIds }: ProfileSelectorProps) {
               htmlFor={`profile-${profile.id}`}
               className="cursor-pointer text-sm"
             >
-              {profile.mapStyles[0].name}
+              {profile.name}
             </Label>
           </div>
         ))}
