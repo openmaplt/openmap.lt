@@ -67,16 +67,7 @@ function RowInfo({ row }: { row: AdminProfileRow }) {
           <span className={INFO_BADGE}>Siūlomas kaip bazinis</span>
         )}
       </p>
-      <p className="text-xs text-muted-foreground">
-        <a
-          href={`/m/${row.slug}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline-offset-4 hover:underline"
-        >
-          /m/{row.slug}
-        </a>
-      </p>
+      <p className="text-xs text-muted-foreground">/m/{row.slug}</p>
       <p className="text-xs text-muted-foreground">
         {row.approvedAt && (
           <>
@@ -269,6 +260,15 @@ export function ProfilesAdmin({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <RowInfo row={row} />
                   <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" asChild>
+                      <a
+                        href={`/m/${row.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Peržiūrėti žemėlapį
+                      </a>
+                    </Button>
                     {hidden && (
                       <Button
                         size="sm"
