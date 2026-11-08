@@ -85,15 +85,23 @@ export function CustomProfileSettings({
     return true;
   };
 
+  // The editor opens in a new tab so this page stays here and shows the
+  // current state when the user returns. The tab is opened synchronously in the
+  // click (browsers block popups opened after an await) and pointed at the
+  // editor once the token is ready.
   const handleEdit = async () => {
+    const editor = window.open("", "_blank");
+    if (editor) editor.opener = null;
     setBusy(true);
     const result = await startProfileEditAction(profile.id);
+    setBusy(false);
     if (!result.ok) {
-      setBusy(false);
+      editor?.close();
       toast.error(errorMessage(result.error));
       return;
     }
-    window.location.assign(result.url);
+    if (editor) editor.location.href = result.url;
+    else window.location.assign(result.url);
   };
 
   const handleDelete = async () => {
@@ -193,7 +201,13 @@ export function CustomProfileSettings({
             Keisti stilių
           </Button>
           <Button variant="outline" asChild>
-            <a href={`/m/${profile.slug}`}>Atidaryti žemėlapyje</a>
+            <a
+              href={`/m/${profile.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Atidaryti žemėlapyje
+            </a>
           </Button>
         </div>
       </Section>
