@@ -82,7 +82,14 @@ export function CustomProfilesList({ profiles }: CustomProfilesListProps) {
                 className="flex flex-wrap items-center justify-between gap-3 p-3"
               >
                 <div className="min-w-0 space-y-1">
-                  <p className="truncate font-medium">{profile.name}</p>
+                  <p className="truncate font-medium">
+                    <Link
+                      href={profilePath(profile)}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {profile.name}
+                    </Link>
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     /m/{profile.slug}
                   </p>
@@ -98,9 +105,20 @@ export function CustomProfilesList({ profiles }: CustomProfilesListProps) {
                     </span>
                   )}
                 </div>
-                <Button asChild size="sm" variant="outline">
-                  <Link href={profilePath(profile)}>Tvarkyti</Link>
-                </Button>
+                <div className="flex gap-2">
+                  <Button asChild size="sm" variant="outline">
+                    <a
+                      href={`/m/${profile.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Peržiūrėti
+                    </a>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={profilePath(profile)}>Tvarkyti</Link>
+                  </Button>
+                </div>
               </li>
             );
           })}

@@ -200,15 +200,6 @@ export function CustomProfileSettings({
           <Button disabled={busy} onClick={handleEdit}>
             Keisti stilių
           </Button>
-          <Button variant="outline" asChild>
-            <a
-              href={`/m/${profile.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Atidaryti žemėlapyje
-            </a>
-          </Button>
         </div>
       </Section>
 

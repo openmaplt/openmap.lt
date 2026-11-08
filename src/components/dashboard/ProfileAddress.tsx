@@ -11,7 +11,8 @@ interface ProfileAddressProps {
   shareable: boolean;
 }
 
-// The profile's address under its title, with a copy button. Profiles are
+// The profile's address under its title, with buttons to preview the map and
+// copy the address. Profiles are
 // public, so this is all "sharing" needs; the line below says so plainly.
 export function ProfileAddress({ slug, shareable }: ProfileAddressProps) {
   const handleCopy = async () => {
@@ -27,6 +28,12 @@ export function ProfileAddress({ slug, shareable }: ProfileAddressProps) {
     <div className="space-y-1">
       <div className="flex flex-wrap items-center gap-2">
         <code className="text-sm text-muted-foreground">/m/{slug}</code>
+        {/* Also for a hidden profile: its author can still open it. */}
+        <Button size="sm" variant="outline" asChild>
+          <a href={`/m/${slug}`} target="_blank" rel="noopener noreferrer">
+            Peržiūrėti žemėlapį
+          </a>
+        </Button>
         {shareable && (
           <Button size="sm" variant="outline" onClick={handleCopy}>
             Kopijuoti nuorodą
