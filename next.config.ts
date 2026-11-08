@@ -4,13 +4,15 @@ import type { NextConfig } from "next";
 // only relax script-src in development and keep the strict policy for prod.
 const isDev = process.env.NODE_ENV !== "production";
 
+// connect-src allows every https host: user-created map profiles may use any
+// https tile/data service as a source (see src/lib/profileStyle.ts).
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://openmap.lt https://*.openmap.lt https://test.stvk.lt",
+  "connect-src 'self' https:",
   "worker-src 'self' blob:",
   "child-src blob:",
   "object-src 'none'",

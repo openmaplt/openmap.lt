@@ -18,11 +18,6 @@ export const EDIT_TOKEN_TTL_SECONDS = 2 * 60 * 60;
 export const PROFILE_EDITOR_ORIGIN =
   process.env.PROFILE_EDITOR_ORIGIN ?? "https://editor.openmap.lt";
 
-// A saved style may only load data from these hosts (exact or subdomain).
-// This matches the app's CSP `connect-src` and keeps third parties from
-// receiving the IP of everyone who views a shared map.
-export const ALLOWED_STYLE_HOSTS = ["openmap.lt"] as const;
-
 export const PROFILE_NAME_MAX_LENGTH = 80;
 
 // Longest comment an admin can leave when hiding a profile.
