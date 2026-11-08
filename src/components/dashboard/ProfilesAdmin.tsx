@@ -70,6 +70,8 @@ function RowInfo({ row }: { row: AdminProfileRow }) {
       <p className="text-xs text-muted-foreground">
         <a
           href={`/m/${row.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="underline-offset-4 hover:underline"
         >
           /m/{row.slug}
