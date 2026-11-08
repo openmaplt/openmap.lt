@@ -2,7 +2,7 @@ import {
   type StyleSpecification,
   validateStyleMin,
 } from "@maplibre/maplibre-gl-style-spec";
-import { ALLOWED_STYLE_HOSTS, MAX_STYLE_BYTES } from "@/config/custom-profiles";
+import { MAX_STYLE_BYTES } from "@/config/custom-profiles";
 
 export type StyleValidationError =
   | "too_large"
@@ -15,9 +15,12 @@ export type StyleValidationResult =
   | { ok: true; style: StyleSpecification }
   | { ok: false; error: StyleValidationError; detail?: string };
 
-// Only https URLs on our own hosts. Anything else (third-party tile servers,
-// http, data:, pmtiles://) would be blocked by the CSP in production anyway,
-// and would leak the viewer's IP to that third party.
+// Any https address is allowed (people publish tile and data services to be
+// used in other people's maps; a service that doesn't allow it simply fails to
+// load, which the author sees in the editor). http, data:, javascript:, file:,
+// pmtiles:// and URLs with embedded credentials are refused. The app's CSP
+// (`connect-src https:`, `img-src https:`) is what lets the browser load them.
+// Note this means viewers' browsers contact whatever hosts the style names.
 export function isAllowedStyleUrl(value: string): boolean {
   let url: URL;
   try {
@@ -25,12 +28,7 @@ export function isAllowedStyleUrl(value: string): boolean {
   } catch {
     return false;
   }
-  if (url.protocol !== "https:") {
-    return false;
-  }
-  return ALLOWED_STYLE_HOSTS.some(
-    (host) => url.hostname === host || url.hostname.endsWith(`.${host}`),
-  );
+  return url.protocol === "https:" && !url.username && !url.password;
 }
 
 function asStrings(value: unknown): string[] {
